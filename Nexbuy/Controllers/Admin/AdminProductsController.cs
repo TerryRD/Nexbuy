@@ -55,9 +55,10 @@ public class AdminProductsController : ControllerBase
     }
 
     [HttpPost("{id:guid}/images")]
+    [Consumes("multipart/form-data")]
     public async Task<ActionResult<ApiResponse<ImageDto>>> UploadImage(
         [FromRoute] Guid id,
-        [FromForm] IFormFile file)
+        IFormFile file)
     {
         var result = await _adminProductService.UploadImageAsync(id, file);
         return Ok(ApiResponse<ImageDto>.Ok(result));
