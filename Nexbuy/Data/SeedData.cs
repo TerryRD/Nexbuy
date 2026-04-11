@@ -195,14 +195,14 @@ public static class SeedData
         // ── Images ────────────────────────────────────────────
         var images = new List<ProductImage>
         {
-            new() { ProductId = phone1.Id, Url = "/images/products/phone-001-1.jpg", SortOrder = 1 },
-            new() { ProductId = phone1.Id, Url = "/images/products/phone-001-2.jpg", SortOrder = 2 },
-            new() { ProductId = laptop1.Id, Url = "/images/products/laptop-001-1.jpg", SortOrder = 1 },
-            new() { ProductId = laptop1.Id, Url = "/images/products/laptop-001-2.jpg", SortOrder = 2 },
-            new() { ProductId = tshirt1.Id, Url = "/images/products/top-001-1.jpg", SortOrder = 1 },
-            new() { ProductId = jeans1.Id, Url = "/images/products/pant-001-1.jpg", SortOrder = 1 },
-            new() { ProductId = earbuds1.Id, Url = "/images/products/phone-002-1.jpg", SortOrder = 1 },
-            new() { ProductId = course1.Id, Url = "/images/products/dig-001-1.jpg", SortOrder = 1 }
+            new() { ProductId = phone1.Id, Url = "/images/products/phone-001-1.svg", SortOrder = 1 },
+            new() { ProductId = phone1.Id, Url = "/images/products/phone-001-2.svg", SortOrder = 2 },
+            new() { ProductId = laptop1.Id, Url = "/images/products/laptop-001-1.svg", SortOrder = 1 },
+            new() { ProductId = laptop1.Id, Url = "/images/products/laptop-001-2.svg", SortOrder = 2 },
+            new() { ProductId = tshirt1.Id, Url = "/images/products/top-001-1.svg", SortOrder = 1 },
+            new() { ProductId = jeans1.Id, Url = "/images/products/pant-001-1.svg", SortOrder = 1 },
+            new() { ProductId = earbuds1.Id, Url = "/images/products/phone-002-1.svg", SortOrder = 1 },
+            new() { ProductId = course1.Id, Url = "/images/products/dig-001-1.svg", SortOrder = 1 }
         };
 
         context.ProductImages.AddRange(images);

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e2245"/>
+      <stop offset="100%" stop-color="#1a1f3a"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000" flood-opacity="0.4"/>
+    </filter>
+    <linearGradient id="body" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1c1c30"/>
+      <stop offset="100%" stop-color="#12122a"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="800" fill="url(#bg)" rx="12"/>
+  <!-- Phone body (back view, slight angle) -->
+  <g transform="translate(400,330) rotate(-8) translate(-400,-330)">
+    <rect x="290" y="120" width="220" height="440" rx="24" fill="url(#body)" filter="url(#shadow)" stroke="#3a3a5c" stroke-width="2"/>
+    <!-- Camera module -->
+    <rect x="305" y="140" width="80" height="80" rx="16" fill="#0a0a18" stroke="#3a3a5c" stroke-width="1"/>
+    <!-- Camera lenses -->
+    <circle cx="330" cy="165" r="14" fill="#111128" stroke="#4a4a6c" stroke-width="1.5"/>
+    <circle cx="330" cy="165" r="8" fill="#1a1a40"/>
+    <circle cx="330" cy="165" r="4" fill="#2a2a5a"/>
+    <circle cx="362" cy="165" r="14" fill="#111128" stroke="#4a4a6c" stroke-width="1.5"/>
+    <circle cx="362" cy="165" r="8" fill="#1a1a40"/>
+    <circle cx="362" cy="165" r="4" fill="#2a2a5a"/>
+    <circle cx="346" cy="200" r="10" fill="#111128" stroke="#4a4a6c" stroke-width="1"/>
+    <circle cx="346" cy="200" r="5" fill="#1a1a40"/>
+    <!-- Flash -->
+    <circle cx="370" cy="200" r="4" fill="#ffffcc" opacity="0.6"/>
+    <!-- Logo text on back -->
+    <text x="400" y="400" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="14" fill="rgba(255,255,255,0.12)" letter-spacing="6">NEXBUY</text>
+  </g>
+  <!-- Product name -->
+  <text x="400" y="660" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="28" font-weight="600" fill="#ffffff">Flagship Smartphone Pro</text>
+  <text x="400" y="695" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="16" fill="rgba(255,255,255,0.5)">Back View</text>
+</svg>

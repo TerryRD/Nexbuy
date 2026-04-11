@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffafcc"/>
+      <stop offset="100%" stop-color="#ffc8dd"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#cc6688" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+  <rect width="400" height="300" fill="url(#bg)" rx="12"/>
+  <!-- Hanger icon -->
+  <g filter="url(#shadow)" transform="translate(200,120)">
+    <!-- Hook -->
+    <path d="M0,-50 Q15,-55 15,-40 Q15,-28 0,-25" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="3" stroke-linecap="round"/>
+    <!-- Hanger bar -->
+    <path d="M0,-25 L-80,30 L80,30 Z" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+    <!-- Dress form outline underneath -->
+    <path d="M-80,30 Q-85,80 -50,120 Q-20,145 0,145 Q20,145 50,120 Q85,80 80,30" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+  </g>
+  <!-- Decorative dots -->
+  <g fill="rgba(255,255,255,0.2)">
+    <circle cx="60" cy="50" r="8"/>
+    <circle cx="340" cy="70" r="6"/>
+    <circle cx="50" cy="240" r="5"/>
+    <circle cx="350" cy="230" r="7"/>
+  </g>
+  <!-- Category name -->
+  <text x="200" y="265" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="24" font-weight="700" fill="#8b3a62">Clothing</text>
+</svg>
