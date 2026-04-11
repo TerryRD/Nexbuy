@@ -23,3 +23,20 @@ Thumbs.db
 ehthumbs.db
 Desktop.ini
 .DS_Store
+
+# SQLite
+*.db
+*.db-shm
+*.db-wal
+
+# Frontend
+nexbuy-frontend/node_modules/
+nexbuy-frontend/dist/
+
+# Uploads
+wwwroot/uploads/*
+!wwwroot/uploads/.gitkeep
+
+# Environment
+.env
+*.env.local
