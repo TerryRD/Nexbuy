@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7209b7"/>
+      <stop offset="100%" stop-color="#b5179e"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#3a0060" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <rect width="400" height="300" fill="url(#bg)" rx="12"/>
+  <!-- Cloud shape -->
+  <g filter="url(#shadow)" transform="translate(200,110)">
+    <ellipse cx="0" cy="0" rx="55" ry="35" fill="rgba(255,255,255,0.2)"/>
+    <ellipse cx="-35" cy="10" rx="35" ry="28" fill="rgba(255,255,255,0.2)"/>
+    <ellipse cx="35" cy="10" rx="35" ry="28" fill="rgba(255,255,255,0.2)"/>
+    <ellipse cx="0" cy="18" rx="60" ry="22" fill="rgba(255,255,255,0.2)"/>
+    <!-- Download arrow -->
+    <line x1="0" y1="-8" x2="0" y2="20" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+    <polyline points="-10,12 0,24 10,12" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Base line -->
+    <line x1="-15" y1="28" x2="15" y2="28" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+  </g>
+  <!-- File icons floating around -->
+  <g opacity="0.2">
+    <!-- File 1 -->
+    <rect x="60" y="50" width="30" height="38" rx="3" fill="#fff"/>
+    <path d="M78,50 L90,62 L78,62 Z" fill="rgba(255,255,255,0.5)"/>
+    <!-- File 2 -->
+    <rect x="310" y="60" width="28" height="35" rx="3" fill="#fff"/>
+    <path d="M326,60 L338,72 L326,72 Z" fill="rgba(255,255,255,0.5)"/>
+    <!-- File 3 -->
+    <rect x="50" y="190" width="25" height="32" rx="3" fill="#fff"/>
+  </g>
+  <!-- Binary/digital accents -->
+  <g fill="rgba(255,255,255,0.08)" font-family="monospace" font-size="10">
+    <text x="300" y="200">0110</text>
+    <text x="320" y="215">1001</text>
+    <text x="60" y="150">1010</text>
+    <text x="40" y="165">0101</text>
+  </g>
+  <!-- Category name -->
+  <text x="200" y="260" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="24" font-weight="700" fill="#ffffff">Digital Goods</text>
+</svg>
