@@ -8,7 +8,7 @@
 INSERT INTO admins (email, password_hash, name, role, status)
 VALUES (
   'admin@nexbuy.local',
-  crypt('Admin123!', gen_salt('bf')),
+  extensions.crypt('Admin123!', extensions.gen_salt('bf')),
   '系統管理員',
   'super_admin',
   'active'

@@ -4,7 +4,8 @@
 -- ============================================================
 
 -- Enable required extensions
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
+-- pgcrypto is pre-installed in Supabase under 'extensions' schema
+CREATE EXTENSION IF NOT EXISTS pgcrypto SCHEMA extensions;
 
 -- ── Enum Types ──────────────────────────────────────────────
 
@@ -230,7 +231,7 @@ CREATE TABLE digital_downloads (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   order_item_id uuid NOT NULL REFERENCES order_items(id) ON DELETE RESTRICT,
   user_id uuid NOT NULL REFERENCES profiles(id) ON DELETE RESTRICT,
-  token text NOT NULL DEFAULT encode(gen_random_bytes(32), 'hex'),
+  token text NOT NULL DEFAULT replace(gen_random_uuid()::text, '-', ''),
   download_count integer NOT NULL DEFAULT 0,
   max_downloads integer NOT NULL DEFAULT 5,
   expires_at timestamptz NOT NULL,
