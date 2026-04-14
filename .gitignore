@@ -33,6 +33,10 @@ Desktop.ini
 nexbuy-frontend/node_modules/
 nexbuy-frontend/dist/
 
+# Supabase Frontend
+nexbuy-supabase/node_modules/
+nexbuy-supabase/dist/
+
 # Uploads
 wwwroot/uploads/*
 !wwwroot/uploads/.gitkeep
