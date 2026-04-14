@@ -38,7 +38,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useMessage, NCard, NSpace, NButton, NSpin, NResult } from 'naive-ui'
-import client from '@/api/client'
+import { supabase } from '@/lib/supabase'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -68,8 +68,14 @@ async function verifyToken() {
   }
   loading.value = true
   try {
-    const res = await client.get(`/downloads/${token}/verify`)
-    const data = res.data || res
+    const { data: result, error: fnError } = await supabase.functions.invoke('download', {
+      body: { token, verify_only: true }
+    })
+    if (fnError || !result?.success) {
+      setError('invalid')
+      return
+    }
+    const data = result.data
     downloadInfo.value = data
 
     if (data.isRevoked) {
@@ -85,11 +91,7 @@ async function verifyToken() {
       return
     }
   } catch (err: any) {
-    const status = err?.response?.status
-    if (status === 404) setError('invalid')
-    else if (status === 410) setError('expired')
-    else if (status === 429) setError('limit')
-    else setError('invalid')
+    setError('invalid')
   } finally {
     loading.value = false
   }
@@ -116,8 +118,11 @@ async function handleDownload() {
   const token = route.params.token as string
   downloading.value = true
   try {
-    const res = await client.get(`/downloads/${token}`, { responseType: 'blob' })
-    const blob = new Blob([res as any])
+    const { data: dlResult, error: dlError } = await supabase.functions.invoke('download', {
+      body: { token }
+    })
+    if (dlError) throw dlError
+    const blob = new Blob([dlResult as any])
     const url = window.URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url

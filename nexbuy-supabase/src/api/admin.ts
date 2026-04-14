@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase'
 
-function getAdminHeaders() {
+function getAdminHeaders(): Record<string, string> {
   const token = localStorage.getItem('adminToken')
   return token ? { Authorization: `Bearer ${token}` } : {}
 }

@@ -44,7 +44,12 @@
 import { ref, h, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useMessage, NSpace, NButton, NDataTable, NSpin, NEmpty, NModal, NForm, NFormItem, NInput, NSelect, NTag, type FormInst, type FormRules, type DataTableColumns } from 'naive-ui'
-import client from '@/api/client'
+import { supabase } from '@/lib/supabase'
+
+function getAdminHeaders(): Record<string, string> {
+  const token = localStorage.getItem('adminToken')
+  return token ? { Authorization: `Bearer ${token}` } : {}
+}
 
 const { t } = useI18n()
 const message = useMessage()
@@ -109,8 +114,11 @@ function openModal() {
 async function fetchAdmins() {
   loading.value = true
   try {
-    const res = await client.get('/admin/admins')
-    admins.value = res.data?.items || res.data || []
+    const { data, error } = await supabase.functions.invoke('admin-members', {
+      body: { action: 'list-admins' },
+      headers: getAdminHeaders()
+    })
+    admins.value = data?.data?.items || data?.data || []
   } catch {
     // Admin accounts endpoint may not exist yet
     admins.value = []
@@ -128,11 +136,15 @@ async function handleSave() {
 
   saving.value = true
   try {
-    await client.post('/admin/admins', {
-      email: form.value.email,
-      password: form.value.password,
-      name: form.value.name,
-      role: form.value.role
+    await supabase.functions.invoke('admin-members', {
+      body: {
+        action: 'create-admin',
+        email: form.value.email,
+        password: form.value.password,
+        name: form.value.name,
+        role: form.value.role
+      },
+      headers: getAdminHeaders()
     })
     message.success(t('common.success'))
     showModal.value = false
