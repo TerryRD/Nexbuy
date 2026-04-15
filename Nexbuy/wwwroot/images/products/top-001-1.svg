@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f5f0eb"/>
+      <stop offset="100%" stop-color="#e8ddd0"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="3" stdDeviation="6" flood-color="#8a7a6a" flood-opacity="0.2"/>
+    </filter>
+    <linearGradient id="shirt" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fafafa"/>
+      <stop offset="100%" stop-color="#f0ece6"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="800" fill="url(#bg)" rx="12"/>
+  <!-- T-Shirt shape -->
+  <g filter="url(#shadow)">
+    <path d="
+      M320,180
+      L280,200 L200,240 L220,310 L280,280 L280,560
+      L520,560
+      L520,280 L580,310 L600,240 L520,200 L480,180
+      L460,210 Q400,240 340,210
+      Z
+    " fill="url(#shirt)" stroke="#d4c8b8" stroke-width="2" stroke-linejoin="round"/>
+    <!-- Collar detail -->
+    <path d="M340,210 Q400,245 460,210" fill="none" stroke="#d4c8b8" stroke-width="2"/>
+    <!-- Collar neckline -->
+    <path d="M320,180 Q340,195 340,210" fill="none" stroke="#d4c8b8" stroke-width="1.5"/>
+    <path d="M480,180 Q460,195 460,210" fill="none" stroke="#d4c8b8" stroke-width="1.5"/>
+    <!-- Sleeve creases -->
+    <path d="M280,240 Q260,260 270,280" fill="none" stroke="rgba(180,170,155,0.3)" stroke-width="1"/>
+    <path d="M520,240 Q540,260 530,280" fill="none" stroke="rgba(180,170,155,0.3)" stroke-width="1"/>
+    <!-- Body center fold line -->
+    <line x1="400" y1="250" x2="400" y2="540" stroke="rgba(180,170,155,0.15)" stroke-width="1"/>
+  </g>
+  <!-- Product name -->
+  <text x="400" y="660" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="28" font-weight="600" fill="#5a4e42">Classic Cotton T-Shirt</text>
+  <text x="400" y="695" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="16" fill="rgba(90,78,66,0.5)">100% Cotton</text>
+</svg>

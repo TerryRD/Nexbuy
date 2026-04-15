@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a1a1a"/>
+      <stop offset="100%" stop-color="#333333"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000" flood-opacity="0.5"/>
+    </filter>
+    <radialGradient id="earbud" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#4a4a4a"/>
+      <stop offset="100%" stop-color="#1a1a1a"/>
+    </radialGradient>
+    <linearGradient id="case" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#3a3a3a"/>
+      <stop offset="100%" stop-color="#222222"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="800" fill="url(#bg)" rx="12"/>
+  <!-- Charging case -->
+  <g filter="url(#shadow)">
+    <rect x="260" y="360" width="280" height="160" rx="30" fill="url(#case)" stroke="#4a4a4a" stroke-width="1.5"/>
+    <!-- Case lid line -->
+    <path d="M280,410 Q400,400 520,410" fill="none" stroke="#555" stroke-width="1"/>
+    <!-- Case hinge -->
+    <ellipse cx="400" cy="360" rx="100" ry="6" fill="#2a2a2a"/>
+    <!-- LED indicator -->
+    <circle cx="400" cy="500" r="3" fill="#4ade80" opacity="0.8"/>
+  </g>
+  <!-- Left earbud -->
+  <g filter="url(#shadow)">
+    <ellipse cx="300" cy="250" rx="50" ry="55" fill="url(#earbud)" stroke="#4a4a4a" stroke-width="1"/>
+    <!-- Earbud stem -->
+    <rect x="290" y="290" width="20" height="50" rx="8" fill="#2a2a2a" stroke="#4a4a4a" stroke-width="1"/>
+    <!-- Speaker mesh -->
+    <circle cx="300" cy="240" r="18" fill="none" stroke="#555" stroke-width="0.5"/>
+    <circle cx="300" cy="240" r="12" fill="#151515"/>
+    <circle cx="300" cy="240" r="6" fill="#222"/>
+    <!-- Touch surface highlight -->
+    <ellipse cx="295" cy="230" rx="20" ry="25" fill="rgba(255,255,255,0.04)"/>
+  </g>
+  <!-- Right earbud -->
+  <g filter="url(#shadow)">
+    <ellipse cx="500" cy="250" rx="50" ry="55" fill="url(#earbud)" stroke="#4a4a4a" stroke-width="1"/>
+    <!-- Earbud stem -->
+    <rect x="490" y="290" width="20" height="50" rx="8" fill="#2a2a2a" stroke="#4a4a4a" stroke-width="1"/>
+    <!-- Speaker mesh -->
+    <circle cx="500" cy="240" r="18" fill="none" stroke="#555" stroke-width="0.5"/>
+    <circle cx="500" cy="240" r="12" fill="#151515"/>
+    <circle cx="500" cy="240" r="6" fill="#222"/>
+    <!-- Touch surface highlight -->
+    <ellipse cx="495" cy="230" rx="20" ry="25" fill="rgba(255,255,255,0.04)"/>
+  </g>
+  <!-- Product name -->
+  <text x="400" y="620" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="28" font-weight="600" fill="#ffffff">True Wireless Earbuds</text>
+  <text x="400" y="655" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="16" fill="rgba(255,255,255,0.4)">Active Noise Cancelling</text>
+</svg>
