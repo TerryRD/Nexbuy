@@ -45,5 +45,7 @@ wwwroot/uploads/*
 .env
 *.env.local
 
-# Claude Code
-.claude/
+# Claude Code — ignore personal config, whitelist shared team files
+.claude/*
+!.claude/hooks/
+!.claude/settings.json
