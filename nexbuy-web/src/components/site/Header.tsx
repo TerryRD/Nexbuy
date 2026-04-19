@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CartLink } from "./CartLink";
 
 export function Header() {
   return (
@@ -7,7 +8,7 @@ export function Header() {
         <Link href="/" className="text-lg font-semibold tracking-tight">
           Nexbuy 眼鏡
         </Link>
-        <nav className="flex gap-4 text-sm">
+        <nav className="flex items-center gap-4 text-sm">
           <Link
             href="/products?kind=finished"
             className="text-muted-foreground hover:text-foreground"
@@ -20,6 +21,7 @@ export function Header() {
           >
             處方鏡架
           </Link>
+          <CartLink />
         </nav>
       </div>
     </header>

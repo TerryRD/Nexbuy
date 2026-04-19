@@ -3,8 +3,9 @@ import { notFound } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { formatPrice } from "@/lib/format";
 import type { Product } from "@/lib/types/database";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { AddToCartButton } from "./AddToCartButton";
 
 type Params = Promise<{ slug: string }>;
 
@@ -87,13 +88,20 @@ export default async function ProductDetailPage({
               </div>
             ) : (
               <div className="space-y-2">
-                <Button size="lg" disabled={soldOut} className="w-full sm:w-auto">
-                  {soldOut ? "已售完" : "加入購物車"}
-                </Button>
+                <AddToCartButton
+                  product={{
+                    product_id: product.id,
+                    slug: product.slug,
+                    name: product.name,
+                    price_cents: product.price_cents,
+                  }}
+                  disabled={soldOut}
+                  disabledReason={soldOut ? "已售完" : undefined}
+                />
                 <p className="text-sm text-muted-foreground">
                   {soldOut
                     ? "請選擇其他款式或預約配處方鏡片。"
-                    : `庫存剩 ${product.finished_stock ?? 0} 副;購物車 MVP 第二階段上線。`}
+                    : `庫存剩 ${product.finished_stock ?? 0} 副`}
                 </p>
               </div>
             )}
