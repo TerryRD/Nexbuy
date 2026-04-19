@@ -1,6 +1,7 @@
 # Nexbuy — Claude Code 專案指引
 
-B2C 電子商務平台（Vue 3 + .NET 8 Web API + SQL Server / Supabase migration）。
+眼鏡店線上通路 MVP：成品線上直購 + 處方鏡架線上預約到店配鏡。
+Stack: Next.js 16 + Supabase + Vercel（細節見 [`README.md`](README.md)）。
 
 ## GStack 工作流程（用於產品多角度思考）
 
@@ -20,17 +21,15 @@ B2C 電子商務平台（Vue 3 + .NET 8 Web API + SQL Server / Supabase migratio
 1. **Worktree 流程**：所有開發一律在 `.worktrees/feat/<功能名>` 進行，先 `git worktree add`
 2. **PR 目標分支**：一律發到 `dev`，禁止直接 push `main` / `dev`
 3. **Commit 格式**：conventional commits + `Co-authored-by: Claude <claude@anthropic.com>`
-4. **.NET 指令**：使用 `/usr/bin/dotnet`，禁止 `sudo dotnet`
-5. **禁改 `.env`**
+4. **禁改 `.env`**
 
 若 GStack 指令的預設動作與上列衝突，以上列為準。
 
 ## 專案結構
 
-- `nexbuy-frontend/` — Vue 3 前端
-- `nexbuy-supabase/` — Supabase + Vercel 遷移專案
-- `spec/` — 規格文件
-- `Nexbuy.slnx` — .NET solution
+- `nexbuy-web/` — 主程式碼（Next.js 16 App Router + Supabase）
+- `docs/` — gstack 等文件
+- `README.md` — 開發 / 部署指南
 
 ## gstack (REQUIRED — global install)
 
