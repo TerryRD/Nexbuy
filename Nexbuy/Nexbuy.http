@@ -1,6 +1,0 @@
-@Nexbuy_HostAddress = http://localhost:5261
-
-GET {{Nexbuy_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
