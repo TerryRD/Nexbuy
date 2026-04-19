@@ -3,6 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { sendEmail } from "@/lib/email/send";
+import { orderPaidEmail } from "@/lib/email/templates";
+import { publicEnv } from "@/lib/env";
 
 const NEXT_STATUS_MAP = {
   pending_payment: "paid",
@@ -39,7 +42,7 @@ export async function advanceOrderStatus(formData: FormData): Promise<void> {
     .update({ status: nextStatus })
     .eq("id", parsed.data.id)
     .eq("status", parsed.data.from)
-    .select("id");
+    .select("id, order_no, recipient_name, customer_email");
 
   if (error) {
     console.error("advanceOrderStatus failed:", error);
@@ -47,6 +50,21 @@ export async function advanceOrderStatus(formData: FormData): Promise<void> {
   }
   if (!data || data.length === 0) {
     throw new Error("STATE_CHANGED"); // 其他 admin 已更新過
+  }
+
+  // Notify customer when payment is confirmed (pending_payment → paid).
+  // Other transitions (→ shipped → completed) don't email; we'd add SMS or
+  // tracking-no based notifications later.
+  if (nextStatus === "paid") {
+    const o = data[0];
+    void sendEmail(
+      orderPaidEmail({
+        to: o.customer_email,
+        customerName: o.recipient_name,
+        orderNo: o.order_no,
+        successUrl: `${publicEnv.NEXT_PUBLIC_APP_URL}/orders/${o.order_no}`,
+      }),
+    );
   }
 
   revalidatePath("/admin/orders");

@@ -3,6 +3,8 @@ import { createAdminSupabase } from "@/lib/supabase/admin";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { placeOrderSchema } from "@/lib/schemas/order";
 import { publicEnv } from "@/lib/env";
+import { sendEmail } from "@/lib/email/send";
+import { orderPlacedEmail } from "@/lib/email/templates";
 
 export async function POST(request: NextRequest) {
   let body: unknown;
@@ -33,6 +35,7 @@ export async function POST(request: NextRequest) {
       quantity: i.quantity,
     })),
     p_customer_name: input.customer_name,
+    p_customer_email: input.customer_email,
     p_customer_phone: input.customer_phone,
     p_shipping_address: input.shipping_address,
     p_note: input.note ?? null,
@@ -61,11 +64,44 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "INTERNAL" }, { status: 500 });
   }
 
+  const successUrl = `${publicEnv.NEXT_PUBLIC_APP_URL}/orders/${row.order_no}`;
+
+  // Fetch the just-created order's items + total for the confirmation email.
+  // Separate query (vs returning everything from place_order) keeps the RPC
+  // signature simple. One extra round-trip is fine; this isn't hot path.
+  const { data: orderForEmail } = await admin
+    .from("orders")
+    .select("total_cents, items:order_items(product_name, quantity)")
+    .eq("id", row.order_id)
+    .maybeSingle();
+
+  if (orderForEmail) {
+    const o = orderForEmail as unknown as {
+      total_cents: number;
+      items: { product_name: string; quantity: number }[];
+    };
+    // Fire-and-forget: order is already committed, the user shouldn't wait an
+    // extra round-trip and email failures shouldn't surface as 500s.
+    void sendEmail(
+      orderPlacedEmail({
+        to: input.customer_email,
+        customerName: input.customer_name,
+        orderNo: row.order_no,
+        totalCents: o.total_cents,
+        items: o.items.map((i) => ({
+          productName: i.product_name,
+          quantity: i.quantity,
+        })),
+        successUrl,
+      }),
+    );
+  }
+
   return NextResponse.json(
     {
       order_id: row.order_id,
       order_no: row.order_no,
-      success_url: `${publicEnv.NEXT_PUBLIC_APP_URL}/orders/${row.order_no}`,
+      success_url: successUrl,
     },
     { status: 201 },
   );

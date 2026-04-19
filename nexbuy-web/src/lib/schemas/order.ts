@@ -11,6 +11,7 @@ export const placeOrderSchema = z.object({
     .min(1, "購物車是空的")
     .max(20, "一次下單最多 20 種商品"),
   customer_name: z.string().trim().min(1).max(100),
+  customer_email: z.email().toLowerCase(),
   customer_phone: z
     .string()
     .trim()

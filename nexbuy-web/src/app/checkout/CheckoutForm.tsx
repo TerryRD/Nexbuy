@@ -13,6 +13,7 @@ export function CheckoutForm() {
   const router = useRouter();
   const { items, subtotalCents, totalQuantity, clear } = useCart();
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [note, setNote] = useState("");
@@ -68,6 +69,7 @@ export function CheckoutForm() {
               quantity: i.quantity,
             })),
             customer_name: name.trim(),
+            customer_email: email.trim(),
             customer_phone: phone.trim(),
             shipping_address: address.trim(),
             note: note.trim() || null,
@@ -126,6 +128,16 @@ export function CheckoutForm() {
                 pattern="0\d{8,9}"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="co-email">Email(寄送訂單通知)</Label>
+              <Input
+                id="co-email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div className="space-y-2 sm:col-span-2">
