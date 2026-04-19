@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "installCommand": "cd nexbuy-web && pnpm install --frozen-lockfile",
+  "installCommand": "corepack enable && corepack prepare pnpm@10.33.0 --activate && cd nexbuy-web && pnpm install --frozen-lockfile",
   "buildCommand": "cd nexbuy-web && pnpm build",
   "outputDirectory": "nexbuy-web/.next"
 }
