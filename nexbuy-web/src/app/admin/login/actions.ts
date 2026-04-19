@@ -28,9 +28,9 @@ export async function loginAction(
     return { error: "登入失敗:" + error.message };
   }
 
-  // 確認這位使用者是 admin (app_metadata.role)。
-  // 非 admin 就立刻登出,避免他拿到 session 跳過前端檢查。
-  const role = (data.user?.app_metadata as { role?: string } | null)?.role;
+  // app_metadata.role 是 system-controlled 的角色欄位 (使用者改不了)
+  const appMeta = data.user?.app_metadata as Record<string, unknown> | undefined;
+  const role = (appMeta?.role as string | undefined) ?? null;
   if (role !== "admin") {
     await sb.auth.signOut();
     return { error: "此帳號不是管理員。" };
