@@ -102,7 +102,9 @@ create table appointments (
   status text not null default 'booked' check (status in (
     'booked', 'completed', 'noshow', 'cancelled'
   )),
-  cancel_token text unique not null default encode(gen_random_bytes(16), 'hex'),
+  -- gen_random_uuid() is Postgres-native; strip dashes to get 32-char hex token
+  -- matching the `^[0-9a-f]{32}$` format validated in the API route.
+  cancel_token text unique not null default replace(gen_random_uuid()::text, '-', ''),
   created_at timestamptz not null default now(),
   cancelled_at timestamptz
 );
