@@ -3,13 +3,15 @@
 
 set search_path = public;
 
--- Helper: is_admin() checks JWT role claim
--- Admin 透過 auth.jwt() ->> 'role' = 'admin'。在 Supabase dashboard > Auth > Users
--- 編輯 raw_user_meta_data 加 "role": "admin"，或建個 admin_users table 存身份。
--- MVP 採最簡單的 JWT claim 做法。
+-- Helper: is_admin() checks app_metadata.role in the Supabase JWT.
+-- ⚠️ Supabase 的 JWT top-level `role` 永遠是 "authenticated" (PostgREST role),
+-- 不是應用層 role。應用層角色放在 `app_metadata.role`。
+-- 設定管理員：在 Supabase Dashboard > Authentication > Users 編輯使用者的
+-- Raw App Meta Data (不是 user_metadata),加 {"role": "admin"}。
+-- app_metadata 是 system-controlled,使用者無法自己改,比 user_metadata 安全。
 create or replace function is_admin() returns boolean
 language sql stable security definer set search_path = public as $$
-  select coalesce(auth.jwt() ->> 'role' = 'admin', false);
+  select coalesce(auth.jwt() -> 'app_metadata' ->> 'role' = 'admin', false);
 $$;
 
 -- =========================================================================
