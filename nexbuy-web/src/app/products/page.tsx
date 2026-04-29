@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase/server";
@@ -103,8 +104,18 @@ export default async function ProductsPage({
           {products.map((p) => (
             <li key={p.id}>
               <Link href={`/products/${p.slug}`}>
-                <Card className="h-full transition-shadow hover:shadow-md">
-                  <div className="aspect-square overflow-hidden rounded-t-lg bg-muted" />
+                <Card className="h-full overflow-hidden transition-shadow hover:shadow-md">
+                  <div className="relative aspect-square overflow-hidden rounded-t-lg bg-muted">
+                    {p.image_urls[0] ? (
+                      <Image
+                        src={p.image_urls[0]}
+                        alt={p.name}
+                        fill
+                        sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                    ) : null}
+                  </div>
                   <CardHeader>
                     <div className="flex items-start justify-between gap-2">
                       <CardTitle className="text-base leading-tight">
