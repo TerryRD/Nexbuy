@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CartLink } from "./CartLink";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function Header() {
   return (
@@ -25,6 +26,7 @@ export function Header() {
             處方鏡架
           </Link>
           <CartLink />
+          <ThemeToggle />
         </nav>
       </div>
     </header>
