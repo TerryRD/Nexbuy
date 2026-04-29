@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase/server";
@@ -41,7 +42,18 @@ export default async function ProductDetailPage({
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
       <div className="grid gap-8 md:grid-cols-2">
-        <div className="aspect-square rounded-lg border bg-muted/50" aria-hidden />
+        <div className="relative aspect-square overflow-hidden rounded-lg border bg-muted/50">
+          {product.image_urls[0] ? (
+            <Image
+              src={product.image_urls[0]}
+              alt={product.name}
+              fill
+              sizes="(min-width: 768px) 50vw, 100vw"
+              className="object-cover"
+              priority
+            />
+          ) : null}
+        </div>
         <div className="space-y-5">
           <div className="space-y-2">
             <div className="flex items-center gap-2">

@@ -6,12 +6,15 @@ const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL
 
 const nextConfig: NextConfig = {
   images: {
-    // Whitelist the Supabase Storage public URL host so next/image will
-    // serve product images. Falls back to wildcard *.supabase.co if env
-    // isn't available at build time (e.g. in CI without env).
-    remotePatterns: supabaseHost
-      ? [{ protocol: "https", hostname: supabaseHost, pathname: "/storage/v1/object/public/**" }]
-      : [{ protocol: "https", hostname: "*.supabase.co", pathname: "/storage/v1/object/public/**" }],
+    // Whitelist hosts for next/image. Supabase Storage is the primary path
+    // (admin-uploaded product images); Unsplash is allowed for demo seed
+    // product photos and can be removed once real photos are uploaded.
+    remotePatterns: [
+      supabaseHost
+        ? { protocol: "https" as const, hostname: supabaseHost, pathname: "/storage/v1/object/public/**" }
+        : { protocol: "https" as const, hostname: "*.supabase.co", pathname: "/storage/v1/object/public/**" },
+      { protocol: "https", hostname: "images.unsplash.com" },
+    ],
   },
 };
 
