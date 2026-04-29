@@ -18,14 +18,15 @@ Stack: Next.js 16 + Supabase + Vercel（細節見 [`README.md`](README.md)）。
 
 使用者的全域 CLAUDE.md 規則優先，GStack 的 `/ship`、`/land-and-deploy` 需配合以下調整：
 
-1. **Worktree 流程**：所有開發一律在 `.worktrees/feat/<功能名>` 進行，先 `git worktree add`
-2. **PR 流程（兩段式，順序不可顛倒）**：
+1. **動作前必先 sync**：任何開發、commit、發 PR 之前，先 `git checkout dev && git pull origin dev` 把本地 `dev` 拉到最新；建 worktree 也要從 sync 後的 `dev` 切。避免本地落後 origin 造成 diff 對不上、衝突、重工。
+2. **Worktree 流程**：所有開發一律在 `.worktrees/feat/<功能名>` 進行，先 `git worktree add`
+3. **PR 流程（兩段式，順序不可顛倒）**：
    - 第一段：`feat/* → dev`（功能合進 dev）
    - 第二段：`dev → main`（dev 累積後再 promote 到 main）
    - 禁止直接從 feature branch 發 PR 到 `main`
    - 禁止直接 push 到 `main` / `dev`
-3. **Commit 格式**：conventional commits + `Co-authored-by: Claude <claude@anthropic.com>`
-4. **禁改 `.env`**
+4. **Commit 格式**：conventional commits + `Co-authored-by: Claude <claude@anthropic.com>`
+5. **禁改 `.env`**
 
 若 GStack 指令的預設動作與上列衝突，以上列為準。
 
