@@ -56,7 +56,7 @@ export default async function ProductDetailPage({
                 </span>
               )}
             </div>
-            <h1 className="text-3xl font-semibold tracking-tight">
+            <h1 className="font-heading text-3xl font-semibold tracking-tight md:text-4xl">
               {product.name}
             </h1>
             <p className="text-2xl font-semibold">
