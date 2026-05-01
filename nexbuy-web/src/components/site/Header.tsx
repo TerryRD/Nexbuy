@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Glasses } from "lucide-react";
 import { CartLink } from "./CartLink";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -12,30 +13,13 @@ export function Header() {
         >
           精鋐眼鏡行
         </Link>
-        <nav className="flex items-center gap-4 text-sm">
+        <nav className="flex items-center gap-1 text-sm">
           <Link
-            href="/products?kind=finished"
-            className="text-muted-foreground hover:text-foreground"
+            href="/products"
+            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-muted-foreground transition-colors hover:bg-accent/40 hover:text-foreground"
           >
-            成品眼鏡
-          </Link>
-          <Link
-            href="/products?kind=prescription_frame"
-            className="text-muted-foreground hover:text-foreground"
-          >
-            處方鏡架
-          </Link>
-          <Link
-            href="/#story"
-            className="text-muted-foreground hover:text-foreground"
-          >
-            品牌故事
-          </Link>
-          <Link
-            href="/#visit"
-            className="text-muted-foreground hover:text-foreground"
-          >
-            來坐一下
+            <Glasses className="size-4" />
+            <span>眼鏡</span>
           </Link>
           <CartLink />
           <ThemeToggle />

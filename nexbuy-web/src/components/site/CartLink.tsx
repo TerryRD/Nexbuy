@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ShoppingBag } from "lucide-react";
 import { useCart } from "@/lib/cart";
 
 export function CartLink() {
@@ -9,12 +10,16 @@ export function CartLink() {
   return (
     <Link
       href="/cart"
-      className="relative flex items-center gap-1 text-muted-foreground hover:text-foreground"
+      className="relative inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-muted-foreground transition-colors hover:bg-accent/40 hover:text-foreground"
       aria-label={`購物車 ${totalQuantity} 件`}
     >
+      <ShoppingBag className="size-4" />
       <span>購物車</span>
       {totalQuantity > 0 && (
-        <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-medium text-primary-foreground">
+        <span
+          aria-hidden
+          className="absolute -top-0.5 -right-0.5 inline-flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold leading-4 text-primary-foreground"
+        >
           {totalQuantity}
         </span>
       )}
