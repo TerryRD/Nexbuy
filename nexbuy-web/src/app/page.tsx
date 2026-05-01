@@ -47,6 +47,12 @@ export default function HomePage() {
                 預約配處方鏡片
               </Link>
             </div>
+            <Link
+              href="/about"
+              className="inline-flex items-center gap-1 pt-1 text-sm font-medium text-primary hover:underline"
+            >
+              認識精鋐眼鏡行 →
+            </Link>
           </div>
 
           <div className="relative">
@@ -56,8 +62,10 @@ export default function HomePage() {
             >
               <div className="relative size-full">
                 <div className="absolute left-1/2 top-1/2 size-2/3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br from-card/70 to-transparent blur-2xl" />
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-heading text-7xl font-semibold text-primary/30 md:text-8xl">
-                  Nexbuy
+                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center font-heading text-5xl font-semibold leading-tight text-primary/35 md:text-7xl">
+                  精鋐
+                  <br />
+                  眼鏡行
                 </div>
               </div>
             </div>
