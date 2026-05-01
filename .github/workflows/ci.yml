@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [dev, main]
+  push:
+    branches: [dev, main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: nexbuy-web
+
+jobs:
+  static-checks:
+    name: typecheck / lint / build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: nexbuy-web/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy-anon-key
+          SUPABASE_SERVICE_ROLE_KEY: dummy-service-role-key
+          RESEND_API_KEY: dummy-resend-key
+          RESEND_FROM_EMAIL: ci@example.com
+          NEXT_PUBLIC_APP_URL: http://localhost:3000
+        run: pnpm build
+
+  tests:
+    name: vitest (supabase local)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: nexbuy-web/pnpm-lock.yaml
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Start Supabase (applies migrations + seed)
+        run: supabase start
+
+      - name: Write test env from supabase status
+        run: |
+          STATUS=$(supabase status --output json)
+          API_URL=$(echo "$STATUS" | jq -r '.API_URL')
+          SERVICE=$(echo "$STATUS" | jq -r '.SERVICE_ROLE_KEY')
+          {
+            echo "TEST_SUPABASE_URL=$API_URL"
+            echo "TEST_SUPABASE_SERVICE_ROLE_KEY=$SERVICE"
+          } > .env.test.local
+
+      - name: Run tests
+        run: pnpm test
+
+      - name: Stop Supabase
+        if: always()
+        run: supabase stop

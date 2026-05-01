@@ -10,7 +10,7 @@ export function Header() {
           href="/"
           className="font-heading text-xl font-semibold tracking-tight text-primary"
         >
-          Nexbuy 眼鏡
+          精鋐眼鏡行
         </Link>
         <nav className="flex items-center gap-4 text-sm">
           <Link
@@ -24,6 +24,12 @@ export function Header() {
             className="text-muted-foreground hover:text-foreground"
           >
             處方鏡架
+          </Link>
+          <Link
+            href="/about"
+            className="text-muted-foreground hover:text-foreground"
+          >
+            品牌故事
           </Link>
           <CartLink />
           <ThemeToggle />
