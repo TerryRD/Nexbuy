@@ -7,9 +7,11 @@
 // reminded yet.
 //
 // Auth: Vercel sets `Authorization: Bearer ${CRON_SECRET}` when a CRON_SECRET
-// env var exists. The route refuses requests that don't match. In local dev
-// without CRON_SECRET, the route is open (which is fine — nothing's exposed
-// publicly during dev).
+// env var exists. The route refuses requests that don't match.
+// - In production CRON_SECRET is REQUIRED. If unset the route returns 500
+//   (fail-closed) so a missing env var can never silently expose the endpoint.
+// - In local dev (NODE_ENV !== "production") an unset CRON_SECRET leaves the
+//   route open — convenient for testing and nothing's exposed publicly.
 
 import { NextResponse, type NextRequest } from "next/server";
 import { createAdminSupabase } from "@/lib/supabase/admin";
@@ -29,6 +31,12 @@ interface AppointmentRow {
 
 export async function GET(request: NextRequest) {
   const expected = process.env.CRON_SECRET;
+
+  if (process.env.NODE_ENV === "production" && !expected) {
+    console.error("[cron] CRON_SECRET missing in production — refusing.");
+    return NextResponse.json({ error: "MISCONFIGURED" }, { status: 500 });
+  }
+
   if (expected) {
     const got = request.headers.get("authorization");
     if (got !== `Bearer ${expected}`) {
