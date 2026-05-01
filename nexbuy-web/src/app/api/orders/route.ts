@@ -5,8 +5,20 @@ import { placeOrderSchema } from "@/lib/schemas/order";
 import { publicEnv } from "@/lib/env";
 import { sendEmail } from "@/lib/email/send";
 import { orderPlacedEmail } from "@/lib/email/templates";
+import { getClientIp, rateLimitOrders } from "@/lib/ratelimit";
 
 export async function POST(request: NextRequest) {
+  const limit = await rateLimitOrders(getClientIp(request));
+  if (!limit.ok) {
+    return NextResponse.json(
+      { error: "RATE_LIMITED" },
+      {
+        status: 429,
+        headers: { "Retry-After": String(limit.retryAfterSec) },
+      },
+    );
+  }
+
   let body: unknown;
   try {
     body = await request.json();

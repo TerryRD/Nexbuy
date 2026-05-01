@@ -6,8 +6,21 @@ import { publicEnv } from "@/lib/env";
 import { sendEmail } from "@/lib/email/send";
 import { appointmentBookedEmail } from "@/lib/email/templates";
 import { formatDate, formatTime } from "@/lib/format";
+import { getClientIp, rateLimitAppointments } from "@/lib/ratelimit";
 
 export async function POST(request: NextRequest) {
+  // 0. IP rate limit (no-op in dev when Upstash env vars are missing)
+  const limit = await rateLimitAppointments(getClientIp(request));
+  if (!limit.ok) {
+    return NextResponse.json(
+      { error: "RATE_LIMITED" },
+      {
+        status: 429,
+        headers: { "Retry-After": String(limit.retryAfterSec) },
+      },
+    );
+  }
+
   // 1. Parse + validate
   let body: unknown;
   try {
