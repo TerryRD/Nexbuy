@@ -8,6 +8,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
+import { Reveal } from "@/components/site/Reveal";
 
 const MAP_LABEL = encodeURIComponent("精鋐眼鏡行");
 const MAP_EMBED_SRC = `https://maps.google.com/maps?q=25.0173074,121.2956103+(${MAP_LABEL})&hl=zh-TW&z=17&output=embed`;
@@ -122,6 +123,7 @@ export default function HomePage() {
 
       {/* ---------------- Brand story ---------------- */}
       <section id="story" className="relative mx-auto max-w-5xl px-4 py-20">
+        <Reveal>
         <div className="grid gap-10 md:grid-cols-5 md:gap-14">
           <div className="md:col-span-2">
             <div className="sticky top-24 space-y-6">
@@ -153,6 +155,7 @@ export default function HomePage() {
             </p>
           </div>
         </div>
+        </Reveal>
       </section>
 
       {/* ---------------- Values / services ---------------- */}
@@ -164,7 +167,7 @@ export default function HomePage() {
           aria-hidden
           className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-r from-transparent via-accent/10 to-transparent"
         />
-        <div className="mx-auto max-w-5xl px-4 py-20">
+        <Reveal className="mx-auto max-w-5xl px-4 py-20">
           <div className="mb-12 flex flex-col items-start gap-3 md:flex-row md:items-end md:justify-between">
             <div>
               <span className="inline-block rounded-full border border-border/60 bg-background/60 px-3 py-1 text-xs font-medium text-muted-foreground">
@@ -202,11 +205,12 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* ---------------- Highlights ---------------- */}
       <section id="highlights" className="mx-auto max-w-5xl px-4 py-20">
+        <Reveal>
         <div className="grid gap-3 sm:grid-cols-3">
           {HIGHLIGHTS.map((h) => (
             <div
@@ -220,6 +224,7 @@ export default function HomePage() {
             </div>
           ))}
         </div>
+        </Reveal>
       </section>
 
       {/* ---------------- Map / visit us ---------------- */}
@@ -228,7 +233,7 @@ export default function HomePage() {
           aria-hidden
           className="pointer-events-none absolute inset-x-0 -top-12 -z-10 mx-auto h-32 max-w-3xl rounded-full bg-primary/15 blur-3xl"
         />
-        <div className="mx-auto max-w-5xl px-4 py-20">
+        <Reveal className="mx-auto max-w-5xl px-4 py-20">
           <div className="mb-10 flex flex-col items-start gap-3 md:flex-row md:items-end md:justify-between">
             <div>
               <span className="inline-block rounded-full border border-border/60 bg-card/60 px-3 py-1 text-xs font-medium text-muted-foreground">
@@ -252,7 +257,7 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <div className="grid gap-5 lg:grid-cols-5">
+          <div className="grid gap-5 lg:grid-cols-5 lg:items-stretch">
             <div className="overflow-hidden rounded-3xl border border-border/60 shadow-xl shadow-primary/5 lg:col-span-3">
               <iframe
                 src={MAP_EMBED_SRC}
@@ -264,7 +269,7 @@ export default function HomePage() {
               />
             </div>
             <div className="flex flex-col gap-4 lg:col-span-2">
-              <div className="rounded-3xl border border-border/60 bg-card/60 p-6 backdrop-blur-sm">
+              <div className="flex flex-1 rounded-3xl border border-border/60 bg-card/60 p-6 backdrop-blur-sm">
                 <div className="flex items-start gap-3">
                   <div className="mt-0.5 inline-flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-inset ring-primary/15">
                     <MapPin className="size-4" />
@@ -282,7 +287,7 @@ export default function HomePage() {
                   </div>
                 </div>
               </div>
-              <div className="rounded-3xl border border-border/60 bg-card/60 p-6 backdrop-blur-sm">
+              <div className="flex flex-1 rounded-3xl border border-border/60 bg-card/60 p-6 backdrop-blur-sm">
                 <div className="flex items-start gap-3">
                   <div className="mt-0.5 inline-flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-inset ring-primary/15">
                     <Clock className="size-4" />
@@ -309,7 +314,7 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* ---------------- Footer CTA ---------------- */}
@@ -321,7 +326,7 @@ export default function HomePage() {
           aria-hidden
           className="animate-aurora pointer-events-none absolute -bottom-32 left-1/2 -z-10 size-[42rem] -translate-x-1/2 rounded-full bg-gradient-to-br from-primary/30 via-chart-1/25 to-accent/30 blur-3xl"
         />
-        <div className="mx-auto max-w-3xl px-4 py-24 text-center">
+        <Reveal className="mx-auto max-w-3xl px-4 py-24 text-center">
           <h2 className="font-heading text-3xl font-semibold leading-tight md:text-5xl">
             <span className="text-sheen">下一副眼鏡</span>
             ，
@@ -347,7 +352,7 @@ export default function HomePage() {
               逛成品眼鏡
             </Link>
           </div>
-        </div>
+        </Reveal>
       </section>
     </div>
   );
