@@ -12,6 +12,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ProductFilter } from "@/components/site/ProductFilter";
+
+// Cache the rendered listing for 60s. Products + stock change rarely; admin
+// edits propagate within a minute. Big perf win — first hit warms the edge,
+// subsequent visitors get instant HTML without a Supabase roundtrip.
+export const revalidate = 60;
 
 type SearchParams = Promise<{ kind?: string }>;
 
@@ -57,42 +63,11 @@ export default async function ProductsPage({
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
-      <header className="mb-6 flex items-end justify-between">
+      <header className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <h1 className="font-heading text-3xl font-semibold tracking-tight md:text-4xl">
           {title}
         </h1>
-        <nav className="flex gap-2 text-sm">
-          <Link
-            href="/products"
-            className={
-              !kind ? "font-medium" : "text-muted-foreground hover:text-foreground"
-            }
-          >
-            全部
-          </Link>
-          <span className="text-muted-foreground">/</span>
-          <Link
-            href="/products?kind=finished"
-            className={
-              kind === "finished"
-                ? "font-medium"
-                : "text-muted-foreground hover:text-foreground"
-            }
-          >
-            成品
-          </Link>
-          <span className="text-muted-foreground">/</span>
-          <Link
-            href="/products?kind=prescription_frame"
-            className={
-              kind === "prescription_frame"
-                ? "font-medium"
-                : "text-muted-foreground hover:text-foreground"
-            }
-          >
-            處方鏡架
-          </Link>
-        </nav>
+        <ProductFilter active={kind} />
       </header>
 
       {products.length === 0 ? (
