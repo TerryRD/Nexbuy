@@ -26,10 +26,16 @@ export function Header() {
             處方鏡架
           </Link>
           <Link
-            href="/about"
+            href="/#story"
             className="text-muted-foreground hover:text-foreground"
           >
             品牌故事
+          </Link>
+          <Link
+            href="/#visit"
+            className="text-muted-foreground hover:text-foreground"
+          >
+            來坐一下
           </Link>
           <CartLink />
           <ThemeToggle />
