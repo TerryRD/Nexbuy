@@ -48,76 +48,79 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* Light: 奶茶 / 拿鐵 — cream backgrounds with caramel-coffee accents.
+ * Hues sit in the 45–55 range (warm coffee), dialed away from 60+ (olive).
+ */
 :root {
-  --background: oklch(0.985 0.012 80);
-  --foreground: oklch(0.22 0.025 50);
-  --card: oklch(0.995 0.008 80);
-  --card-foreground: oklch(0.22 0.025 50);
-  --popover: oklch(0.995 0.008 80);
-  --popover-foreground: oklch(0.22 0.025 50);
-  --primary: oklch(0.55 0.095 60);
-  --primary-foreground: oklch(0.99 0.012 80);
-  --secondary: oklch(0.92 0.028 75);
-  --secondary-foreground: oklch(0.30 0.04 55);
-  --muted: oklch(0.95 0.018 75);
-  --muted-foreground: oklch(0.52 0.025 55);
-  --accent: oklch(0.91 0.04 70);
-  --accent-foreground: oklch(0.30 0.05 50);
+  --background: oklch(0.985 0.013 65);
+  --foreground: oklch(0.24 0.022 45);
+  --card: oklch(0.995 0.008 65);
+  --card-foreground: oklch(0.24 0.022 45);
+  --popover: oklch(0.995 0.008 65);
+  --popover-foreground: oklch(0.24 0.022 45);
+  --primary: oklch(0.52 0.085 50);
+  --primary-foreground: oklch(0.99 0.014 70);
+  --secondary: oklch(0.93 0.028 60);
+  --secondary-foreground: oklch(0.30 0.04 45);
+  --muted: oklch(0.95 0.018 60);
+  --muted-foreground: oklch(0.50 0.025 50);
+  --accent: oklch(0.90 0.045 55);
+  --accent-foreground: oklch(0.30 0.05 45);
   --destructive: oklch(0.55 0.20 25);
-  --border: oklch(0.89 0.02 75);
-  --input: oklch(0.89 0.02 75);
-  --ring: oklch(0.68 0.135 45);
-  --chart-1: oklch(0.68 0.135 45);
-  --chart-2: oklch(0.58 0.10 60);
-  --chart-3: oklch(0.55 0.095 60);
-  --chart-4: oklch(0.40 0.05 50);
-  --chart-5: oklch(0.30 0.04 55);
+  --border: oklch(0.89 0.022 55);
+  --input: oklch(0.89 0.022 55);
+  --ring: oklch(0.68 0.13 50);
+  --chart-1: oklch(0.68 0.13 50);
+  --chart-2: oklch(0.58 0.10 50);
+  --chart-3: oklch(0.52 0.085 50);
+  --chart-4: oklch(0.40 0.055 45);
+  --chart-5: oklch(0.30 0.04 45);
   --radius: 0.875rem;
-  --sidebar: oklch(0.97 0.018 75);
-  --sidebar-foreground: oklch(0.25 0.025 55);
-  --sidebar-primary: oklch(0.55 0.095 60);
-  --sidebar-primary-foreground: oklch(0.99 0.012 80);
-  --sidebar-accent: oklch(0.91 0.04 70);
-  --sidebar-accent-foreground: oklch(0.30 0.05 50);
-  --sidebar-border: oklch(0.89 0.02 75);
-  --sidebar-ring: oklch(0.68 0.135 45);
+  --sidebar: oklch(0.97 0.018 60);
+  --sidebar-foreground: oklch(0.26 0.022 45);
+  --sidebar-primary: oklch(0.52 0.085 50);
+  --sidebar-primary-foreground: oklch(0.99 0.014 70);
+  --sidebar-accent: oklch(0.90 0.045 55);
+  --sidebar-accent-foreground: oklch(0.30 0.05 45);
+  --sidebar-border: oklch(0.89 0.022 55);
+  --sidebar-ring: oklch(0.68 0.13 50);
 }
 
-/* Dark mode: less saturated bg (dial down brown to avoid muddy look),
- * stronger card elevation, more vibrant primary + ring for warm pops.
+/* Dark: 深焙咖啡 — espresso bg, milk-tea primary pops on dark.
+ * Same hue family (45–55) as light to keep brand identity consistent.
  */
 .dark {
-  --background: oklch(0.155 0.012 60);
-  --foreground: oklch(0.96 0.012 75);
-  --card: oklch(0.215 0.014 60);
-  --card-foreground: oklch(0.96 0.012 75);
-  --popover: oklch(0.215 0.014 60);
-  --popover-foreground: oklch(0.96 0.012 75);
-  --primary: oklch(0.80 0.105 65);
-  --primary-foreground: oklch(0.18 0.02 55);
-  --secondary: oklch(0.255 0.014 60);
-  --secondary-foreground: oklch(0.94 0.018 75);
-  --muted: oklch(0.255 0.014 60);
-  --muted-foreground: oklch(0.74 0.022 65);
-  --accent: oklch(0.32 0.05 55);
-  --accent-foreground: oklch(0.96 0.012 75);
+  --background: oklch(0.16 0.014 50);
+  --foreground: oklch(0.96 0.014 65);
+  --card: oklch(0.22 0.016 50);
+  --card-foreground: oklch(0.96 0.014 65);
+  --popover: oklch(0.22 0.016 50);
+  --popover-foreground: oklch(0.96 0.014 65);
+  --primary: oklch(0.78 0.10 55);
+  --primary-foreground: oklch(0.18 0.02 45);
+  --secondary: oklch(0.26 0.016 50);
+  --secondary-foreground: oklch(0.94 0.018 65);
+  --muted: oklch(0.26 0.016 50);
+  --muted-foreground: oklch(0.74 0.022 55);
+  --accent: oklch(0.32 0.05 50);
+  --accent-foreground: oklch(0.96 0.014 65);
   --destructive: oklch(0.66 0.20 25);
-  --border: oklch(1 0.018 75 / 14%);
-  --input: oklch(1 0.018 75 / 18%);
-  --ring: oklch(0.74 0.14 50);
-  --chart-1: oklch(0.74 0.14 50);
-  --chart-2: oklch(0.66 0.12 55);
-  --chart-3: oklch(0.58 0.095 60);
-  --chart-4: oklch(0.48 0.07 55);
-  --chart-5: oklch(0.38 0.05 55);
-  --sidebar: oklch(0.215 0.014 60);
-  --sidebar-foreground: oklch(0.96 0.012 75);
-  --sidebar-primary: oklch(0.80 0.105 65);
-  --sidebar-primary-foreground: oklch(0.18 0.02 55);
-  --sidebar-accent: oklch(0.32 0.05 55);
-  --sidebar-accent-foreground: oklch(0.96 0.012 75);
-  --sidebar-border: oklch(1 0.018 75 / 14%);
-  --sidebar-ring: oklch(0.74 0.14 50);
+  --border: oklch(1 0.02 65 / 14%);
+  --input: oklch(1 0.02 65 / 18%);
+  --ring: oklch(0.74 0.13 50);
+  --chart-1: oklch(0.74 0.13 50);
+  --chart-2: oklch(0.66 0.11 50);
+  --chart-3: oklch(0.58 0.095 50);
+  --chart-4: oklch(0.48 0.07 45);
+  --chart-5: oklch(0.38 0.05 45);
+  --sidebar: oklch(0.22 0.016 50);
+  --sidebar-foreground: oklch(0.96 0.014 65);
+  --sidebar-primary: oklch(0.78 0.10 55);
+  --sidebar-primary-foreground: oklch(0.18 0.02 45);
+  --sidebar-accent: oklch(0.32 0.05 50);
+  --sidebar-accent-foreground: oklch(0.96 0.014 65);
+  --sidebar-border: oklch(1 0.02 65 / 14%);
+  --sidebar-ring: oklch(0.74 0.13 50);
 }
 
 @layer base {
@@ -129,6 +132,15 @@
   }
   html {
     @apply font-sans;
+    scroll-behavior: smooth;
+  }
+  /* Sticky header is h-16 (4rem); anchor sections need clearance so the
+   * heading isn't tucked under it after a hash-link jump. */
+  section[id] {
+    scroll-margin-top: 5rem;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
   }
 }
 
