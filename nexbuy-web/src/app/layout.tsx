@@ -23,8 +23,9 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
-  title: "Nexbuy 眼鏡",
-  description: "線上選購成品眼鏡、預約到店配鏡",
+  title: "精鋐眼鏡行 — 在家挑框，到店配鏡",
+  description:
+    "精鋐眼鏡行：成品眼鏡線上直接購買，處方鏡架線上預約到店驗光配鏡。",
 };
 
 export default function RootLayout({

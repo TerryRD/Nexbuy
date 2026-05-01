@@ -131,3 +131,55 @@
     @apply font-sans;
   }
 }
+
+/* ---- Brand page motion utilities ---------------------------------------- */
+
+@keyframes aurora-drift {
+  0%, 100% { transform: translate3d(-8%, -4%, 0) scale(1); }
+  50%      { transform: translate3d(8%, 6%, 0) scale(1.15); }
+}
+
+@keyframes aurora-drift-slow {
+  0%, 100% { transform: translate3d(6%, 2%, 0) scale(1.1); }
+  50%      { transform: translate3d(-6%, -8%, 0) scale(0.95); }
+}
+
+@keyframes sheen {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes float-soft {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+
+.animate-aurora { animation: aurora-drift 18s ease-in-out infinite; }
+.animate-aurora-slow { animation: aurora-drift-slow 24s ease-in-out infinite; }
+.animate-float-soft { animation: float-soft 6s ease-in-out infinite; }
+
+.text-sheen {
+  background: linear-gradient(
+    100deg,
+    var(--foreground) 0%,
+    var(--primary) 35%,
+    var(--chart-1) 50%,
+    var(--primary) 65%,
+    var(--foreground) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: sheen 6s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-aurora,
+  .animate-aurora-slow,
+  .animate-float-soft,
+  .text-sheen {
+    animation: none;
+  }
+  .text-sheen { background-position: 0 0; }
+}

@@ -40,7 +40,7 @@ export function orderPlacedEmail(d: OrderPlacedInput): EmailMessage {
     .join("");
   return {
     to: d.to,
-    subject: `[Nexbuy 眼鏡] 訂單成立 ${d.orderNo}`,
+    subject: `[精鋐眼鏡行] 訂單成立 ${d.orderNo}`,
     html: `<div style="${SHELL_STYLE}">
   <h2>訂單收到囉</h2>
   <p>${escapeHtml(d.customerName)} 您好,</p>
@@ -73,7 +73,7 @@ export interface OrderPaidInput {
 export function orderPaidEmail(d: OrderPaidInput): EmailMessage {
   return {
     to: d.to,
-    subject: `[Nexbuy 眼鏡] 已收到您的款項 ${d.orderNo}`,
+    subject: `[精鋐眼鏡行] 已收到您的款項 ${d.orderNo}`,
     html: `<div style="${SHELL_STYLE}">
   <h2>付款確認</h2>
   <p>${escapeHtml(d.customerName)} 您好,</p>
@@ -101,7 +101,7 @@ export interface AppointmentBookedInput {
 export function appointmentBookedEmail(d: AppointmentBookedInput): EmailMessage {
   return {
     to: d.to,
-    subject: `[Nexbuy 眼鏡] 預約成功 ${d.appointmentDate} ${d.appointmentTime}`,
+    subject: `[精鋐眼鏡行] 預約成功 ${d.appointmentDate} ${d.appointmentTime}`,
     html: `<div style="${SHELL_STYLE}">
   <h2>預約成功</h2>
   <p>${escapeHtml(d.customerName)} 您好,</p>
@@ -136,7 +136,7 @@ export function appointmentReminderEmail(
 ): EmailMessage {
   return {
     to: d.to,
-    subject: `[Nexbuy 眼鏡] 明天 ${d.appointmentTime} 別忘了到店配鏡`,
+    subject: `[精鋐眼鏡行] 明天 ${d.appointmentTime} 別忘了到店配鏡`,
     html: `<div style="${SHELL_STYLE}">
   <h2>明天到店配鏡提醒</h2>
   <p>${escapeHtml(d.customerName)} 您好,</p>
