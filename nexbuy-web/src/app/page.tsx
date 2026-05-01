@@ -123,9 +123,8 @@ export default function HomePage() {
 
       {/* ---------------- Brand story ---------------- */}
       <section id="story" className="relative mx-auto max-w-5xl px-4 py-20">
-        <Reveal>
         <div className="grid gap-10 md:grid-cols-5 md:gap-14">
-          <div className="md:col-span-2">
+          <Reveal from="left" className="md:col-span-2">
             <div className="sticky top-24 space-y-6">
               <span className="inline-block rounded-full border border-border/60 bg-card/60 px-3 py-1 text-xs font-medium text-muted-foreground">
                 ABOUT
@@ -138,8 +137,12 @@ export default function HomePage() {
                 <span className="text-primary">而是一張你願意每天戴上的臉。</span>
               </h2>
             </div>
-          </div>
-          <div className="space-y-5 text-base leading-relaxed text-muted-foreground md:col-span-3 md:text-lg">
+          </Reveal>
+          <Reveal
+            from="right"
+            delay={120}
+            className="space-y-5 text-base leading-relaxed text-muted-foreground md:col-span-3 md:text-lg"
+          >
             <p>
               精鋐眼鏡行做的事很簡單 — 把鏡框、鏡片、和你的臉，配得剛剛好。
             </p>
@@ -153,9 +156,8 @@ export default function HomePage() {
               處方鏡架線上預約時段，到店有人接、有鏡架已備好、有驗光師慢慢談。
               這就是我們想要的：把「挑眼鏡」這件事，變成一段不趕時間的小旅行。
             </p>
-          </div>
+          </Reveal>
         </div>
-        </Reveal>
       </section>
 
       {/* ---------------- Values / services ---------------- */}
@@ -167,64 +169,64 @@ export default function HomePage() {
           aria-hidden
           className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-r from-transparent via-accent/10 to-transparent"
         />
-        <Reveal className="mx-auto max-w-5xl px-4 py-20">
-          <div className="mb-12 flex flex-col items-start gap-3 md:flex-row md:items-end md:justify-between">
-            <div>
-              <span className="inline-block rounded-full border border-border/60 bg-background/60 px-3 py-1 text-xs font-medium text-muted-foreground">
-                SERVICES
-              </span>
-              <h2 className="mt-3 font-heading text-3xl font-semibold tracking-tight md:text-4xl">
-                我們提供什麼
-              </h2>
-            </div>
-            <p className="max-w-md text-sm text-muted-foreground">
-              三件事，做到底。從驗光、選框，到售後維護，每一步都不外包。
-            </p>
-          </div>
-          <div className="grid gap-5 md:grid-cols-3">
-            {VALUES.map(({ icon: Icon, title, desc }) => (
-              <div
-                key={title}
-                className="group relative overflow-hidden rounded-3xl border border-border/60 bg-background/60 p-6 backdrop-blur-sm transition-all hover:-translate-y-1 hover:border-chart-1/50 hover:shadow-xl hover:shadow-primary/5"
-              >
-                <div
-                  aria-hidden
-                  className="absolute -top-16 -right-16 size-40 rounded-full bg-chart-1/15 blur-2xl transition-opacity group-hover:opacity-100 md:opacity-0"
-                />
-                <div className="relative">
-                  <div className="inline-flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-inset ring-primary/15">
-                    <Icon className="size-6" />
-                  </div>
-                  <div className="mt-5 font-heading text-xl font-semibold">
-                    {title}
-                  </div>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                    {desc}
-                  </p>
-                </div>
+        <div className="mx-auto max-w-5xl px-4 py-20">
+          <Reveal from="left">
+            <div className="mb-12 flex flex-col items-start gap-3 md:flex-row md:items-end md:justify-between">
+              <div>
+                <span className="inline-block rounded-full border border-border/60 bg-background/60 px-3 py-1 text-xs font-medium text-muted-foreground">
+                  SERVICES
+                </span>
+                <h2 className="mt-3 font-heading text-3xl font-semibold tracking-tight md:text-4xl">
+                  我們提供什麼
+                </h2>
               </div>
+              <p className="max-w-md text-sm text-muted-foreground">
+                三件事，做到底。從驗光、選框，到售後維護，每一步都不外包。
+              </p>
+            </div>
+          </Reveal>
+          <div className="grid gap-5 md:grid-cols-3">
+            {VALUES.map(({ icon: Icon, title, desc }, i) => (
+              <Reveal key={title} from="zoom-up" delay={i * 120}>
+                <div className="group relative h-full overflow-hidden rounded-3xl border border-border/60 bg-background/60 p-6 backdrop-blur-sm transition-all hover:-translate-y-1 hover:border-chart-1/50 hover:shadow-xl hover:shadow-primary/5">
+                  <div
+                    aria-hidden
+                    className="absolute -top-16 -right-16 size-40 rounded-full bg-chart-1/15 blur-2xl transition-opacity group-hover:opacity-100 md:opacity-0"
+                  />
+                  <div className="relative">
+                    <div className="inline-flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-inset ring-primary/15">
+                      <Icon className="size-6" />
+                    </div>
+                    <div className="mt-5 font-heading text-xl font-semibold">
+                      {title}
+                    </div>
+                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                      {desc}
+                    </p>
+                  </div>
+                </div>
+              </Reveal>
             ))}
           </div>
-        </Reveal>
+        </div>
       </section>
 
       {/* ---------------- Highlights ---------------- */}
       <section id="highlights" className="mx-auto max-w-5xl px-4 py-20">
-        <Reveal>
         <div className="grid gap-3 sm:grid-cols-3">
-          {HIGHLIGHTS.map((h) => (
-            <div
-              key={h.kpi}
-              className="rounded-2xl border border-border/60 bg-card/60 p-6 backdrop-blur-sm"
-            >
-              <div className="font-heading text-2xl font-semibold leading-tight text-primary">
-                {h.kpi}
+          {HIGHLIGHTS.map((h, i) => (
+            <Reveal key={h.kpi} from="zoom" delay={i * 100}>
+              <div className="rounded-2xl border border-border/60 bg-card/60 p-6 backdrop-blur-sm">
+                <div className="font-heading text-2xl font-semibold leading-tight text-primary">
+                  {h.kpi}
+                </div>
+                <div className="mt-2 text-sm text-muted-foreground">
+                  {h.desc}
+                </div>
               </div>
-              <div className="mt-2 text-sm text-muted-foreground">{h.desc}</div>
-            </div>
+            </Reveal>
           ))}
         </div>
-        </Reveal>
       </section>
 
       {/* ---------------- Map / visit us ---------------- */}
@@ -233,32 +235,37 @@ export default function HomePage() {
           aria-hidden
           className="pointer-events-none absolute inset-x-0 -top-12 -z-10 mx-auto h-32 max-w-3xl rounded-full bg-primary/15 blur-3xl"
         />
-        <Reveal className="mx-auto max-w-5xl px-4 py-20">
-          <div className="mb-10 flex flex-col items-start gap-3 md:flex-row md:items-end md:justify-between">
-            <div>
-              <span className="inline-block rounded-full border border-border/60 bg-card/60 px-3 py-1 text-xs font-medium text-muted-foreground">
-                VISIT
-              </span>
-              <h2 className="mt-3 font-heading text-3xl font-semibold tracking-tight md:text-4xl">
-                來坐一下
-              </h2>
-              <p className="mt-2 max-w-md text-sm text-muted-foreground">
-                配鏡是慢工，預約讓我們把時間留給你。
-              </p>
+        <div className="mx-auto max-w-5xl px-4 py-20">
+          <Reveal from="left">
+            <div className="mb-10 flex flex-col items-start gap-3 md:flex-row md:items-end md:justify-between">
+              <div>
+                <span className="inline-block rounded-full border border-border/60 bg-card/60 px-3 py-1 text-xs font-medium text-muted-foreground">
+                  VISIT
+                </span>
+                <h2 className="mt-3 font-heading text-3xl font-semibold tracking-tight md:text-4xl">
+                  來坐一下
+                </h2>
+                <p className="mt-2 max-w-md text-sm text-muted-foreground">
+                  配鏡是慢工，預約讓我們把時間留給你。
+                </p>
+              </div>
+              <Link
+                href={MAP_PUBLIC_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={buttonVariants({ variant: "outline" })}
+              >
+                <MapPin className="mr-1 size-4" />
+                在 Google 地圖開啟
+              </Link>
             </div>
-            <Link
-              href={MAP_PUBLIC_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={buttonVariants({ variant: "outline" })}
-            >
-              <MapPin className="mr-1 size-4" />
-              在 Google 地圖開啟
-            </Link>
-          </div>
+          </Reveal>
 
           <div className="grid gap-5 lg:grid-cols-5 lg:items-stretch">
-            <div className="overflow-hidden rounded-3xl border border-border/60 shadow-xl shadow-primary/5 lg:col-span-3">
+            <Reveal
+              from="zoom"
+              className="overflow-hidden rounded-3xl border border-border/60 shadow-xl shadow-primary/5 lg:col-span-3"
+            >
               <iframe
                 src={MAP_EMBED_SRC}
                 title="精鋐眼鏡行 Google Map"
@@ -267,54 +274,58 @@ export default function HomePage() {
                 className="h-[420px] w-full border-0 grayscale-[15%] transition-[filter] hover:grayscale-0"
                 allowFullScreen
               />
-            </div>
+            </Reveal>
             <div className="flex flex-col gap-4 lg:col-span-2">
-              <div className="flex flex-1 rounded-3xl border border-border/60 bg-card/60 p-6 backdrop-blur-sm">
-                <div className="flex items-start gap-3">
-                  <div className="mt-0.5 inline-flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-inset ring-primary/15">
-                    <MapPin className="size-4" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      門市
+              <Reveal from="right" delay={120} className="flex flex-1">
+                <div className="flex flex-1 rounded-3xl border border-border/60 bg-card/60 p-6 backdrop-blur-sm">
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5 inline-flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-inset ring-primary/15">
+                      <MapPin className="size-4" />
                     </div>
-                    <div className="mt-1 font-heading text-lg font-semibold">
-                      精鋐眼鏡行
+                    <div>
+                      <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                        門市
+                      </div>
+                      <div className="mt-1 font-heading text-lg font-semibold">
+                        精鋐眼鏡行
+                      </div>
+                      <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                        地址、電話與營業時間請點右上角「在 Google 地圖開啟」查看最新資訊。
+                      </p>
                     </div>
-                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                      地址、電話與營業時間請點右上角「在 Google 地圖開啟」查看最新資訊。
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="flex flex-1 rounded-3xl border border-border/60 bg-card/60 p-6 backdrop-blur-sm">
-                <div className="flex items-start gap-3">
-                  <div className="mt-0.5 inline-flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-inset ring-primary/15">
-                    <Clock className="size-4" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      預約優先
-                    </div>
-                    <div className="mt-1 font-heading text-lg font-semibold">
-                      線上選好，到店剛好
-                    </div>
-                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                      喜歡的鏡架先在線上預約時段，到店時鏡架已備妥、驗光師也準備好。
-                    </p>
-                    <Link
-                      href="/products?kind=prescription_frame"
-                      className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
-                    >
-                      看可預約的鏡架
-                      <ArrowRight className="size-3.5" />
-                    </Link>
                   </div>
                 </div>
-              </div>
+              </Reveal>
+              <Reveal from="right" delay={240} className="flex flex-1">
+                <div className="flex flex-1 rounded-3xl border border-border/60 bg-card/60 p-6 backdrop-blur-sm">
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5 inline-flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-inset ring-primary/15">
+                      <Clock className="size-4" />
+                    </div>
+                    <div>
+                      <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                        預約優先
+                      </div>
+                      <div className="mt-1 font-heading text-lg font-semibold">
+                        線上選好，到店剛好
+                      </div>
+                      <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                        喜歡的鏡架先在線上預約時段，到店時鏡架已備妥、驗光師也準備好。
+                      </p>
+                      <Link
+                        href="/products?kind=prescription_frame"
+                        className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+                      >
+                        看可預約的鏡架
+                        <ArrowRight className="size-3.5" />
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </Reveal>
             </div>
           </div>
-        </Reveal>
+        </div>
       </section>
 
       {/* ---------------- Footer CTA ---------------- */}
@@ -326,7 +337,7 @@ export default function HomePage() {
           aria-hidden
           className="animate-aurora pointer-events-none absolute -bottom-32 left-1/2 -z-10 size-[42rem] -translate-x-1/2 rounded-full bg-gradient-to-br from-primary/30 via-chart-1/25 to-accent/30 blur-3xl"
         />
-        <Reveal className="mx-auto max-w-3xl px-4 py-24 text-center">
+        <Reveal from="zoom-up" className="mx-auto max-w-3xl px-4 py-24 text-center">
           <h2 className="font-heading text-3xl font-semibold leading-tight md:text-5xl">
             <span className="text-sheen">下一副眼鏡</span>
             ，
