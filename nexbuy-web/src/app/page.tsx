@@ -161,7 +161,7 @@ export default function HomePage() {
       {/* ---------------- Values / services (dark reversal) ---------------- */}
       <section
         id="services"
-        className="dark relative border-y border-border/60 bg-background"
+        className="dark relative border-y border-border/60 bg-background text-foreground"
       >
         <div className="mx-auto max-w-5xl px-4 py-20">
           <Reveal from="left">
@@ -295,7 +295,7 @@ export default function HomePage() {
             </Reveal>
             <div className="flex flex-col gap-4 lg:col-span-2">
               <Reveal from="right" delay={120} className="flex flex-1">
-                <div className="flex flex-1 rounded-3xl border border-border/60 bg-card/60 p-6 backdrop-blur-sm">
+                <div className="flex flex-1 items-center rounded-3xl border border-border/60 bg-card/60 p-6 backdrop-blur-sm">
                   <div className="flex items-start gap-3">
                     <div className="mt-0.5 inline-flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-inset ring-primary/15">
                       <MapPin className="size-4" />
@@ -315,7 +315,7 @@ export default function HomePage() {
                 </div>
               </Reveal>
               <Reveal from="right" delay={240} className="flex flex-1">
-                <div className="flex flex-1 rounded-3xl border border-border/60 bg-card/60 p-6 backdrop-blur-sm">
+                <div className="flex flex-1 items-center rounded-3xl border border-border/60 bg-card/60 p-6 backdrop-blur-sm">
                   <div className="flex items-start gap-3">
                     <div className="mt-0.5 inline-flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-inset ring-primary/15">
                       <Clock className="size-4" />
