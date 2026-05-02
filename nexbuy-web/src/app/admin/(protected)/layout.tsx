@@ -36,6 +36,12 @@ export default async function AdminProtectedLayout({
             預約清單
           </Link>
           <Link
+            href="/admin/customers"
+            className="rounded-md px-3 py-2 hover:bg-muted"
+          >
+            客戶清單
+          </Link>
+          <Link
             href="/admin/products"
             className="rounded-md px-3 py-2 hover:bg-muted"
           >
