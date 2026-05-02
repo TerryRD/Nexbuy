@@ -60,10 +60,14 @@ export default function HomePage() {
           <div className="grid gap-8 py-12 md:grid-cols-2 md:items-center md:gap-12 md:py-20">
             <div className="space-y-5">
               <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/60 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur">
-                <span className="size-1.5 rounded-full bg-chart-1" />
-                JING HONG OPTICAL · 在地眼鏡行
+                <span className="size-1.5 rounded-full bg-pop" />
+                <span className="text-[10px] uppercase tracking-[0.3em]">
+                  JING HONG OPTICAL
+                </span>
+                <span className="opacity-50">·</span>
+                <span>在地眼鏡行</span>
               </span>
-              <h1 className="font-heading text-4xl font-semibold leading-tight tracking-tight text-foreground md:text-6xl">
+              <h1 className="font-heading text-5xl font-semibold leading-[0.98] tracking-[-0.02em] text-foreground md:text-7xl">
                 在家挑框、
                 <br />
                 <span className="text-sheen">到店配鏡</span>
@@ -86,30 +90,36 @@ export default function HomePage() {
                   預約配處方鏡片
                 </Link>
               </div>
-              <Link
-                href="#story"
-                className="inline-flex items-center gap-1 pt-1 text-sm font-medium text-primary hover:underline"
-              >
-                認識精鋐眼鏡行 →
-              </Link>
             </div>
 
             <div className="relative">
               <div
-                className="aspect-[4/3] overflow-hidden rounded-3xl border border-border/60 bg-gradient-to-br from-primary/20 via-accent/40 to-secondary shadow-xl shadow-primary/5"
+                className="relative aspect-[4/3] overflow-hidden rounded-3xl border border-border/60 bg-gradient-to-br from-primary/15 via-accent/40 to-secondary shadow-xl shadow-primary/5"
                 aria-hidden
               >
-                <div className="relative size-full">
-                  <div className="absolute left-1/2 top-1/2 size-2/3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br from-card/70 to-transparent blur-2xl" />
-                  <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center font-heading text-5xl font-semibold leading-tight text-primary/35 md:text-7xl">
-                    精鋐
-                    <br />
-                    眼鏡行
+                <div className="absolute left-1/2 top-1/2 size-2/3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br from-card/70 to-transparent blur-2xl" />
+                <div className="absolute inset-0 flex flex-col justify-between p-6 md:p-8">
+                  <div>
+                    <div className="text-[10px] font-medium uppercase tracking-[0.32em] text-foreground/55">
+                      Est · 在地
+                    </div>
+                    <div className="mt-2 font-heading text-6xl font-semibold leading-[0.92] tracking-tight text-primary/45 md:text-8xl">
+                      精鋐
+                    </div>
+                  </div>
+                  <div className="self-end text-right font-heading leading-[1.05] tracking-tight">
+                    <div className="text-2xl font-medium text-foreground/65 md:text-4xl">
+                      Jing Hong
+                    </div>
+                    <div className="text-2xl font-medium text-foreground/40 md:text-4xl">
+                      Optical
+                    </div>
                   </div>
                 </div>
+                <div className="bg-grain absolute inset-0" />
               </div>
               <div
-                className="absolute -bottom-4 -right-4 size-24 rounded-2xl bg-chart-1/80 shadow-lg shadow-chart-1/20 md:size-32"
+                className="absolute -bottom-4 -right-4 size-24 rounded-2xl bg-pop shadow-lg shadow-pop/30 md:size-32"
                 aria-hidden
               />
               <div
@@ -126,8 +136,9 @@ export default function HomePage() {
         <div className="grid gap-10 md:grid-cols-5 md:gap-14">
           <Reveal from="left" className="md:col-span-2">
             <div className="sticky top-24 space-y-6">
-              <span className="inline-block rounded-full border border-border/60 bg-card/60 px-3 py-1 text-xs font-medium text-muted-foreground">
-                ABOUT
+              <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/60 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.32em] text-muted-foreground">
+                <span className="size-1 rounded-full bg-pop" />
+                About
               </span>
               <h2 className="font-heading text-3xl font-semibold leading-tight tracking-tight md:text-4xl">
                 我們相信，
@@ -173,8 +184,9 @@ export default function HomePage() {
           <Reveal from="left">
             <div className="mb-12 flex flex-col items-start gap-3 md:flex-row md:items-end md:justify-between">
               <div>
-                <span className="inline-block rounded-full border border-border/60 bg-background/60 px-3 py-1 text-xs font-medium text-muted-foreground">
-                  SERVICES
+                <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/60 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.32em] text-muted-foreground">
+                  <span className="size-1 rounded-full bg-pop" />
+                  Services
                 </span>
                 <h2 className="mt-3 font-heading text-3xl font-semibold tracking-tight md:text-4xl">
                   我們提供什麼
@@ -239,8 +251,9 @@ export default function HomePage() {
           <Reveal from="left">
             <div className="mb-10 flex flex-col items-start gap-3 md:flex-row md:items-end md:justify-between">
               <div>
-                <span className="inline-block rounded-full border border-border/60 bg-card/60 px-3 py-1 text-xs font-medium text-muted-foreground">
-                  VISIT
+                <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/60 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.32em] text-muted-foreground">
+                  <span className="size-1 rounded-full bg-pop" />
+                  Visit
                 </span>
                 <h2 className="mt-3 font-heading text-3xl font-semibold tracking-tight md:text-4xl">
                   來坐一下
