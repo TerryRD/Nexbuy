@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Glasses } from "lucide-react";
 import { CartLink } from "./CartLink";
+import { Logo } from "./Logo";
 import { ThemeToggle } from "./ThemeToggle";
 
 export function Header() {
@@ -9,9 +10,10 @@ export function Header() {
       <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
         <Link
           href="/"
-          className="font-heading text-xl font-semibold tracking-tight text-primary"
+          className="flex items-center gap-2.5 font-heading text-xl font-semibold tracking-tight text-primary"
         >
-          精鋐眼鏡行
+          <Logo className="h-5 w-auto" />
+          <span>精鋐眼鏡行</span>
         </Link>
         <nav className="flex items-center gap-1 text-sm">
           <Link
