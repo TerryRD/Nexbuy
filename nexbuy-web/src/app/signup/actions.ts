@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { z } from "zod";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { safeNext } from "@/lib/auth/safe-next";
 
 const schema = z.object({
   email: z.email(),
@@ -31,8 +32,9 @@ export async function signupAction(
   const h = await headers();
   const proto = h.get("x-forwarded-proto") ?? "https";
   const host = h.get("host");
+  const next = safeNext(formData.get("next") as string | null);
   const emailRedirectTo = host
-    ? `${proto}://${host}/auth/callback`
+    ? `${proto}://${host}/auth/callback?next=${encodeURIComponent(next)}`
     : undefined;
 
   const sb = await createServerSupabase();

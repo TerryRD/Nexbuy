@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export function SignupForm() {
+export function SignupForm({ next }: { next: string }) {
   const [state, formAction, isPending] = useActionState<SignupState, FormData>(
     signupAction,
     null,
@@ -25,6 +25,7 @@ export function SignupForm() {
 
   return (
     <form action={formAction} className="space-y-4">
+      <input type="hidden" name="next" value={next} />
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
         <Input
