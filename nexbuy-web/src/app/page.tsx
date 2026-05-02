@@ -92,7 +92,7 @@ export default function HomePage() {
           <div className="grid gap-8 py-12 md:grid-cols-2 md:items-center md:gap-12 md:py-20">
             <div className="space-y-5">
               <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/60 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur">
-                <span className="size-1.5 rounded-full bg-pop" />
+                <span className="size-1.5 rounded-full bg-primary" />
                 <span className="text-[10px] uppercase tracking-[0.3em]">
                   JING HONG OPTICAL
                 </span>
@@ -100,7 +100,7 @@ export default function HomePage() {
                 <span>在地眼鏡行</span>
               </span>
               <h1 className="font-heading text-5xl font-semibold leading-[0.98] tracking-[-0.02em] text-foreground md:text-7xl">
-                在家挑框、
+                在家挑框
                 <br />
                 <span className="text-sheen">到店配鏡</span>
               </h1>
@@ -124,38 +124,35 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="relative">
-              <div className="relative aspect-[4/3] overflow-hidden rounded-3xl border border-border/60 shadow-xl shadow-primary/5">
-                <Image
-                  src={HERO_PHOTO}
-                  alt="精鋐眼鏡行 — 鏡框示意"
-                  fill
-                  priority
-                  sizes="(min-width: 768px) 50vw, 100vw"
-                  className="object-cover"
-                />
-                <div
-                  aria-hidden
-                  className="absolute inset-0 bg-gradient-to-t from-black/45 via-black/0 to-black/0"
-                />
-                <div className="bg-grain absolute inset-0" aria-hidden />
-                <div className="absolute bottom-4 right-4 flex flex-col items-end font-heading leading-[1.05] tracking-tight md:bottom-6 md:right-6">
-                  <span className="text-[10px] font-medium uppercase tracking-[0.32em] text-white/85">
+            <div className="relative aspect-[4/3] overflow-hidden rounded-3xl border border-border/60 shadow-2xl shadow-primary/15 ring-1 ring-foreground/5">
+              <Image
+                src={HERO_PHOTO}
+                alt="精鋐眼鏡行 — 鏡框示意"
+                fill
+                priority
+                sizes="(min-width: 768px) 50vw, 100vw"
+                className="object-cover"
+              />
+              <div
+                aria-hidden
+                className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/65 via-black/15 to-transparent"
+              />
+              <div className="bg-grain absolute inset-0" aria-hidden />
+              <div className="absolute inset-x-5 bottom-5 flex items-end justify-between gap-4 font-heading md:inset-x-7 md:bottom-7">
+                <div>
+                  <div className="text-[10px] font-medium uppercase tracking-[0.32em] text-white/75">
                     Est · 在地
-                  </span>
-                  <span className="mt-1 text-xl font-medium text-white md:text-2xl">
+                  </div>
+                  <div className="mt-1 text-xl font-medium leading-[1.05] tracking-tight text-white md:text-3xl">
                     Jing Hong Optical
-                  </span>
+                  </div>
+                </div>
+                <div className="text-right text-[10px] uppercase tracking-[0.2em] text-white/55">
+                  25.0173°N
+                  <br />
+                  121.2956°E
                 </div>
               </div>
-              <div
-                className="absolute -bottom-4 -right-4 size-24 rounded-2xl bg-pop shadow-lg shadow-pop/30 md:size-32"
-                aria-hidden
-              />
-              <div
-                className="absolute -top-4 -left-4 size-16 rounded-2xl border border-border/80 bg-card md:size-20"
-                aria-hidden
-              />
             </div>
           </div>
         </div>
@@ -167,7 +164,7 @@ export default function HomePage() {
           <Reveal from="left" className="md:col-span-2">
             <div className="sticky top-24 space-y-6">
               <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/60 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.32em] text-muted-foreground">
-                <span className="size-1 rounded-full bg-pop" />
+                <span className="size-1 rounded-full bg-primary" />
                 About
               </span>
               <h2 className="font-heading text-3xl font-semibold leading-tight tracking-tight md:text-4xl">
@@ -216,7 +213,7 @@ export default function HomePage() {
           {[...MARQUEE_ITEMS, ...MARQUEE_ITEMS].map((it, i) => (
             <Fragment key={i}>
               <span className="me-10 shrink-0">{it}</span>
-              <span className="me-10 size-1.5 shrink-0 rounded-full bg-pop" />
+              <span className="me-10 size-1.5 shrink-0 rounded-full bg-primary" />
             </Fragment>
           ))}
         </div>
@@ -232,7 +229,7 @@ export default function HomePage() {
             <div className="mb-12 flex flex-col items-start gap-3 md:flex-row md:items-end md:justify-between">
               <div>
                 <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card px-3 py-1 text-[10px] font-medium uppercase tracking-[0.32em] text-muted-foreground">
-                  <span className="size-1 rounded-full bg-pop" />
+                  <span className="size-1 rounded-full bg-primary" />
                   Services
                 </span>
                 <h2 className="mt-3 font-heading text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
@@ -247,10 +244,10 @@ export default function HomePage() {
           <div className="grid gap-5 md:grid-cols-3">
             {VALUES.map(({ icon: Icon, title, desc }, i) => (
               <Reveal key={title} from="zoom-up" delay={i * 120}>
-                <div className="group relative h-full overflow-hidden rounded-3xl border border-border/60 bg-card p-6 transition-all hover:-translate-y-1 hover:border-pop/40 hover:shadow-xl hover:shadow-pop/10">
+                <div className="group relative h-full overflow-hidden rounded-3xl border border-border/60 bg-card p-6 transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10">
                   <div
                     aria-hidden
-                    className="absolute -top-16 -right-16 size-40 rounded-full bg-pop/15 blur-2xl transition-opacity group-hover:opacity-100 md:opacity-0"
+                    className="absolute -top-16 -right-16 size-40 rounded-full bg-primary/15 blur-2xl transition-opacity group-hover:opacity-100 md:opacity-0"
                   />
                   <div className="relative">
                     <div className="inline-flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-inset ring-primary/15">
@@ -293,7 +290,7 @@ export default function HomePage() {
         <Reveal from="left">
           <div className="mb-10">
             <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/60 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.32em] text-muted-foreground">
-              <span className="size-1 rounded-full bg-pop" />
+              <span className="size-1 rounded-full bg-primary" />
               Inside
             </span>
             <h2 className="mt-3 font-heading text-3xl font-semibold tracking-tight md:text-4xl">
@@ -317,7 +314,7 @@ export default function HomePage() {
                 />
                 <div className="bg-grain absolute inset-0" aria-hidden />
                 <div className="absolute bottom-4 left-4 inline-flex items-center gap-2 rounded-full bg-card/85 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.32em] text-foreground backdrop-blur-md">
-                  <span className="size-1 rounded-full bg-pop" />
+                  <span className="size-1 rounded-full bg-primary" />
                   {g.label}
                 </div>
               </div>
@@ -337,7 +334,7 @@ export default function HomePage() {
             <div className="mb-10 flex flex-col items-start gap-3 md:flex-row md:items-end md:justify-between">
               <div>
                 <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/60 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.32em] text-muted-foreground">
-                  <span className="size-1 rounded-full bg-pop" />
+                  <span className="size-1 rounded-full bg-primary" />
                   Visit
                 </span>
                 <h2 className="mt-3 font-heading text-3xl font-semibold tracking-tight md:text-4xl">
