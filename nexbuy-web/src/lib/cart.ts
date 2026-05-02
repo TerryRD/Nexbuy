@@ -11,6 +11,7 @@ export type CartItem = {
   name: string;
   price_cents: number;
   quantity: number;
+  image_url?: string;
 };
 
 const EMPTY: CartItem[] = [];

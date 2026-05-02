@@ -1,4 +1,3 @@
-import { Fragment } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -38,14 +37,6 @@ const HIGHLIGHTS = [
   { kpi: "線上選 + 到店配", desc: "在家挑款式，到店再驗光" },
   { kpi: "成品宅配到府", desc: "平光款下單後直接寄出" },
   { kpi: "預約優先服務", desc: "免排隊、鏡架已備妥" },
-] as const;
-
-const MARQUEE_ITEMS = [
-  "JING HONG OPTICAL",
-  "EST · 在地",
-  "慢工細活",
-  "線上挑款 · 到店配鏡",
-  "鏡架 · 鏡片 · 你的臉",
 ] as const;
 
 // Placeholder photos sourced from Unsplash (whitelisted in next.config.ts).
@@ -195,27 +186,6 @@ export default function HomePage() {
               這就是我們想要的：把「挑眼鏡」這件事，變成一段不趕時間的小旅行。
             </p>
           </Reveal>
-        </div>
-      </section>
-
-      {/* ---------------- Marquee ---------------- */}
-      <section
-        aria-hidden
-        className="relative overflow-hidden border-y border-border/60 bg-card/40 py-4 backdrop-blur-sm"
-        style={{
-          maskImage:
-            "linear-gradient(to right, transparent, black 5%, black 95%, transparent)",
-          WebkitMaskImage:
-            "linear-gradient(to right, transparent, black 5%, black 95%, transparent)",
-        }}
-      >
-        <div className="marquee-track flex items-center font-heading text-lg text-foreground/55 md:text-xl">
-          {[...MARQUEE_ITEMS, ...MARQUEE_ITEMS].map((it, i) => (
-            <Fragment key={i}>
-              <span className="me-10 shrink-0">{it}</span>
-              <span className="me-10 size-1.5 shrink-0 rounded-full bg-primary" />
-            </Fragment>
-          ))}
         </div>
       </section>
 

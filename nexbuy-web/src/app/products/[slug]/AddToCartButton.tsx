@@ -6,7 +6,10 @@ import { useCart, type CartItem } from "@/lib/cart";
 import { Button } from "@/components/ui/button";
 
 interface Props {
-  product: Pick<CartItem, "product_id" | "slug" | "name" | "price_cents">;
+  product: Pick<
+    CartItem,
+    "product_id" | "slug" | "name" | "price_cents" | "image_url"
+  >;
   disabled?: boolean;
   disabledReason?: string;
 }

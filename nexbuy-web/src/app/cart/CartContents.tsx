@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useCart, computeShippingCents } from "@/lib/cart";
 import { formatPrice } from "@/lib/format";
@@ -33,10 +34,17 @@ export function CartContents() {
             key={item.product_id}
             className="flex gap-4 rounded-lg border p-4"
           >
-            <div
-              className="h-20 w-20 shrink-0 rounded-md border bg-muted/50"
-              aria-hidden
-            />
+            <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md border bg-muted/50">
+              {item.image_url ? (
+                <Image
+                  src={item.image_url}
+                  alt={item.name}
+                  fill
+                  sizes="80px"
+                  className="object-cover"
+                />
+              ) : null}
+            </div>
             <div className="flex flex-1 flex-col justify-between gap-2">
               <div>
                 <Link
