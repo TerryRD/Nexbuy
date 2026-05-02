@@ -27,5 +27,5 @@ export async function loginAction(
     return { error: "登入失敗：" + error.message };
   }
 
-  redirect("/account");
+  redirect("/");
 }
