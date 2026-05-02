@@ -106,6 +106,7 @@ export default async function ProductDetailPage({
                     slug: product.slug,
                     name: product.name,
                     price_cents: product.price_cents,
+                    image_url: product.image_urls?.[0],
                   }}
                   disabled={soldOut}
                   disabledReason={soldOut ? "已售完" : undefined}
