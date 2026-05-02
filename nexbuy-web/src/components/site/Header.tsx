@@ -1,10 +1,16 @@
 import Link from "next/link";
-import { Glasses } from "lucide-react";
+import { Glasses, User } from "lucide-react";
+import { createServerSupabase } from "@/lib/supabase/server";
 import { CartLink } from "./CartLink";
 import { Logo } from "./Logo";
 import { ThemeToggle } from "./ThemeToggle";
 
-export function Header() {
+export async function Header() {
+  const sb = await createServerSupabase();
+  const {
+    data: { user },
+  } = await sb.auth.getUser();
+
   return (
     <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-sm">
       <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
@@ -22,6 +28,15 @@ export function Header() {
           >
             <Glasses className="size-4" />
             <span>眼鏡</span>
+          </Link>
+          <Link
+            href={user ? "/account" : "/login"}
+            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-muted-foreground transition-colors hover:bg-accent/40 hover:text-foreground"
+          >
+            <User className="size-4" />
+            <span className="hidden sm:inline">
+              {user ? "我的帳號" : "登入"}
+            </span>
           </Link>
           <CartLink />
           <ThemeToggle />
