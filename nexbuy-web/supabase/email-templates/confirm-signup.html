@@ -1,0 +1,154 @@
+<!--
+  精鋐眼鏡行 — Confirm signup email
+
+  HOW TO USE:
+  1. Supabase Dashboard → Authentication → Email Templates → Confirm signup
+  2. Subject: 歡迎來到精鋐眼鏡行 — 請確認你的 email
+  3. Message body: paste the HTML below
+
+  Variables available (Supabase Go template):
+    {{ .ConfirmationURL }}  ← the magic link the user clicks
+    {{ .Email }}            ← the recipient's email
+    {{ .SiteURL }}          ← Site URL from URL Configuration
+
+  Email-client constraints honored here:
+  - Table-based layout (Outlook desktop friendliness)
+  - Inline styles only (Gmail strips <style>)
+  - System font stack with CJK fallbacks (no web fonts in email)
+  - SVG logo with text wordmark fallback (Outlook strips SVG, the brand
+    text still reads)
+  - 600px max width
+  - Single column
+
+  Palette mirrors the site's --primary / --foreground / --background
+  (oklch → hex conversions):
+    primary  caramel        #7a522f
+    fg       deep coffee    #3a2f24
+    bg       cream          #faf6ee
+    card     off-white      #fefcf6
+    border                  #e8dcc8
+    muted                   #8a7866
+-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-TW">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>歡迎來到精鋐眼鏡行</title>
+</head>
+<body style="margin:0;padding:0;background-color:#faf6ee;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue','PingFang TC','Microsoft JhengHei',Arial,sans-serif;color:#3a2f24;-webkit-font-smoothing:antialiased;">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#faf6ee;">
+<tr>
+<td align="center" style="padding:40px 16px;">
+
+  <table role="presentation" width="560" cellspacing="0" cellpadding="0" border="0" style="max-width:560px;width:100%;background-color:#fefcf6;border-radius:18px;border:1px solid #e8dcc8;">
+
+    <!-- Brand mark -->
+    <tr>
+      <td align="left" style="padding:40px 44px 0 44px;">
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+          <tr>
+            <td style="padding-right:10px;vertical-align:middle;">
+              <svg width="42" height="18" viewBox="0 0 48 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M2 5h44" stroke="#7a522f" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M2 5v5a5 5 0 0 0 5 5h6a5 5 0 0 0 5-5V5" stroke="#7a522f" stroke-width="1.5" fill="none" stroke-linejoin="round"/>
+                <path d="M30 5v5a5 5 0 0 0 5 5h6a5 5 0 0 0 5-5V5" stroke="#7a522f" stroke-width="1.5" fill="none" stroke-linejoin="round"/>
+              </svg>
+            </td>
+            <td style="vertical-align:middle;font-family:Georgia,'Times New Roman','Songti TC','Noto Serif TC',serif;font-size:20px;font-weight:600;color:#7a522f;letter-spacing:-0.005em;">
+              精鋐眼鏡行
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- Headline -->
+    <tr>
+      <td style="padding:40px 44px 0 44px;">
+        <h1 style="margin:0;font-family:Georgia,'Times New Roman','Songti TC','Noto Serif TC',serif;font-size:32px;font-weight:600;line-height:1.2;color:#3a2f24;letter-spacing:-0.015em;">
+          謝謝你來
+        </h1>
+        <p style="margin:10px 0 0 0;font-family:Georgia,'Times New Roman','Songti TC','Noto Serif TC',serif;font-size:18px;line-height:1.4;color:#5a4a38;font-style:italic;">
+          下一副眼鏡，就從這裡開始。
+        </p>
+      </td>
+    </tr>
+
+    <!-- Body copy -->
+    <tr>
+      <td style="padding:28px 44px 0 44px;">
+        <p style="margin:0;font-size:15px;line-height:1.7;color:#3a2f24;">
+          點下面那顆按鈕確認你的 email，帳號就建好了。
+          之後在家挑款、線上預約、訂單與配鏡紀錄，都會跟著你的帳號走。
+        </p>
+      </td>
+    </tr>
+
+    <!-- CTA button -->
+    <tr>
+      <td align="left" style="padding:32px 44px 0 44px;">
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+          <tr>
+            <td style="background-color:#7a522f;border-radius:10px;">
+              <a href="{{ .ConfirmationURL }}" target="_blank"
+                 style="display:inline-block;padding:14px 32px;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue','PingFang TC','Microsoft JhengHei',Arial,sans-serif;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;letter-spacing:0.02em;border-radius:10px;">
+                確認我的信箱
+              </a>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- Fallback URL -->
+    <tr>
+      <td style="padding:28px 44px 0 44px;">
+        <p style="margin:0;font-size:13px;line-height:1.6;color:#8a7866;">
+          按鈕點不開？把下面這串網址貼到瀏覽器：
+        </p>
+        <p style="margin:6px 0 0 0;font-size:12px;line-height:1.5;word-break:break-all;">
+          <a href="{{ .ConfirmationURL }}" target="_blank" style="color:#7a522f;text-decoration:underline;">{{ .ConfirmationURL }}</a>
+        </p>
+      </td>
+    </tr>
+
+    <!-- Divider -->
+    <tr>
+      <td style="padding:36px 44px 0 44px;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+          <tr><td style="border-top:1px solid #e8dcc8;font-size:0;line-height:0;">&nbsp;</td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- Disclaimer -->
+    <tr>
+      <td style="padding:24px 44px 40px 44px;">
+        <p style="margin:0;font-size:12px;line-height:1.7;color:#8a7866;">
+          如果你沒有在精鋐眼鏡行建立帳號，可以直接忽略這封信，不會發生任何事。
+        </p>
+      </td>
+    </tr>
+
+  </table>
+
+  <!-- Outer footer / brand stamp -->
+  <table role="presentation" width="560" cellspacing="0" cellpadding="0" border="0" style="max-width:560px;width:100%;">
+    <tr>
+      <td align="center" style="padding:24px 16px 8px 16px;">
+        <p style="margin:0;font-family:Georgia,'Times New Roman','Songti TC',serif;font-size:11px;letter-spacing:0.22em;text-transform:uppercase;color:#a89378;">
+          Jing Hong Optical &nbsp;·&nbsp; Est · 在地
+        </p>
+        <p style="margin:8px 0 0 0;font-family:'SF Mono',Menlo,Consolas,monospace;font-size:10px;letter-spacing:0.12em;color:#a89378;">
+          25.0173°N &nbsp; 121.2956°E
+        </p>
+      </td>
+    </tr>
+  </table>
+
+</td>
+</tr>
+</table>
+</body>
+</html>
