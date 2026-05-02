@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { Glasses, User } from "lucide-react";
+import { Glasses } from "lucide-react";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { CartLink } from "./CartLink";
+import { HeaderAuthLink } from "./HeaderAuthLink";
 import { Logo } from "./Logo";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -29,15 +30,7 @@ export async function Header() {
             <Glasses className="size-4" />
             <span>眼鏡</span>
           </Link>
-          <Link
-            href={user ? "/account" : "/login"}
-            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-muted-foreground transition-colors hover:bg-accent/40 hover:text-foreground"
-          >
-            <User className="size-4" />
-            <span className="hidden sm:inline">
-              {user ? "我的帳號" : "登入"}
-            </span>
-          </Link>
+          <HeaderAuthLink loggedIn={!!user} />
           <CartLink />
           <ThemeToggle />
         </nav>

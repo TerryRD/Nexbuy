@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { safeNext } from "@/lib/auth/safe-next";
 
 const schema = z.object({
   email: z.email(),
@@ -27,5 +28,6 @@ export async function loginAction(
     return { error: "登入失敗：" + error.message };
   }
 
-  redirect("/");
+  const next = safeNext(formData.get("next") as string | null);
+  redirect(next);
 }
