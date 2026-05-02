@@ -34,10 +34,22 @@ const VALUES = [
   },
 ] as const;
 
-const HIGHLIGHTS = [
-  { kpi: "線上選 + 到店配", desc: "在家挑款式，到店再驗光" },
-  { kpi: "成品宅配到府", desc: "平光款下單後直接寄出" },
-  { kpi: "預約優先服務", desc: "免排隊、鏡架已備妥" },
+const STEPS = [
+  {
+    n: "01",
+    title: "線上挑款",
+    desc: "在家慢慢看，鏡框、價格、適合的臉型一目了然。",
+  },
+  {
+    n: "02",
+    title: "預約或下單",
+    desc: "成品款直接結帳寄出；處方鏡架選一個方便的到店時段。",
+  },
+  {
+    n: "03",
+    title: "到店配鏡 / 開箱",
+    desc: "驗光師已備好、鏡架已在桌上；或者快遞到家直接戴上。",
+  },
 ] as const;
 
 // Placeholder photos sourced from Unsplash (whitelisted in next.config.ts).
@@ -202,18 +214,31 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ---------------- Highlights ---------------- */}
-      <section id="highlights" className="mx-auto max-w-5xl px-4 py-20">
-        <div className="grid gap-3 sm:grid-cols-3">
-          {HIGHLIGHTS.map((h, i) => (
-            <Reveal key={h.kpi} from="zoom" delay={i * 100}>
-              <div className="rounded-2xl border border-border/60 bg-card/60 p-6 backdrop-blur-sm">
-                <div className="font-heading text-2xl font-semibold leading-tight text-primary">
-                  {h.kpi}
+      {/* ---------------- How it works ---------------- */}
+      <section id="how" className="mx-auto max-w-5xl px-4 py-20">
+        <Reveal from="left">
+          <div className="mb-10">
+            <h2 className="font-heading text-3xl font-semibold tracking-tight md:text-4xl">
+              怎麼運作
+            </h2>
+            <p className="mt-2 max-w-md text-sm text-muted-foreground">
+              三步驟，把線上跟到店接起來 — 你來的時候，東西早就準備好了。
+            </p>
+          </div>
+        </Reveal>
+        <div className="grid gap-4 md:grid-cols-3">
+          {STEPS.map((s, i) => (
+            <Reveal key={s.n} from="zoom-up" delay={i * 100}>
+              <div className="relative h-full rounded-3xl border border-border/60 bg-card/60 p-6 backdrop-blur-sm">
+                <div className="font-heading text-5xl font-semibold leading-none tracking-tight text-primary/30">
+                  {s.n}
                 </div>
-                <div className="mt-2 text-sm text-muted-foreground">
-                  {h.desc}
+                <div className="mt-5 font-heading text-xl font-semibold">
+                  {s.title}
                 </div>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  {s.desc}
+                </p>
               </div>
             </Reveal>
           ))}
