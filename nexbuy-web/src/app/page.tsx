@@ -9,6 +9,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
+import { HeroCarousel } from "@/components/site/HeroCarousel";
 import { Reveal } from "@/components/site/Reveal";
 
 const MAP_LABEL = encodeURIComponent("精鋐眼鏡行");
@@ -41,23 +42,32 @@ const HIGHLIGHTS = [
 
 // Placeholder photos sourced from Unsplash (whitelisted in next.config.ts).
 // Swap to first-party photos once the shoot is done.
-const HERO_PHOTO =
-  "https://images.unsplash.com/photo-1574258495973-f010dfbb5371?w=1200&q=80&auto=format&fit=crop";
+const HERO_SLIDES = [
+  {
+    src: "https://images.unsplash.com/photo-1574258495973-f010dfbb5371?w=1200&q=80&auto=format&fit=crop",
+    alt: "鏡框示意 — 木紋桌面",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1577803645773-f96470509666?w=1200&q=80&auto=format&fit=crop",
+    alt: "經典款式示意",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1542838132-92c53300491e?w=1200&q=80&auto=format&fit=crop",
+    alt: "鏡架特寫示意",
+  },
+] as const;
 const GALLERY = [
   {
     src: "https://images.unsplash.com/photo-1556306535-0f09a537f0a3?w=900&q=80&auto=format&fit=crop",
     alt: "鏡框陳列示意",
-    label: "Frames · 01",
   },
   {
     src: "https://images.unsplash.com/photo-1577803645773-f96470509666?w=900&q=80&auto=format&fit=crop",
     alt: "經典款式示意",
-    label: "Classic · 02",
   },
   {
     src: "https://images.unsplash.com/photo-1542838132-92c53300491e?w=900&q=80&auto=format&fit=crop",
     alt: "鏡架特寫示意",
-    label: "Closeup · 03",
   },
 ] as const;
 
@@ -82,14 +92,6 @@ export default function HomePage() {
         <div className="mx-auto max-w-5xl px-4 py-16">
           <div className="grid gap-8 py-12 md:grid-cols-2 md:items-center md:gap-12 md:py-20">
             <div className="space-y-5">
-              <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/60 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur">
-                <span className="size-1.5 rounded-full bg-primary" />
-                <span className="text-[10px] uppercase tracking-[0.3em]">
-                  JING HONG OPTICAL
-                </span>
-                <span className="opacity-50">·</span>
-                <span>在地眼鏡行</span>
-              </span>
               <h1 className="font-heading text-5xl font-semibold leading-[0.98] tracking-[-0.02em] text-foreground md:text-7xl">
                 在家挑框
                 <br />
@@ -115,36 +117,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="relative aspect-[4/3] overflow-hidden rounded-3xl border border-border/60 shadow-2xl shadow-primary/15 ring-1 ring-foreground/5">
-              <Image
-                src={HERO_PHOTO}
-                alt="精鋐眼鏡行 — 鏡框示意"
-                fill
-                priority
-                sizes="(min-width: 768px) 50vw, 100vw"
-                className="object-cover"
-              />
-              <div
-                aria-hidden
-                className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/65 via-black/15 to-transparent"
-              />
-              <div className="bg-grain absolute inset-0" aria-hidden />
-              <div className="absolute inset-x-5 bottom-5 flex items-end justify-between gap-4 font-heading md:inset-x-7 md:bottom-7">
-                <div>
-                  <div className="text-[10px] font-medium uppercase tracking-[0.32em] text-white/75">
-                    Est · 在地
-                  </div>
-                  <div className="mt-1 text-xl font-medium leading-[1.05] tracking-tight text-white md:text-3xl">
-                    Jing Hong Optical
-                  </div>
-                </div>
-                <div className="text-right text-[10px] uppercase tracking-[0.2em] text-white/55">
-                  25.0173°N
-                  <br />
-                  121.2956°E
-                </div>
-              </div>
-            </div>
+            <HeroCarousel slides={HERO_SLIDES} />
           </div>
         </div>
       </section>
@@ -153,11 +126,7 @@ export default function HomePage() {
       <section id="story" className="relative mx-auto max-w-5xl px-4 py-20">
         <div className="grid gap-10 md:grid-cols-5 md:gap-14">
           <Reveal from="left" className="md:col-span-2">
-            <div className="sticky top-24 space-y-6">
-              <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/60 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.32em] text-muted-foreground">
-                <span className="size-1 rounded-full bg-primary" />
-                About
-              </span>
+            <div className="sticky top-24">
               <h2 className="font-heading text-3xl font-semibold leading-tight tracking-tight md:text-4xl">
                 我們相信，
                 <br />
@@ -198,11 +167,7 @@ export default function HomePage() {
           <Reveal from="left">
             <div className="mb-12 flex flex-col items-start gap-3 md:flex-row md:items-end md:justify-between">
               <div>
-                <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card px-3 py-1 text-[10px] font-medium uppercase tracking-[0.32em] text-muted-foreground">
-                  <span className="size-1 rounded-full bg-primary" />
-                  Services
-                </span>
-                <h2 className="mt-3 font-heading text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
+                <h2 className="font-heading text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
                   我們提供什麼
                 </h2>
               </div>
@@ -259,11 +224,7 @@ export default function HomePage() {
       <section id="gallery" className="mx-auto max-w-5xl px-4 py-20">
         <Reveal from="left">
           <div className="mb-10">
-            <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/60 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.32em] text-muted-foreground">
-              <span className="size-1 rounded-full bg-primary" />
-              Inside
-            </span>
-            <h2 className="mt-3 font-heading text-3xl font-semibold tracking-tight md:text-4xl">
+            <h2 className="font-heading text-3xl font-semibold tracking-tight md:text-4xl">
               店裡的樣子
             </h2>
             <p className="mt-2 max-w-md text-sm text-muted-foreground">
@@ -283,10 +244,6 @@ export default function HomePage() {
                   className="object-cover transition-transform duration-700 group-hover:scale-[1.04]"
                 />
                 <div className="bg-grain absolute inset-0" aria-hidden />
-                <div className="absolute bottom-4 left-4 inline-flex items-center gap-2 rounded-full bg-card/85 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.32em] text-foreground backdrop-blur-md">
-                  <span className="size-1 rounded-full bg-primary" />
-                  {g.label}
-                </div>
               </div>
             </Reveal>
           ))}
@@ -303,11 +260,7 @@ export default function HomePage() {
           <Reveal from="left">
             <div className="mb-10 flex flex-col items-start gap-3 md:flex-row md:items-end md:justify-between">
               <div>
-                <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/60 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.32em] text-muted-foreground">
-                  <span className="size-1 rounded-full bg-primary" />
-                  Visit
-                </span>
-                <h2 className="mt-3 font-heading text-3xl font-semibold tracking-tight md:text-4xl">
+                <h2 className="font-heading text-3xl font-semibold tracking-tight md:text-4xl">
                   來坐一下
                 </h2>
                 <p className="mt-2 max-w-md text-sm text-muted-foreground">
