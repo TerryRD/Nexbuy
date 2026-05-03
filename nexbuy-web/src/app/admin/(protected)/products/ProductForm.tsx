@@ -256,10 +256,11 @@ export function ProductForm({ initial, action, submitLabel }: Props) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="p-try-on">試戴用透明 PNG (選填, 5MB 內)</Label>
+        <Label htmlFor="p-try-on">試戴用鏡架圖 (選填, 5MB 內)</Label>
         <p className="text-xs text-muted-foreground">
-          /try-on 試戴頁會用的去背鏡架圖, 限 PNG 且需透明背景。
-          現有去背圖直接上傳; 沒有的話留空, 下個 PR 接 remove.bg 自動去背。
+          /try-on 試戴頁用的鏡架圖。Server 設了 REMOVE_BG_API_KEY 時可上傳
+          一般 JPG/PNG/WebP，會自動送 remove.bg 去背後存成透明 PNG；
+          沒設 KEY 時必須上傳預先去背的透明 PNG。
         </p>
         {existingTryOn && !tryOnPreviewUrl && (
           <div className="flex items-center gap-3">
@@ -291,7 +292,7 @@ export function ProductForm({ initial, action, submitLabel }: Props) {
           ref={tryOnFileRef}
           type="file"
           name="try_on_image"
-          accept="image/png"
+          accept="image/jpeg,image/png,image/webp"
           onChange={onTryOnFileChange}
         />
       </div>

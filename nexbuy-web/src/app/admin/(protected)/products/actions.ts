@@ -6,10 +6,14 @@ import { z } from "zod";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { createProductSchema, updateProductSchema } from "@/lib/schemas/product";
+import { isRemoveBgConfigured, removeBackground } from "@/lib/removeBg";
 
 const MAX_FILE_BYTES = 5 * 1024 * 1024;
 const PRODUCT_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
-const TRY_ON_IMAGE_TYPES = new Set(["image/png"]); // 透明背景必須 PNG
+// REMOVE_BG_API_KEY 設了 → 接受任意常見圖片，server 端送 remove.bg 去背
+// 沒設 → 退回 PNG-only、admin 必須上傳預先去背好的透明 PNG
+const TRY_ON_INPUT_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const TRY_ON_PNG_ONLY = new Set(["image/png"]);
 
 interface ActionResult {
   error?: string;
@@ -86,15 +90,59 @@ const uploadProductImage = (formData: FormData, slug: string) =>
     formatLabel: "商品主圖、JPG / PNG / WebP",
   });
 
-const uploadTryOnImage = (formData: FormData, slug: string) =>
-  uploadIfPresent({
-    formData,
-    fieldName: "try_on_image",
-    bucket: "try-on-images",
-    slug,
-    allowedTypes: TRY_ON_IMAGE_TYPES,
-    formatLabel: "試戴圖、限透明 PNG",
-  });
+/**
+ * Try-on 圖片上傳：
+ * - 有 REMOVE_BG_API_KEY：接受 JPG/PNG/WebP，server 把照片送去 remove.bg
+ *   去背後再存進 try-on-images bucket（最終都是 PNG）
+ * - 沒設：退回 PNG-only、admin 必須上傳預先去背好的透明 PNG
+ */
+async function uploadTryOnImage(
+  formData: FormData,
+  slug: string,
+): Promise<string | null> {
+  const file = formData.get("try_on_image");
+  if (!(file instanceof File) || file.size === 0) return null;
+  if (file.size > MAX_FILE_BYTES) {
+    throw new Error("試戴圖超過 5MB");
+  }
+
+  const useRemoveBg = isRemoveBgConfigured();
+  const allowedTypes = useRemoveBg ? TRY_ON_INPUT_TYPES : TRY_ON_PNG_ONLY;
+  if (!allowedTypes.has(file.type)) {
+    throw new Error(
+      useRemoveBg
+        ? "試戴圖格式錯誤（限 JPG / PNG / WebP）"
+        : "試戴圖格式錯誤（未設 REMOVE_BG_API_KEY 時限透明 PNG）",
+    );
+  }
+
+  let outBytes: Uint8Array = new Uint8Array(await file.arrayBuffer());
+  let outContentType = file.type;
+  if (useRemoveBg) {
+    try {
+      outBytes = await removeBackground(outBytes, file.type);
+      outContentType = "image/png";
+    } catch (err) {
+      // 把 remove.bg 的錯誤攤給 admin 看（含 quota / 帳號 issue 也好排查）
+      console.error("[try-on] remove.bg failed:", err);
+      throw new Error(
+        `去背失敗：${err instanceof Error ? err.message : "未知錯誤"}`,
+      );
+    }
+  }
+
+  const path = `${slug}/${Date.now()}.png`;
+  const admin = createAdminSupabase();
+  const { error } = await admin.storage
+    .from("try-on-images")
+    .upload(path, outBytes, { contentType: outContentType, upsert: false });
+  if (error) {
+    console.error("storage upload failed (try-on-images):", error);
+    throw new Error("試戴圖上傳失敗");
+  }
+  const { data } = admin.storage.from("try-on-images").getPublicUrl(path);
+  return data.publicUrl;
+}
 
 export async function createProductAction(
   _prev: ActionResult | null,
