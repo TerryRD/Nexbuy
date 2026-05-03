@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { formatDate, formatPrice, formatTime } from "@/lib/format";
+import { ChangePasswordForm } from "./ChangePasswordForm";
 
 export const metadata = {
   title: "我的帳號 — 精鋐眼鏡行",
@@ -79,6 +80,11 @@ export default async function AccountPage() {
           <Field label="Email">{user.email}</Field>
           {customer?.phone && <Field label="電話">{customer.phone}</Field>}
         </div>
+      </Section>
+
+      {/* Change password */}
+      <Section title="修改密碼">
+        <ChangePasswordForm />
       </Section>
 
       {/* Appointments */}
