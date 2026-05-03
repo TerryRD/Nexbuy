@@ -12,6 +12,7 @@ const ORDER_NO_RE = /^NB-\d{12}-\d{3}$/;
 type OrderRow = {
   id: string;
   order_no: string;
+  payment_code: string;
   status:
     | "pending_payment"
     | "paid"
@@ -57,7 +58,7 @@ export default async function OrderSuccessPage({ params }: { params: Params }) {
     .from("orders")
     .select(
       `
-      id, order_no, status,
+      id, order_no, payment_code, status,
       subtotal_cents, shipping_fee_cents, total_cents,
       recipient_name, recipient_phone, shipping_address, note, created_at,
       items:order_items ( product_name, unit_price_cents, quantity, subtotal_cents )
@@ -105,11 +106,17 @@ export default async function OrderSuccessPage({ params }: { params: Params }) {
         <Row label="帳號">000-000-000-0000</Row>
         <Row label="金額">{formatPrice(order.total_cents)}</Row>
         <Row label="備註">
-          請於匯款時在備註填寫訂單編號{" "}
-          <span className="font-mono">{order.order_no}</span>,
-          以利店家對帳。
+          <span className="font-mono text-base font-semibold tracking-widest">
+            {order.payment_code}
+          </span>
+          <span className="ml-2 text-muted-foreground">
+            (5 碼數字,務必填上以利對帳)
+          </span>
         </Row>
         <p className="mt-2 text-xs text-muted-foreground">
+          ATM 備註欄通常只能填數字,請填上方 5 碼即可,訂單編號保留在這個頁面就好。
+        </p>
+        <p className="mt-1 text-xs text-muted-foreground">
           ⚠️ MVP 示範用的銀行資訊,上線前要換成店家實際帳戶。
         </p>
       </section>
