@@ -19,6 +19,9 @@ export function SignupForm({ next }: { next: string }) {
         <p className="mt-1 text-muted-foreground">
           請去你的 Email 信箱點裡面的連結完成註冊。沒收到的話檢查垃圾信件夾。
         </p>
+        <p className="mt-3 text-xs text-muted-foreground">
+          如果這個 email 之前是用 Google 註冊的，請改用上方「使用 Google 繼續」登入即可。
+        </p>
       </div>
     );
   }
