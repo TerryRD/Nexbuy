@@ -8,6 +8,8 @@ const serverSchema = z.object({
   SMTP_PORT: z.coerce.number().int().positive().default(465),
   SMTP_USER: z.string().default(""),
   SMTP_PASS: z.string().default(""),
+  // remove.bg API key — 選填，未設時 try-on 圖片必須是預先去背的 PNG。
+  REMOVE_BG_API_KEY: z.string().default(""),
 });
 
 const publicSchema = z.object({
@@ -31,5 +33,6 @@ export function getServerEnv() {
     SMTP_PORT: process.env.SMTP_PORT ?? "465",
     SMTP_USER: process.env.SMTP_USER ?? "",
     SMTP_PASS: process.env.SMTP_PASS ?? "",
+    REMOVE_BG_API_KEY: process.env.REMOVE_BG_API_KEY ?? "",
   });
 }
