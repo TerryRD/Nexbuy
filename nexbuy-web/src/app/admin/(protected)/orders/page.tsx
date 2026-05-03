@@ -16,6 +16,7 @@ type OrderStatus =
 type OrderRow = {
   id: string;
   order_no: string;
+  payment_code: string;
   status: OrderStatus;
   total_cents: number;
   recipient_name: string;
@@ -48,7 +49,7 @@ export default async function AdminOrdersPage() {
     .from("orders")
     .select(
       `
-      id, order_no, status, total_cents,
+      id, order_no, payment_code, status, total_cents,
       recipient_name, recipient_phone, shipping_address, note, created_at,
       items:order_items ( product_name, quantity )
     `,
@@ -128,8 +129,14 @@ function OrderCard({ row }: { row: OrderRow }) {
     <li className="rounded-lg border p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-1.5">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="font-mono text-sm">{row.order_no}</span>
+            <span
+              className="rounded-md bg-primary/10 px-2 py-0.5 font-mono text-sm font-semibold tracking-widest text-primary"
+              title="顧客匯款備註"
+            >
+              {row.payment_code}
+            </span>
             <Badge
               variant={actionable && row.status === "pending_payment" ? "default" : "outline"}
             >

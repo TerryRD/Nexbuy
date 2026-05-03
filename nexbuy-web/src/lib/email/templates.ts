@@ -26,6 +26,7 @@ export interface OrderPlacedInput {
   to: string;
   customerName: string;
   orderNo: string;
+  paymentCode: string;
   totalCents: number;
   items: { productName: string; quantity: number }[];
   successUrl: string;
@@ -48,6 +49,8 @@ export function orderPlacedEmail(d: OrderPlacedInput): EmailMessage {
   <div style="${CARD}">
     <p style="margin:0"><strong>訂單編號</strong></p>
     <p style="font-family:monospace;font-size:18px;margin:4px 0 12px">${d.orderNo}</p>
+    <p style="margin:0"><strong>匯款備註(請填這 5 碼)</strong></p>
+    <p style="font-family:monospace;font-size:22px;letter-spacing:4px;margin:4px 0 12px"><strong>${d.paymentCode}</strong></p>
     <ul style="margin:0;padding-left:20px">${itemsHtml}</ul>
     <p style="margin:12px 0 0"><strong>總計:${formatPrice(d.totalCents)}</strong></p>
   </div>
@@ -55,7 +58,7 @@ export function orderPlacedEmail(d: OrderPlacedInput): EmailMessage {
   <p><a href="${d.successUrl}" style="${CTA}">查看訂單</a></p>
   <p style="${MUTED}">這封信由系統自動發送,如需協助請直接聯絡店家。</p>
 </div>`,
-    text: `訂單 ${d.orderNo} 已成立,總計 ${formatPrice(d.totalCents)}。請至 ${d.successUrl} 查看匯款資訊。`,
+    text: `訂單 ${d.orderNo} 已成立,總計 ${formatPrice(d.totalCents)}。請於 ATM 備註填上 5 碼: ${d.paymentCode}。詳情:${d.successUrl}`,
   };
 }
 
