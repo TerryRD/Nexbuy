@@ -2,8 +2,15 @@ import { notFound } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase/server";
 import type { Product, ProductKind } from "@/lib/types/database";
 import { ProductsList } from "./ProductsList";
+import { filterFromSearchParams } from "./AttributeFilters";
 
-type SearchParams = Promise<{ kind?: string }>;
+type SearchParams = Promise<{
+  kind?: string;
+  face_shape?: string | string[];
+  frame_size?: string;
+  material?: string;
+  color?: string;
+}>;
 
 const isValidKind = (v: string | undefined): v is ProductKind =>
   v === "finished" || v === "prescription_frame";
@@ -18,19 +25,21 @@ export default async function ProductsPage({
 }: {
   searchParams: SearchParams;
 }) {
-  const { kind: kindParam } = await searchParams;
+  const sp = await searchParams;
+  const { kind: kindParam } = sp;
   if (kindParam && !isValidKind(kindParam)) {
     notFound();
   }
   const initialKind: ProductKind | null = isValidKind(kindParam)
     ? kindParam
     : null;
+  const initialFilter = filterFromSearchParams(sp);
 
   const sb = await createServerSupabase();
   const { data, error } = await sb
     .from("products")
     .select(
-      "id, slug, name, description, price_cents, image_urls, brand, kind, finished_stock, is_online_available",
+      "id, slug, name, description, price_cents, image_urls, brand, kind, finished_stock, is_online_available, face_shape, frame_size, material, color",
     )
     .eq("is_online_available", true)
     .order("created_at", { ascending: false });
@@ -42,5 +51,11 @@ export default async function ProductsPage({
 
   const products = (data ?? []) as Product[];
 
-  return <ProductsList products={products} initialKind={initialKind} />;
+  return (
+    <ProductsList
+      products={products}
+      initialKind={initialKind}
+      initialFilter={initialFilter}
+    />
+  );
 }

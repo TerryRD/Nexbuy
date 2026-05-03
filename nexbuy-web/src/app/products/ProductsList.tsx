@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ProductFilter } from "@/components/site/ProductFilter";
@@ -14,6 +14,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  AttributeFilters,
+  filterToQueryString,
+  type AttributeFilterState,
+} from "./AttributeFilters";
 
 const TITLE: Record<"all" | ProductKind, string> = {
   all: "全部商品",
@@ -24,34 +29,68 @@ const TITLE: Record<"all" | ProductKind, string> = {
 export function ProductsList({
   products,
   initialKind,
+  initialFilter,
 }: {
   products: Product[];
   initialKind: ProductKind | null;
+  initialFilter: AttributeFilterState;
 }) {
   const [active, setActive] = useState<ProductKind | null>(initialKind);
+  const [attrFilter, setAttrFilter] =
+    useState<AttributeFilterState>(initialFilter);
 
-  const filtered = active
-    ? products.filter((p) => p.kind === active)
-    : products;
+  const filtered = useMemo(() => {
+    return products.filter((p) => {
+      if (active && p.kind !== active) return false;
+      // face_shape：多選 OR — 商品任一適合臉型符合就算
+      if (attrFilter.faceShapes.length > 0) {
+        const match = attrFilter.faceShapes.some((s) =>
+          (p.face_shape ?? []).includes(s),
+        );
+        if (!match) return false;
+      }
+      if (attrFilter.frameSize && p.frame_size !== attrFilter.frameSize) {
+        return false;
+      }
+      if (attrFilter.material && p.material !== attrFilter.material) {
+        return false;
+      }
+      if (attrFilter.color && p.color !== attrFilter.color) {
+        return false;
+      }
+      return true;
+    });
+  }, [products, active, attrFilter]);
   const title = TITLE[active ?? "all"];
+
+  const syncUrl = (kind: ProductKind | null, filter: AttributeFilterState) => {
+    const qs = filterToQueryString(kind, filter);
+    const url = qs ? `/products?${qs}` : "/products";
+    window.history.replaceState(null, "", url);
+  };
 
   const handleChange = (next: ProductKind | null) => {
     setActive(next);
-    // Sync URL without re-triggering the App Router (router.replace would
-    // refetch the page). history.replaceState updates the address bar so
-    // copy-link / refresh land back at the same filter.
-    const url = next ? `/products?kind=${next}` : "/products";
-    window.history.replaceState(null, "", url);
+    syncUrl(next, attrFilter);
+  };
+
+  const handleAttrChange = (next: AttributeFilterState) => {
+    setAttrFilter(next);
+    syncUrl(active, next);
   };
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
-      <header className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+      <header className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <h1 className="font-heading text-3xl font-semibold tracking-tight md:text-4xl">
           {title}
         </h1>
         <ProductFilter active={active} onChange={handleChange} />
       </header>
+
+      <div className="mb-8">
+        <AttributeFilters value={attrFilter} onChange={handleAttrChange} />
+      </div>
 
       {filtered.length === 0 ? (
         <p className="py-12 text-center text-muted-foreground">
