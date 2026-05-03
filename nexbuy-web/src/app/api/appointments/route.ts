@@ -2,8 +2,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { createAppointmentSchema } from "@/lib/schemas/appointment";
-import { publicEnv, getServerEnv } from "@/lib/env";
-import { sendEmail } from "@/lib/email/send";
+import { publicEnv } from "@/lib/env";
+import { sendEmail, isEmailConfigured } from "@/lib/email/send";
 import { appointmentBookedEmail } from "@/lib/email/templates";
 import { formatDate, formatTime } from "@/lib/format";
 import { getClientIp, rateLimitAppointments } from "@/lib/ratelimit";
@@ -105,10 +105,9 @@ export async function POST(request: NextRequest) {
   const frame = (ctx?.frame ?? null) as unknown as { name: string } | null;
 
   if (slot) {
-    const { RESEND_API_KEY } = getServerEnv();
     const to = [input.customer_email];
-    if (!RESEND_API_KEY || to.length === 0) {
-      console.warn("[appointments] 未寄 email (缺 RESEND_API_KEY 或收件人)");
+    if (!isEmailConfigured() || to.length === 0) {
+      console.warn("[appointments] 未寄 email (缺 SMTP 設定 或 收件人)");
     } else {
       const content = appointmentBookedEmail({
         customerName: input.customer_name,

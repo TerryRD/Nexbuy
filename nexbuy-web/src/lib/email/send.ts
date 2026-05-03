@@ -1,4 +1,5 @@
 import "server-only";
+import nodemailer, { type Transporter } from "nodemailer";
 import { getServerEnv } from "@/lib/env";
 
 export interface SendEmailInput {
@@ -6,7 +7,7 @@ export interface SendEmailInput {
   cc?: string[];
   subject: string;
   text: string;
-  /** 留空用 Resend 測試寄件人；上線前要改成驗證過的網域 */
+  /** 留空用 SMTP_USER 當 from；Gmail 會強制 from 與 auth user 一致 */
   from?: string;
 }
 
@@ -14,43 +15,52 @@ export interface SendEmailResult {
   id: string;
 }
 
-const RESEND_API_URL = "https://api.resend.com/emails";
-const DEFAULT_FROM = "精鋐眼鏡行 <onboarding@resend.dev>";
+const SENDER_NAME = "精鋐眼鏡行";
+
+let cachedTransport: Transporter | null = null;
+
+function getTransport(): Transporter | null {
+  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = getServerEnv();
+  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
+    return null;
+  }
+  if (!cachedTransport) {
+    cachedTransport = nodemailer.createTransport({
+      host: SMTP_HOST,
+      port: SMTP_PORT,
+      secure: SMTP_PORT === 465, // 465 = SSL；587 = STARTTLS
+      auth: { user: SMTP_USER, pass: SMTP_PASS },
+    });
+  }
+  return cachedTransport;
+}
+
+/**
+ * 是否已設定 SMTP — 呼叫端用來在 try 之前先 warn-skip。
+ */
+export function isEmailConfigured(): boolean {
+  const { SMTP_HOST, SMTP_USER, SMTP_PASS } = getServerEnv();
+  return Boolean(SMTP_HOST && SMTP_USER && SMTP_PASS);
+}
 
 export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult> {
-  const { RESEND_API_KEY } = getServerEnv();
-  if (!RESEND_API_KEY) {
-    throw new Error("[email] 缺少 RESEND_API_KEY，無法寄信");
+  const transport = getTransport();
+  if (!transport) {
+    throw new Error("[email] 缺少 SMTP 設定 (SMTP_HOST / USER / PASS)，無法寄信");
   }
 
-  const res = await fetch(RESEND_API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${RESEND_API_KEY}`,
-    },
-    body: JSON.stringify({
-      from: input.from ?? DEFAULT_FROM,
-      to: input.to,
-      cc: input.cc && input.cc.length > 0 ? input.cc : undefined,
-      subject: input.subject,
-      text: input.text,
-    }),
+  const { SMTP_USER } = getServerEnv();
+  const from = input.from ?? `${SENDER_NAME} <${SMTP_USER}>`;
+
+  const info = await transport.sendMail({
+    from,
+    to: input.to.join(", "),
+    cc: input.cc && input.cc.length > 0 ? input.cc.join(", ") : undefined,
+    subject: input.subject,
+    text: input.text,
   });
 
-  if (!res.ok) {
-    let message = res.statusText;
-    try {
-      const body = (await res.json()) as { message?: string };
-      if (body.message) message = body.message;
-    } catch {
-      // 忽略 JSON parse 失敗，保留 statusText
-    }
-    throw new Error(`[email] Resend 回應錯誤 (${res.status}): ${message}`);
-  }
-
-  const body = (await res.json()) as { id?: string };
-  return { id: body.id ?? "unknown" };
+  return { id: info.messageId };
 }
 
 export function parseEmailList(raw: string): string[] {

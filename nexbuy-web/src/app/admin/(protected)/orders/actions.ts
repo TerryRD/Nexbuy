@@ -3,9 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createServerSupabase } from "@/lib/supabase/server";
-import { sendEmail } from "@/lib/email/send";
+import { sendEmail, isEmailConfigured } from "@/lib/email/send";
 import { orderPaidEmail } from "@/lib/email/templates";
-import { publicEnv, getServerEnv } from "@/lib/env";
+import { publicEnv } from "@/lib/env";
 
 const NEXT_STATUS_MAP = {
   pending_payment: "paid",
@@ -57,10 +57,9 @@ export async function advanceOrderStatus(formData: FormData): Promise<void> {
   // tracking-no based notifications later.
   if (nextStatus === "paid") {
     const o = data[0];
-    const { RESEND_API_KEY } = getServerEnv();
     const to = [o.customer_email];
-    if (!RESEND_API_KEY || to.length === 0) {
-      console.warn("[orders/admin] 未寄 email (缺 RESEND_API_KEY 或收件人)");
+    if (!isEmailConfigured() || to.length === 0) {
+      console.warn("[orders/admin] 未寄 email (缺 SMTP 設定 或 收件人)");
     } else {
       const content = orderPaidEmail({
         customerName: o.recipient_name,
