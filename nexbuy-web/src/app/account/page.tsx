@@ -25,7 +25,12 @@ const APPOINTMENT_STATUS_LABEL: Record<string, string> = {
   cancelled: "已取消",
 };
 
-export default async function AccountPage() {
+export default async function AccountPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ password_reset?: string }>;
+}) {
+  const { password_reset } = await searchParams;
   const sb = await createServerSupabase();
   const {
     data: { user },
@@ -72,6 +77,15 @@ export default async function AccountPage() {
           歡迎回到精鋐眼鏡行。
         </p>
       </div>
+
+      {password_reset === "1" && (
+        <div className="mb-8 rounded-md border border-primary/30 bg-primary/5 p-4 text-sm">
+          <div className="font-semibold">密碼已更新</div>
+          <p className="mt-1 text-muted-foreground">
+            下次登入請使用新密碼。
+          </p>
+        </div>
+      )}
 
       {/* Profile */}
       <Section title="個人資料">
