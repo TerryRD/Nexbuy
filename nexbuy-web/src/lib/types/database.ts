@@ -14,6 +14,11 @@ export interface Product {
   kind: ProductKind;
   finished_stock: number | null;
   is_online_available: boolean;
+  // Phase 3 attributes — 全選填、可能 null / empty array
+  face_shape: string[];
+  frame_size: string | null;
+  material: string | null;
+  color: string | null;
 }
 
 export interface AppointmentSlot {

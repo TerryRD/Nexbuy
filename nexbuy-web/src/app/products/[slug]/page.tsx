@@ -21,7 +21,7 @@ export default async function ProductDetailPage({
   const { data, error } = await sb
     .from("products")
     .select(
-      "id, slug, name, description, price_cents, image_urls, brand, kind, finished_stock, is_online_available",
+      "id, slug, name, description, price_cents, image_urls, brand, kind, finished_stock, is_online_available, face_shape, frame_size, material, color",
     )
     .eq("slug", slug)
     .eq("is_online_available", true)
@@ -78,6 +78,8 @@ export default async function ProductDetailPage({
             </p>
           )}
 
+          <ProductAttributes product={product} />
+
           <div className="pt-4">
             {product.kind === "prescription_frame" ? (
               <div className="space-y-2">
@@ -118,5 +120,47 @@ export default async function ProductDetailPage({
         </div>
       </div>
     </div>
+  );
+}
+
+function ProductAttributes({ product }: { product: Product }) {
+  const rows: { label: string; value: React.ReactNode }[] = [];
+  if (product.face_shape && product.face_shape.length > 0) {
+    rows.push({
+      label: "適合臉型",
+      value: (
+        <div className="flex flex-wrap gap-1.5">
+          {product.face_shape.map((s) => (
+            <span
+              key={s}
+              className="rounded-full border border-border/60 bg-background/80 px-2.5 py-0.5 text-xs"
+            >
+              {s}
+            </span>
+          ))}
+        </div>
+      ),
+    });
+  }
+  if (product.frame_size) {
+    rows.push({ label: "鏡架尺寸", value: product.frame_size });
+  }
+  if (product.material) {
+    rows.push({ label: "材質", value: product.material });
+  }
+  if (product.color) {
+    rows.push({ label: "主色", value: product.color });
+  }
+  if (rows.length === 0) return null;
+
+  return (
+    <dl className="space-y-2 rounded-lg border bg-card/40 p-4 text-sm">
+      {rows.map((r) => (
+        <div key={r.label} className="flex gap-3">
+          <dt className="w-20 shrink-0 text-muted-foreground">{r.label}</dt>
+          <dd>{r.value}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }

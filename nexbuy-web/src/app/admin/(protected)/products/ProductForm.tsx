@@ -7,7 +7,13 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { slugify } from "@/lib/schemas/product";
+import {
+  slugify,
+  FACE_SHAPES,
+  FRAME_SIZES,
+  MATERIALS,
+  COLORS,
+} from "@/lib/schemas/product";
 
 type ProductKind = "finished" | "prescription_frame";
 
@@ -22,6 +28,10 @@ export interface ProductInitial {
   finished_stock: number | null;
   is_online_available: boolean;
   image_urls: string[];
+  face_shape: string[];
+  frame_size: string | null;
+  material: string | null;
+  color: string | null;
 }
 
 interface ActionResult {
@@ -237,6 +247,48 @@ export function ProductForm({ initial, action, submitLabel }: Props) {
         />
       </div>
 
+      <fieldset className="space-y-4 rounded-lg border bg-card/30 p-4">
+        <legend className="px-1 text-sm font-medium">屬性 (全選填)</legend>
+
+        <div className="space-y-2">
+          <Label>適合臉型 (多選)</Label>
+          <div className="flex flex-wrap gap-3 text-sm">
+            {FACE_SHAPES.map((s) => (
+              <label key={s} className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  name="face_shape"
+                  value={s}
+                  defaultChecked={initial.face_shape.includes(s)}
+                />
+                {s}
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-3">
+          <SelectField
+            label="鏡架尺寸"
+            name="frame_size"
+            options={FRAME_SIZES}
+            initial={initial.frame_size}
+          />
+          <SelectField
+            label="材質"
+            name="material"
+            options={MATERIALS}
+            initial={initial.material}
+          />
+          <SelectField
+            label="主色"
+            name="color"
+            options={COLORS}
+            initial={initial.color}
+          />
+        </div>
+      </fieldset>
+
       <div className="flex items-center gap-2">
         <input
           id="p-online"
@@ -270,4 +322,35 @@ export function ProductForm({ initial, action, submitLabel }: Props) {
 
 function FieldErr({ msg }: { msg: string }) {
   return <p className="text-xs text-destructive">{msg}</p>;
+}
+
+function SelectField({
+  label,
+  name,
+  options,
+  initial,
+}: {
+  label: string;
+  name: string;
+  options: readonly string[];
+  initial: string | null;
+}) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={`p-${name}`}>{label}</Label>
+      <select
+        id={`p-${name}`}
+        name={name}
+        defaultValue={initial ?? ""}
+        className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+      >
+        <option value="">— 不指定 —</option>
+        {options.map((o) => (
+          <option key={o} value={o}>
+            {o}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
 }
