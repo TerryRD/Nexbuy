@@ -4,7 +4,13 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { User } from "lucide-react";
 
-const SKIP_NEXT = new Set(["/login", "/signup", "/auth/callback", "/forgot-password"]);
+const SKIP_NEXT = new Set([
+  "/login",
+  "/signup",
+  "/auth/callback",
+  "/forgot-password",
+  "/reset-password",
+]);
 
 export function HeaderAuthLink({ loggedIn }: { loggedIn: boolean }) {
   const pathname = usePathname();

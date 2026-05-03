@@ -53,6 +53,15 @@ export default async function LoginPage({
         </div>
 
         <LoginForm next={safe} />
+
+        <p className="text-center text-sm text-muted-foreground">
+          <Link
+            href="/forgot-password"
+            className="text-primary hover:underline"
+          >
+            忘記密碼？
+          </Link>
+        </p>
       </div>
     </div>
   );
