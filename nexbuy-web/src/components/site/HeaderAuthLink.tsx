@@ -9,7 +9,6 @@ const SKIP_NEXT = new Set([
   "/signup",
   "/auth/callback",
   "/forgot-password",
-  "/reset-password",
 ]);
 
 export function HeaderAuthLink({ loggedIn }: { loggedIn: boolean }) {
