@@ -1,58 +1,71 @@
-// Thin wrapper around Resend. Fire-and-forget from API routes / actions so
-// a Resend outage doesn't fail the underlying database operation.
-//
-// If RESEND_API_KEY === "dummy" (local dev / preview without Resend setup),
-// we log to console instead of sending. This keeps the booking / order
-// flows functional end-to-end without forcing every developer to wire up
-// a real Resend account.
-
-import { Resend } from "resend";
+import "server-only";
+import nodemailer, { type Transporter } from "nodemailer";
 import { getServerEnv } from "@/lib/env";
 
-export interface EmailMessage {
-  to: string;
+export interface SendEmailInput {
+  to: string[];
+  cc?: string[];
   subject: string;
-  html: string;
-  text?: string;
+  text: string;
+  /** 留空用 SMTP_USER 當 from；Gmail 會強制 from 與 auth user 一致 */
+  from?: string;
 }
 
-let cachedClient: Resend | null = null;
-function getClient(): Resend | null {
-  const env = getServerEnv();
-  if (env.RESEND_API_KEY === "dummy" || !env.RESEND_API_KEY.startsWith("re_")) {
+export interface SendEmailResult {
+  id: string;
+}
+
+const SENDER_NAME = "精鋐眼鏡行";
+
+let cachedTransport: Transporter | null = null;
+
+function getTransport(): Transporter | null {
+  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = getServerEnv();
+  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
     return null;
   }
-  if (!cachedClient) cachedClient = new Resend(env.RESEND_API_KEY);
-  return cachedClient;
+  if (!cachedTransport) {
+    cachedTransport = nodemailer.createTransport({
+      host: SMTP_HOST,
+      port: SMTP_PORT,
+      secure: SMTP_PORT === 465, // 465 = SSL；587 = STARTTLS
+      auth: { user: SMTP_USER, pass: SMTP_PASS },
+    });
+  }
+  return cachedTransport;
 }
 
 /**
- * Send an email. Errors are logged but never thrown — callers should not
- * await / depend on email success for their flow's correctness.
+ * 是否已設定 SMTP — 呼叫端用來在 try 之前先 warn-skip。
  */
-export async function sendEmail(msg: EmailMessage): Promise<void> {
-  const env = getServerEnv();
-  const client = getClient();
+export function isEmailConfigured(): boolean {
+  const { SMTP_HOST, SMTP_USER, SMTP_PASS } = getServerEnv();
+  return Boolean(SMTP_HOST && SMTP_USER && SMTP_PASS);
+}
 
-  if (!client) {
-    console.log(
-      `[email/dummy] would send to=${msg.to} subject="${msg.subject}"`,
-    );
-    return;
+export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult> {
+  const transport = getTransport();
+  if (!transport) {
+    throw new Error("[email] 缺少 SMTP 設定 (SMTP_HOST / USER / PASS)，無法寄信");
   }
 
-  try {
-    const { error } = await client.emails.send({
-      from: env.RESEND_FROM_EMAIL,
-      to: msg.to,
-      subject: msg.subject,
-      html: msg.html,
-      text: msg.text,
-    });
-    if (error) {
-      console.error(`[email] resend error to=${msg.to}:`, error);
-    }
-  } catch (err) {
-    console.error(`[email] unexpected error to=${msg.to}:`, err);
-  }
+  const { SMTP_USER } = getServerEnv();
+  const from = input.from ?? `${SENDER_NAME} <${SMTP_USER}>`;
+
+  const info = await transport.sendMail({
+    from,
+    to: input.to.join(", "),
+    cc: input.cc && input.cc.length > 0 ? input.cc.join(", ") : undefined,
+    subject: input.subject,
+    text: input.text,
+  });
+
+  return { id: info.messageId };
+}
+
+export function parseEmailList(raw: string): string[] {
+  return raw
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
 }

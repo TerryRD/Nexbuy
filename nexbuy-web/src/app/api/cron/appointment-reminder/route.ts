@@ -15,7 +15,7 @@
 
 import { NextResponse, type NextRequest } from "next/server";
 import { createAdminSupabase } from "@/lib/supabase/admin";
-import { sendEmail } from "@/lib/email/send";
+import { sendEmail, isEmailConfigured } from "@/lib/email/send";
 import { appointmentReminderEmail } from "@/lib/email/templates";
 import { formatDate, formatTime } from "@/lib/format";
 import { publicEnv } from "@/lib/env";
@@ -98,24 +98,34 @@ export async function GET(request: NextRequest) {
   for (const a of appointments) {
     if (!a.slot) continue;
     const cancelUrl = `${publicEnv.NEXT_PUBLIC_APP_URL}/appointment/${a.cancel_token}`;
-    // Send + mark in parallel. Mark even if email logically failed (sendEmail
-    // never throws) to avoid retry storms; Resend's own retry handles flakes.
-    await sendEmail(
-      appointmentReminderEmail({
-        to: a.customer_email,
+    const to = [a.customer_email];
+
+    // Always mark after processing (success or failure) — avoid retry storms.
+    // SMTP transient errors are rare; permanent errors don't benefit from
+    // daily re-attempts.
+    if (!isEmailConfigured() || to.length === 0) {
+      console.warn("[appointment-reminder] 未寄 email (缺 SMTP 設定 或 收件人)");
+    } else {
+      const content = appointmentReminderEmail({
         customerName: a.customer_name,
         appointmentDate: formatDate(a.slot.date),
         appointmentTime: `${formatTime(a.slot.start_time)} – ${formatTime(a.slot.end_time)}`,
         frameName: a.frame?.name ?? null,
         cancelUrl,
-      }),
-    );
+      });
+      try {
+        await sendEmail({ to, ...content });
+      } catch (err) {
+        console.error("[appointment-reminder] 寄信失敗:", err);
+      }
+    }
+
     const { error: markErr } = await admin
       .from("appointments")
       .update({ reminder_sent_at: new Date().toISOString() })
       .eq("id", a.id);
     if (markErr) {
-      console.error(`[cron] mark reminder_sent_at for ${a.id} failed:`, markErr);
+      console.error(`[appointment-reminder] mark reminder_sent_at for ${a.id} failed:`, markErr);
       continue;
     }
     sent += 1;
