@@ -99,6 +99,7 @@ export async function POST(request: NextRequest) {
         to: input.customer_email,
         customerName: input.customer_name,
         orderNo: row.order_no,
+        paymentCode: row.payment_code,
         totalCents: o.total_cents,
         items: o.items.map((i) => ({
           productName: i.product_name,
