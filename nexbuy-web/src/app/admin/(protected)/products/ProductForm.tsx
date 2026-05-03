@@ -22,7 +22,6 @@ export interface ProductInitial {
   finished_stock: number | null;
   is_online_available: boolean;
   image_urls: string[];
-  try_on_image_url: string | null;
 }
 
 interface ActionResult {
@@ -46,9 +45,7 @@ export function ProductForm({ initial, action, submitLabel }: Props) {
   const [slugTouched, setSlugTouched] = useState(initial.slug.length > 0);
   const [kind, setKind] = useState<ProductKind>(initial.kind);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [tryOnPreviewUrl, setTryOnPreviewUrl] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-  const tryOnFileRef = useRef<HTMLInputElement>(null);
 
   // Auto-suggest slug from name unless user typed slug manually.
   useEffect(() => {
@@ -65,11 +62,6 @@ export function ProductForm({ initial, action, submitLabel }: Props) {
     return () => URL.revokeObjectURL(previewUrl);
   }, [previewUrl]);
 
-  useEffect(() => {
-    if (!tryOnPreviewUrl) return;
-    return () => URL.revokeObjectURL(tryOnPreviewUrl);
-  }, [tryOnPreviewUrl]);
-
   function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) {
@@ -79,18 +71,8 @@ export function ProductForm({ initial, action, submitLabel }: Props) {
     setPreviewUrl(URL.createObjectURL(file));
   }
 
-  function onTryOnFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) {
-      setTryOnPreviewUrl(null);
-      return;
-    }
-    setTryOnPreviewUrl(URL.createObjectURL(file));
-  }
-
   const fieldErr = (k: string) => state?.fieldErrors?.[k]?.[0];
   const existingImage = initial.image_urls[0] ?? null;
-  const existingTryOn = initial.try_on_image_url;
 
   return (
     <form action={formAction} className="space-y-6">
@@ -252,48 +234,6 @@ export function ProductForm({ initial, action, submitLabel }: Props) {
           name="image"
           accept="image/jpeg,image/png,image/webp"
           onChange={onFileChange}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="p-try-on">試戴用鏡架圖 (選填, 5MB 內)</Label>
-        <p className="text-xs text-muted-foreground">
-          /try-on 試戴頁用的鏡架圖。Server 設了 REMOVE_BG_API_KEY 時可上傳
-          一般 JPG/PNG/WebP，會自動送 remove.bg 去背後存成透明 PNG；
-          沒設 KEY 時必須上傳預先去背的透明 PNG。
-        </p>
-        {existingTryOn && !tryOnPreviewUrl && (
-          <div className="flex items-center gap-3">
-            <Image
-              src={existingTryOn}
-              alt="目前試戴圖"
-              width={120}
-              height={120}
-              className="rounded border bg-[repeating-conic-gradient(#e5e5e5_0_25%,#f5f5f5_0_50%)] bg-[length:16px_16px] object-contain"
-              unoptimized
-            />
-            <p className="text-sm text-muted-foreground">
-              選新檔會置換。不選就不動。
-            </p>
-          </div>
-        )}
-        {tryOnPreviewUrl && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={tryOnPreviewUrl}
-            alt="試戴圖預覽"
-            width={120}
-            height={120}
-            className="rounded border bg-[repeating-conic-gradient(#e5e5e5_0_25%,#f5f5f5_0_50%)] bg-[length:16px_16px] object-contain"
-          />
-        )}
-        <Input
-          id="p-try-on"
-          ref={tryOnFileRef}
-          type="file"
-          name="try_on_image"
-          accept="image/jpeg,image/png,image/webp"
-          onChange={onTryOnFileChange}
         />
       </div>
 
