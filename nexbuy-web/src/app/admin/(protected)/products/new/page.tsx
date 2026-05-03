@@ -26,6 +26,7 @@ export default function AdminProductNewPage() {
           finished_stock: 0,
           is_online_available: true,
           image_urls: [],
+          try_on_image_url: null,
         }}
         action={createProductAction}
         submitLabel="建立商品"
