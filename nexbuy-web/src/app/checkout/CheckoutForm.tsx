@@ -9,12 +9,18 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export function CheckoutForm() {
+export interface CheckoutDefaults {
+  name: string;
+  email: string;
+  phone: string;
+}
+
+export function CheckoutForm({ defaults }: { defaults: CheckoutDefaults }) {
   const router = useRouter();
   const { items, subtotalCents, totalQuantity, clear } = useCart();
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
+  const [name, setName] = useState(defaults.name);
+  const [email, setEmail] = useState(defaults.email);
+  const [phone, setPhone] = useState(defaults.phone);
   const [address, setAddress] = useState("");
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
