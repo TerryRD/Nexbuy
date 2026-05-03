@@ -25,6 +25,11 @@ function parseFormData(formData: FormData) {
     kind: (formData.get("kind") ?? "").toString(),
     finished_stock: (formData.get("finished_stock") ?? "").toString() || null,
     is_online_available: formData.get("is_online_available") === "on",
+    // Phase 3 attributes — face_shape 是多選 checkbox 群組
+    face_shape: formData.getAll("face_shape").map((v) => v.toString()),
+    frame_size: (formData.get("frame_size") ?? "").toString() || null,
+    material: (formData.get("material") ?? "").toString() || null,
+    color: (formData.get("color") ?? "").toString() || null,
   };
 }
 
@@ -90,6 +95,10 @@ export async function createProductAction(
     finished_stock: parsed.data.kind === "finished" ? parsed.data.finished_stock : null,
     is_online_available: parsed.data.is_online_available,
     image_urls: imageUrl ? [imageUrl] : [],
+    face_shape: parsed.data.face_shape,
+    frame_size: parsed.data.frame_size,
+    material: parsed.data.material,
+    color: parsed.data.color,
   });
 
   if (error) {
@@ -156,6 +165,10 @@ export async function updateProductAction(
         parsed.data.kind === "finished" ? parsed.data.finished_stock : null,
       is_online_available: parsed.data.is_online_available,
       image_urls: imageUrls,
+      face_shape: parsed.data.face_shape,
+      frame_size: parsed.data.frame_size,
+      material: parsed.data.material,
+      color: parsed.data.color,
     })
     .eq("id", productId);
 

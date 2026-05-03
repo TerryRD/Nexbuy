@@ -16,7 +16,7 @@ export default async function AdminProductEditPage({
   const { data, error } = await sb
     .from("products")
     .select(
-      "id, name, slug, description, brand, price_cents, kind, finished_stock, is_online_available, image_urls",
+      "id, name, slug, description, brand, price_cents, kind, finished_stock, is_online_available, image_urls, face_shape, frame_size, material, color",
     )
     .eq("id", id)
     .maybeSingle();
@@ -27,6 +27,7 @@ export default async function AdminProductEditPage({
   const initial = {
     ...data,
     image_urls: (data.image_urls as string[] | null) ?? [],
+    face_shape: (data.face_shape as string[] | null) ?? [],
   } as ProductInitial;
 
   // Bind productId via closure so the Server Action gets it.

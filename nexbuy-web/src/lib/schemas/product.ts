@@ -2,6 +2,26 @@ import { z } from "zod";
 
 const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
+// Phase 3 attribute 集合 — 用 zod 校驗，不放 DB CHECK 方便日後擴充。
+export const FACE_SHAPES = [
+  "圓形",
+  "方形",
+  "橢圓",
+  "心型",
+  "倒三角",
+] as const;
+export const FRAME_SIZES = ["S", "M", "L"] as const;
+export const MATERIALS = ["金屬", "醋酸纖維", "TR90", "複合"] as const;
+export const COLORS = [
+  "黑",
+  "棕",
+  "玳瑁",
+  "金",
+  "銀",
+  "透明",
+  "其他",
+] as const;
+
 const baseShape = {
   name: z.string().trim().min(1).max(200),
   slug: z
@@ -20,6 +40,11 @@ const baseShape = {
   kind: z.enum(["finished", "prescription_frame"]),
   finished_stock: z.coerce.number().int().min(0).max(99_999).optional().nullable(),
   is_online_available: z.coerce.boolean(),
+  // Phase 3 — attributes 全選填
+  face_shape: z.array(z.enum(FACE_SHAPES)).default([]),
+  frame_size: z.enum(FRAME_SIZES).optional().nullable(),
+  material: z.enum(MATERIALS).optional().nullable(),
+  color: z.enum(COLORS).optional().nullable(),
 };
 
 const refineStock = (
