@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase/server";
@@ -7,6 +6,7 @@ import type { Product } from "@/lib/types/database";
 import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AddToCartButton } from "./AddToCartButton";
+import { ProductImageCarousel } from "./ProductImageCarousel";
 
 type Params = Promise<{ slug: string }>;
 
@@ -42,18 +42,14 @@ export default async function ProductDetailPage({
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
       <div className="grid gap-8 md:grid-cols-2">
-        <div className="relative aspect-square overflow-hidden rounded-lg border bg-muted/50">
-          {product.image_urls[0] ? (
-            <Image
-              src={product.image_urls[0]}
-              alt={product.name}
-              fill
-              sizes="(min-width: 768px) 50vw, 100vw"
-              className="object-cover"
-              priority
-            />
-          ) : null}
-        </div>
+        {product.image_urls.length > 0 ? (
+          <ProductImageCarousel
+            images={product.image_urls}
+            alt={product.name}
+          />
+        ) : (
+          <div className="relative aspect-square overflow-hidden rounded-lg border bg-muted/50" />
+        )}
         <div className="space-y-5">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
