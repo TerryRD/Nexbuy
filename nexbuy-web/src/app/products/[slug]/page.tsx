@@ -6,6 +6,7 @@ import type { Product } from "@/lib/types/database";
 import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AddToCartButton } from "./AddToCartButton";
+import { CompareToggle } from "./CompareToggle";
 import { ProductImageCarousel } from "./ProductImageCarousel";
 
 type Params = Promise<{ slug: string }>;
@@ -79,6 +80,10 @@ export default async function ProductDetailPage({
           )}
 
           <ProductAttributes product={product} />
+
+          <div className="pt-2">
+            <CompareToggle productId={product.id} />
+          </div>
 
           <div className="pt-4">
             {product.kind === "prescription_frame" ? (
