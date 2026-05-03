@@ -2,8 +2,8 @@ import { z } from "zod";
 
 const serverSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
-  RESEND_API_KEY: z.string().min(1),
-  RESEND_FROM_EMAIL: z.email(),
+  // 選填：未設時 sendEmail 會 throw、呼叫端要自行 fallback (warn + skip)
+  RESEND_API_KEY: z.string().default(""),
 });
 
 const publicSchema = z.object({
@@ -23,7 +23,6 @@ export const publicEnv = publicSchema.parse({
 export function getServerEnv() {
   return serverSchema.parse({
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
-    RESEND_API_KEY: process.env.RESEND_API_KEY,
-    RESEND_FROM_EMAIL: process.env.RESEND_FROM_EMAIL,
+    RESEND_API_KEY: process.env.RESEND_API_KEY ?? "",
   });
 }

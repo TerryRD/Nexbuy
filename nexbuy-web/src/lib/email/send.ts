@@ -1,58 +1,61 @@
-// Thin wrapper around Resend. Fire-and-forget from API routes / actions so
-// a Resend outage doesn't fail the underlying database operation.
-//
-// If RESEND_API_KEY === "dummy" (local dev / preview without Resend setup),
-// we log to console instead of sending. This keeps the booking / order
-// flows functional end-to-end without forcing every developer to wire up
-// a real Resend account.
-
-import { Resend } from "resend";
+import "server-only";
 import { getServerEnv } from "@/lib/env";
 
-export interface EmailMessage {
-  to: string;
+export interface SendEmailInput {
+  to: string[];
+  cc?: string[];
   subject: string;
-  html: string;
-  text?: string;
+  text: string;
+  /** 留空用 Resend 測試寄件人；上線前要改成驗證過的網域 */
+  from?: string;
 }
 
-let cachedClient: Resend | null = null;
-function getClient(): Resend | null {
-  const env = getServerEnv();
-  if (env.RESEND_API_KEY === "dummy" || !env.RESEND_API_KEY.startsWith("re_")) {
-    return null;
-  }
-  if (!cachedClient) cachedClient = new Resend(env.RESEND_API_KEY);
-  return cachedClient;
+export interface SendEmailResult {
+  id: string;
 }
 
-/**
- * Send an email. Errors are logged but never thrown — callers should not
- * await / depend on email success for their flow's correctness.
- */
-export async function sendEmail(msg: EmailMessage): Promise<void> {
-  const env = getServerEnv();
-  const client = getClient();
+const RESEND_API_URL = "https://api.resend.com/emails";
+const DEFAULT_FROM = "精鋐眼鏡行 <onboarding@resend.dev>";
 
-  if (!client) {
-    console.log(
-      `[email/dummy] would send to=${msg.to} subject="${msg.subject}"`,
-    );
-    return;
+export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult> {
+  const { RESEND_API_KEY } = getServerEnv();
+  if (!RESEND_API_KEY) {
+    throw new Error("[email] 缺少 RESEND_API_KEY，無法寄信");
   }
 
-  try {
-    const { error } = await client.emails.send({
-      from: env.RESEND_FROM_EMAIL,
-      to: msg.to,
-      subject: msg.subject,
-      html: msg.html,
-      text: msg.text,
-    });
-    if (error) {
-      console.error(`[email] resend error to=${msg.to}:`, error);
+  const res = await fetch(RESEND_API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${RESEND_API_KEY}`,
+    },
+    body: JSON.stringify({
+      from: input.from ?? DEFAULT_FROM,
+      to: input.to,
+      cc: input.cc && input.cc.length > 0 ? input.cc : undefined,
+      subject: input.subject,
+      text: input.text,
+    }),
+  });
+
+  if (!res.ok) {
+    let message = res.statusText;
+    try {
+      const body = (await res.json()) as { message?: string };
+      if (body.message) message = body.message;
+    } catch {
+      // 忽略 JSON parse 失敗，保留 statusText
     }
-  } catch (err) {
-    console.error(`[email] unexpected error to=${msg.to}:`, err);
+    throw new Error(`[email] Resend 回應錯誤 (${res.status}): ${message}`);
   }
+
+  const body = (await res.json()) as { id?: string };
+  return { id: body.id ?? "unknown" };
+}
+
+export function parseEmailList(raw: string): string[] {
+  return raw
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
 }

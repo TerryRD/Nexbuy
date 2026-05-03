@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { placeOrderSchema } from "@/lib/schemas/order";
-import { publicEnv } from "@/lib/env";
+import { publicEnv, getServerEnv } from "@/lib/env";
 import { sendEmail } from "@/lib/email/send";
 import { orderPlacedEmail } from "@/lib/email/templates";
 import { getClientIp, rateLimitOrders } from "@/lib/ratelimit";
@@ -92,11 +92,12 @@ export async function POST(request: NextRequest) {
       total_cents: number;
       items: { product_name: string; quantity: number }[];
     };
-    // Fire-and-forget: order is already committed, the user shouldn't wait an
-    // extra round-trip and email failures shouldn't surface as 500s.
-    void sendEmail(
-      orderPlacedEmail({
-        to: input.customer_email,
+    const { RESEND_API_KEY } = getServerEnv();
+    const to = [input.customer_email];
+    if (!RESEND_API_KEY || to.length === 0) {
+      console.warn("[orders] 未寄 email (缺 RESEND_API_KEY 或收件人)");
+    } else {
+      const content = orderPlacedEmail({
         customerName: input.customer_name,
         orderNo: row.order_no,
         paymentCode: row.payment_code,
@@ -106,8 +107,13 @@ export async function POST(request: NextRequest) {
           quantity: i.quantity,
         })),
         successUrl,
-      }),
-    );
+      });
+      // Fire-and-forget: order is already committed, the user shouldn't wait
+      // an extra round-trip and email failures shouldn't surface as 500s.
+      sendEmail({ to, ...content }).catch((err) => {
+        console.error("[orders] 寄信失敗:", err);
+      });
+    }
   }
 
   return NextResponse.json(
