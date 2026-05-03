@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { formatDate, formatPrice, formatTime } from "@/lib/format";
 import { CustomerEditForm } from "./EditForm";
+import { ResetPasswordButton } from "./ResetPasswordButton";
 
 export const metadata = {
   title: "客戶詳情 — 管理後台",
@@ -105,6 +106,10 @@ export default async function AdminCustomerDetailPage({
           email={email}
           createdAt={customer.created_at}
         />
+      </Section>
+
+      <Section title="帳號管理">
+        <ResetPasswordButton id={customer.id} />
       </Section>
 
       {/* Appointments */}
