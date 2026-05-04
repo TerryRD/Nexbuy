@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Heart } from "lucide-react";
 import { redirect } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
@@ -36,30 +37,38 @@ export default async function AccountPage() {
     redirect("/login");
   }
 
-  const [{ data: customer }, { data: orders }, { data: appointments }] =
-    await Promise.all([
-      sb
-        .from("customers")
-        .select("display_name, phone")
-        .eq("id", user.id)
-        .maybeSingle(),
-      sb
-        .from("orders")
-        .select(
-          "id, order_no, status, total_cents, created_at, items:order_items(product_name, quantity)",
-        )
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(20),
-      sb
-        .from("appointments")
-        .select(
-          "id, status, cancel_token, created_at, slot:appointment_slots(date, start_time), frame:products(name, slug)",
-        )
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(20),
-    ]);
+  const [
+    { data: customer },
+    { data: orders },
+    { data: appointments },
+    { count: wishlistCount },
+  ] = await Promise.all([
+    sb
+      .from("customers")
+      .select("display_name, phone")
+      .eq("id", user.id)
+      .maybeSingle(),
+    sb
+      .from("orders")
+      .select(
+        "id, order_no, status, total_cents, created_at, items:order_items(product_name, quantity)",
+      )
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(20),
+    sb
+      .from("appointments")
+      .select(
+        "id, status, cancel_token, created_at, slot:appointment_slots(date, start_time), frame:products(name, slug)",
+      )
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(20),
+    sb
+      .from("wishlist_items")
+      .select("product_id", { count: "exact", head: true })
+      .eq("customer_id", user.id),
+  ]);
 
   const name = customer?.display_name ?? user.email?.split("@")[0] ?? "顧客";
 
@@ -80,6 +89,29 @@ export default async function AccountPage() {
           <Field label="Email">{user.email}</Field>
           {customer?.phone && <Field label="電話">{customer.phone}</Field>}
         </div>
+      </Section>
+
+      {/* Wishlist */}
+      <Section title="我的收藏">
+        <Link
+          href="/account/wishlist"
+          className="flex items-center justify-between rounded-2xl border bg-card/60 p-5 backdrop-blur-sm transition-colors hover:bg-card"
+        >
+          <div className="flex items-center gap-3">
+            <Heart className="size-5 text-rose-500" aria-hidden />
+            <div>
+              <div className="font-heading text-base font-semibold">
+                收藏清單
+              </div>
+              <div className="text-sm text-muted-foreground">
+                {wishlistCount && wishlistCount > 0
+                  ? `已收藏 ${wishlistCount} 副鏡架`
+                  : "還沒有收藏的鏡架"}
+              </div>
+            </div>
+          </div>
+          <span className="text-sm text-muted-foreground">查看 →</span>
+        </Link>
       </Section>
 
       {/* Change password */}
