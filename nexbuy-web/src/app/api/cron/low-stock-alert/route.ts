@@ -1,20 +1,18 @@
-// 預約 T-24h 提醒 — 邏輯抽到 lib/cron/appointment-reminder.ts，
-// daily 合併 cron 也用同一支。本 route 保留供手動觸發 / 監控。
+// 低庫存 digest — 邏輯抽到 lib/cron/low-stock-alert.ts；daily 合併 cron 也用
+// 同一支。本 route 保留供手動觸發 / 監控。
 //
-// Auth：Vercel 設 CRON_SECRET 後 `Authorization: Bearer ${CRON_SECRET}` 才放行；
-// prod 缺 CRON_SECRET 直接 500 (fail-closed)。
+// Auth：跟 appointment-reminder 同一套 — `Authorization: Bearer ${CRON_SECRET}`。
 
 import { NextResponse, type NextRequest } from "next/server";
-import { runAppointmentReminder } from "@/lib/cron/appointment-reminder";
+import { runLowStockAlert } from "@/lib/cron/low-stock-alert";
 
 export async function GET(request: NextRequest) {
   const expected = process.env.CRON_SECRET;
 
   if (process.env.NODE_ENV === "production" && !expected) {
-    console.error("[cron] CRON_SECRET missing in production — refusing.");
+    console.error("[cron/low-stock] CRON_SECRET missing in production — refusing.");
     return NextResponse.json({ error: "MISCONFIGURED" }, { status: 500 });
   }
-
   if (expected) {
     const got = request.headers.get("authorization");
     if (got !== `Bearer ${expected}`) {
@@ -22,7 +20,7 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  const result = await runAppointmentReminder();
+  const result = await runLowStockAlert();
   if ("error" in result) {
     return NextResponse.json(result, { status: 500 });
   }

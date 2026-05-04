@@ -6,6 +6,7 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { sendEmail, isEmailConfigured } from "@/lib/email/send";
 import { orderPaidEmail } from "@/lib/email/templates";
 import { publicEnv } from "@/lib/env";
+import { SHIPPING_STATUSES } from "./shipping-status";
 
 const NEXT_STATUS_MAP = {
   pending_payment: "paid",
@@ -21,15 +22,6 @@ const advanceSchema = z.object({
     Object.keys(NEXT_STATUS_MAP) as [Transition, ...Transition[]],
   ),
 });
-
-export const SHIPPING_STATUSES = [
-  "not_shipped",
-  "preparing",
-  "shipped",
-  "delivered",
-  "returned",
-] as const;
-export type ShippingStatus = (typeof SHIPPING_STATUSES)[number];
 
 const updateShippingSchema = z.object({
   id: z.uuid(),

@@ -24,6 +24,12 @@ export default async function AdminProtectedLayout({
       <aside className="w-48 shrink-0 border-r bg-muted/30">
         <nav className="flex flex-col gap-1 p-3 text-sm">
           <Link
+            href="/admin"
+            className="rounded-md px-3 py-2 hover:bg-muted"
+          >
+            總覽
+          </Link>
+          <Link
             href="/admin/orders"
             className="rounded-md px-3 py-2 hover:bg-muted"
           >
@@ -52,6 +58,18 @@ export default async function AdminProtectedLayout({
             className="rounded-md px-3 py-2 hover:bg-muted"
           >
             時段維護
+          </Link>
+          <Link
+            href="/admin/reports"
+            className="rounded-md px-3 py-2 hover:bg-muted"
+          >
+            銷售報表
+          </Link>
+          <Link
+            href="/admin/marketing"
+            className="rounded-md px-3 py-2 hover:bg-muted"
+          >
+            行銷活動
           </Link>
         </nav>
       </aside>

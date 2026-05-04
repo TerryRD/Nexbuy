@@ -2,8 +2,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { formatDate, formatPrice, formatTime } from "@/lib/format";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  PrescriptionsTable,
+  type PrescriptionRow,
+} from "@/components/site/PrescriptionsTable";
 import { CustomerEditForm } from "./EditForm";
 import { ResetPasswordButton } from "./ResetPasswordButton";
+import { deletePrescriptionAction } from "./prescriptions/actions";
 
 export const metadata = {
   title: "客戶詳情 — 管理後台",
@@ -38,6 +44,7 @@ export default async function AdminCustomerDetailPage({
     { data: customer },
     { data: orders },
     { data: appointments },
+    { data: prescriptions },
     userResp,
   ] = await Promise.all([
     admin
@@ -59,6 +66,13 @@ export default async function AdminCustomerDetailPage({
       )
       .eq("user_id", id)
       .order("created_at", { ascending: false }),
+    admin
+      .from("prescriptions")
+      .select(
+        "id, exam_date, right_sphere, right_cylinder, right_axis, right_add, left_sphere, left_cylinder, left_axis, left_add, pd, notes",
+      )
+      .eq("customer_id", id)
+      .order("exam_date", { ascending: false }),
     admin.auth.admin.getUserById(id),
   ]);
 
@@ -111,6 +125,46 @@ export default async function AdminCustomerDetailPage({
       <Section title="帳號管理">
         <ResetPasswordButton id={customer.id} />
       </Section>
+
+      {/* Prescriptions */}
+      <section>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="font-heading text-lg font-semibold tracking-tight">
+            驗光紀錄
+          </h2>
+          <Link
+            href={`/admin/customers/${customer.id}/prescriptions/new`}
+            className={buttonVariants({ size: "sm" })}
+          >
+            + 新增驗光紀錄
+          </Link>
+        </div>
+        <PrescriptionsTable
+          rows={(prescriptions ?? []) as unknown as PrescriptionRow[]}
+          actions={(r) => (
+            <div className="flex items-center gap-2">
+              <Link
+                href={`/admin/customers/${customer.id}/prescriptions/${r.id}/edit`}
+                className={buttonVariants({ variant: "outline", size: "sm" })}
+              >
+                編輯
+              </Link>
+              <form action={deletePrescriptionAction}>
+                <input type="hidden" name="customer_id" value={customer.id} />
+                <input type="hidden" name="rx_id" value={r.id} />
+                <Button
+                  type="submit"
+                  variant="outline"
+                  size="sm"
+                  className="text-destructive"
+                >
+                  刪除
+                </Button>
+              </form>
+            </div>
+          )}
+        />
+      </section>
 
       {/* Appointments */}
       <Section title="預約紀錄">

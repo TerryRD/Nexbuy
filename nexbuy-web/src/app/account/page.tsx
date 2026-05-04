@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Heart } from "lucide-react";
+import { Eye, Heart } from "lucide-react";
 import { redirect } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
@@ -50,6 +50,7 @@ export default async function AccountPage() {
     { data: orders },
     { data: appointments },
     { count: wishlistCount },
+    { count: prescriptionCount },
   ] = await Promise.all([
     sb
       .from("customers")
@@ -75,6 +76,10 @@ export default async function AccountPage() {
     sb
       .from("wishlist_items")
       .select("product_id", { count: "exact", head: true })
+      .eq("customer_id", user.id),
+    sb
+      .from("prescriptions")
+      .select("id", { count: "exact", head: true })
       .eq("customer_id", user.id),
   ]);
 
@@ -115,6 +120,29 @@ export default async function AccountPage() {
                 {wishlistCount && wishlistCount > 0
                   ? `已收藏 ${wishlistCount} 副鏡架`
                   : "還沒有收藏的鏡架"}
+              </div>
+            </div>
+          </div>
+          <span className="text-sm text-muted-foreground">查看 →</span>
+        </Link>
+      </Section>
+
+      {/* Prescriptions */}
+      <Section title="驗光紀錄">
+        <Link
+          href="/account/prescriptions"
+          className="flex items-center justify-between rounded-2xl border bg-card/60 p-5 backdrop-blur-sm transition-colors hover:bg-card"
+        >
+          <div className="flex items-center gap-3">
+            <Eye className="size-5 text-primary" aria-hidden />
+            <div>
+              <div className="font-heading text-base font-semibold">
+                我的度數
+              </div>
+              <div className="text-sm text-muted-foreground">
+                {prescriptionCount && prescriptionCount > 0
+                  ? `共 ${prescriptionCount} 筆驗光紀錄`
+                  : "還沒有驗光紀錄"}
               </div>
             </div>
           </div>
