@@ -50,25 +50,22 @@ Auth → Providers → Google：
 
 ## Phase 3 — 決策輔助
 
-依賴：Phase 1（評論需要 auth）。
+依賴：Phase 1（auth）。
 
 工作：
 - 商品多角度照片：UI 改 carousel（schema 已是陣列）
 - 商品 attribute schema：`face_shape`、`frame_size`、`material`、`color`
 - `/products` filter UI 加新 chip group
 - 比較功能：選 2–3 副 → `/compare?ids=...`
-- 評論：客戶送出 + 顯示 + admin 審核
-  - `reviews` table（`product_id`、`customer_id`、`rating`、`body`、`status`）
-  - admin 新增 `/admin/reviews` 審核頁
 
-工時：~10–12 天。
+工時：~6–8 天。
 
 ## Phase 4 — 自助服務 + 提醒
 
-依賴：Phase 1（auth）、Phase 2（試戴可存 wishlist）。
+依賴：Phase 1（auth）。
 
 工作：
-- wishlist：toggle 按鈕在商品卡 + 試戴頁；列表在 `/account/wishlist`
+- wishlist：toggle 按鈕在商品卡 + `/products/[slug]`；列表在 `/account/wishlist`
 - 訂單物流追蹤：`orders.shipping_status` 欄位、admin 可手動更新、客戶看得見
 - 預約前一天 email reminder（既有 cron job `/api/cron/appointment-reminder` 已經有殼）：
   - 整合 Resend

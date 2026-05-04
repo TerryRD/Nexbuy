@@ -19,6 +19,7 @@ import {
   filterToQueryString,
   type AttributeFilterState,
 } from "./AttributeFilters";
+import { WishlistToggle } from "./WishlistToggle";
 
 const TITLE: Record<"all" | ProductKind, string> = {
   all: "全部商品",
@@ -30,10 +31,14 @@ export function ProductsList({
   products,
   initialKind,
   initialFilter,
+  wishlistIds,
+  isLoggedIn,
 }: {
   products: Product[];
   initialKind: ProductKind | null;
   initialFilter: AttributeFilterState;
+  wishlistIds: string[];
+  isLoggedIn: boolean;
 }) {
   const [active, setActive] = useState<ProductKind | null>(initialKind);
   const [attrFilter, setAttrFilter] =
@@ -100,7 +105,7 @@ export function ProductsList({
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((p) => (
             <li key={p.id}>
-              <Link href={`/products/${p.slug}`}>
+              <Link href={`/products/${p.slug}`} className="group block">
                 <Card className="h-full overflow-hidden transition-shadow hover:shadow-md">
                   <div className="relative aspect-square overflow-hidden rounded-t-lg bg-muted">
                     {p.image_urls[0] ? (
@@ -112,6 +117,12 @@ export function ProductsList({
                         className="object-cover transition-transform duration-300 group-hover:scale-105"
                       />
                     ) : null}
+                    <WishlistToggle
+                      productId={p.id}
+                      initialInWishlist={wishlistIds.includes(p.id)}
+                      isLoggedIn={isLoggedIn}
+                      variant="heart"
+                    />
                   </div>
                   <CardHeader>
                     <div className="flex items-start justify-between gap-2">
