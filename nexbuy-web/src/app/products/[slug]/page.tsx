@@ -5,9 +5,11 @@ import { formatPrice } from "@/lib/format";
 import type { Product } from "@/lib/types/database";
 import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { getWishlistProductIds } from "@/lib/wishlist";
 import { AddToCartButton } from "./AddToCartButton";
 import { CompareToggle } from "./CompareToggle";
 import { ProductImageCarousel } from "./ProductImageCarousel";
+import { WishlistToggle } from "../WishlistToggle";
 
 type Params = Promise<{ slug: string }>;
 
@@ -19,14 +21,18 @@ export default async function ProductDetailPage({
   const { slug } = await params;
 
   const sb = await createServerSupabase();
-  const { data, error } = await sb
-    .from("products")
-    .select(
-      "id, slug, name, description, price_cents, image_urls, brand, kind, finished_stock, is_online_available, face_shape, frame_size, material, color",
-    )
-    .eq("slug", slug)
-    .eq("is_online_available", true)
-    .maybeSingle();
+  const [{ data, error }, wishlistSet, { data: { user } }] = await Promise.all([
+    sb
+      .from("products")
+      .select(
+        "id, slug, name, description, price_cents, image_urls, brand, kind, finished_stock, is_online_available, face_shape, frame_size, material, color",
+      )
+      .eq("slug", slug)
+      .eq("is_online_available", true)
+      .maybeSingle(),
+    getWishlistProductIds(),
+    sb.auth.getUser(),
+  ]);
 
   if (error) {
     console.error("product query failed:", error);
@@ -35,6 +41,7 @@ export default async function ProductDetailPage({
 
   if (!data) notFound();
   const product = data as Product;
+  const inWishlist = wishlistSet.has(product.id);
 
   const soldOut =
     product.kind === "finished" &&
@@ -81,8 +88,13 @@ export default async function ProductDetailPage({
 
           <ProductAttributes product={product} />
 
-          <div className="pt-2">
+          <div className="flex flex-wrap gap-2 pt-2">
             <CompareToggle productId={product.id} />
+            <WishlistToggle
+              productId={product.id}
+              initialInWishlist={inWishlist}
+              isLoggedIn={!!user}
+            />
           </div>
 
           <div className="pt-4">
