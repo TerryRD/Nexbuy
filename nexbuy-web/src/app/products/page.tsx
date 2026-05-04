@@ -3,7 +3,7 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import type { Product, ProductKind } from "@/lib/types/database";
 import { getWishlistProductIds } from "@/lib/wishlist";
 import { ProductsList } from "./ProductsList";
-import { filterFromSearchParams } from "./AttributeFilters";
+import { filterFromSearchParams } from "./attribute-filter";
 
 type SearchParams = Promise<{
   kind?: string;

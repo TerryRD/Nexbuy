@@ -6,20 +6,16 @@ import {
   MATERIALS,
   COLORS,
 } from "@/lib/schemas/product";
+import {
+  EMPTY_FILTER,
+  type AttributeFilterState,
+} from "./attribute-filter";
 
-export interface AttributeFilterState {
-  faceShapes: string[]; // multi
-  frameSize: string | null; // single
-  material: string | null; // single
-  color: string | null; // single
-}
-
-export const EMPTY_FILTER: AttributeFilterState = {
-  faceShapes: [],
-  frameSize: null,
-  material: null,
-  color: null,
-};
+// 純函式 / 型別 / 常數住在 attribute-filter.ts，server component (page.tsx)
+// 才 import 得到 — Turbopack 會把 "use client" 模組的非元件 export stub 成
+// client reference，server-side 直接 call 會 runtime error。
+// 為了不打斷既有 client 端的 import 路徑，這裡 re-export 型別 + EMPTY_FILTER。
+export { EMPTY_FILTER, type AttributeFilterState };
 
 interface Props {
   value: AttributeFilterState;
@@ -141,33 +137,4 @@ function ChipRow({
       </div>
     </div>
   );
-}
-
-// Helpers shared with the page: encode/decode filter state to/from URL params.
-export function filterToQueryString(
-  kind: string | null,
-  filter: AttributeFilterState,
-): string {
-  const params = new URLSearchParams();
-  if (kind) params.set("kind", kind);
-  filter.faceShapes.forEach((s) => params.append("face_shape", s));
-  if (filter.frameSize) params.set("frame_size", filter.frameSize);
-  if (filter.material) params.set("material", filter.material);
-  if (filter.color) params.set("color", filter.color);
-  return params.toString();
-}
-
-export function filterFromSearchParams(sp: {
-  face_shape?: string | string[];
-  frame_size?: string;
-  material?: string;
-  color?: string;
-}): AttributeFilterState {
-  const fs = sp.face_shape;
-  return {
-    faceShapes: Array.isArray(fs) ? fs : fs ? [fs] : [],
-    frameSize: sp.frame_size ?? null,
-    material: sp.material ?? null,
-    color: sp.color ?? null,
-  };
 }
