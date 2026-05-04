@@ -2,7 +2,12 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { formatPrice } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { advanceOrderStatus } from "./actions";
+import {
+  advanceOrderStatus,
+  updateShipping,
+  SHIPPING_STATUSES,
+  type ShippingStatus,
+} from "./actions";
 
 type OrderStatus =
   | "pending_payment"
@@ -18,6 +23,9 @@ type OrderRow = {
   order_no: string;
   payment_code: string;
   status: OrderStatus;
+  shipping_status: ShippingStatus;
+  tracking_number: string | null;
+  tracking_carrier: string | null;
   total_cents: number;
   recipient_name: string;
   recipient_phone: string;
@@ -37,6 +45,14 @@ const statusLabels: Record<OrderStatus, string> = {
   refunded: "已退款",
 };
 
+const shippingLabels: Record<ShippingStatus, string> = {
+  not_shipped: "尚未出貨",
+  preparing: "備貨中",
+  shipped: "已出貨",
+  delivered: "已送達",
+  returned: "已退貨",
+};
+
 const nextActionLabel: Partial<Record<OrderStatus, string>> = {
   pending_payment: "標記已付款",
   paid: "標記已出貨",
@@ -49,7 +65,8 @@ export default async function AdminOrdersPage() {
     .from("orders")
     .select(
       `
-      id, order_no, payment_code, status, total_cents,
+      id, order_no, payment_code, status, shipping_status,
+      tracking_number, tracking_carrier, total_cents,
       recipient_name, recipient_phone, shipping_address, note, created_at,
       items:order_items ( product_name, quantity )
     `,
@@ -173,6 +190,72 @@ function OrderCard({ row }: { row: OrderRow }) {
           </form>
         )}
       </div>
+
+      <ShippingForm row={row} />
     </li>
+  );
+}
+
+function ShippingForm({ row }: { row: OrderRow }) {
+  return (
+    <details className="mt-3 rounded-md border bg-muted/20 p-3 text-sm">
+      <summary className="cursor-pointer select-none text-muted-foreground">
+        物流：
+        <span className="ml-1 font-medium text-foreground">
+          {shippingLabels[row.shipping_status]}
+        </span>
+        {row.tracking_number && (
+          <span className="ml-2 font-mono text-xs">
+            {row.tracking_carrier ? `${row.tracking_carrier} · ` : ""}
+            {row.tracking_number}
+          </span>
+        )}
+      </summary>
+      <form
+        action={updateShipping}
+        className="mt-3 grid gap-2 sm:grid-cols-[auto_1fr_1fr_auto]"
+      >
+        <input type="hidden" name="id" value={row.id} />
+        <label className="flex flex-col gap-1 text-xs">
+          <span className="text-muted-foreground">物流狀態</span>
+          <select
+            name="shipping_status"
+            defaultValue={row.shipping_status}
+            className="h-8 rounded-md border bg-background px-2 text-sm"
+          >
+            {SHIPPING_STATUSES.map((s) => (
+              <option key={s} value={s}>
+                {shippingLabels[s]}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="flex flex-col gap-1 text-xs">
+          <span className="text-muted-foreground">物流商</span>
+          <input
+            type="text"
+            name="tracking_carrier"
+            defaultValue={row.tracking_carrier ?? ""}
+            placeholder="黑貓 / 7-11 …"
+            maxLength={32}
+            className="h-8 rounded-md border bg-background px-2 text-sm"
+          />
+        </label>
+        <label className="flex flex-col gap-1 text-xs">
+          <span className="text-muted-foreground">追蹤碼</span>
+          <input
+            type="text"
+            name="tracking_number"
+            defaultValue={row.tracking_number ?? ""}
+            placeholder="出貨後填入"
+            maxLength={64}
+            className="h-8 rounded-md border bg-background px-2 font-mono text-sm"
+          />
+        </label>
+        <Button type="submit" size="sm" variant="outline" className="self-end">
+          更新
+        </Button>
+      </form>
+    </details>
   );
 }
