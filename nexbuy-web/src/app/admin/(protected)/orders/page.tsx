@@ -2,12 +2,8 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { formatPrice } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  advanceOrderStatus,
-  updateShipping,
-  SHIPPING_STATUSES,
-  type ShippingStatus,
-} from "./actions";
+import { advanceOrderStatus, updateShipping } from "./actions";
+import { SHIPPING_STATUSES, type ShippingStatus } from "./shipping-status";
 
 type OrderStatus =
   | "pending_payment"
