@@ -14,11 +14,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { AttributeFilters } from "./AttributeFilters";
 import {
-  AttributeFilters,
   filterToQueryString,
   type AttributeFilterState,
-} from "./AttributeFilters";
+} from "./attribute-filter";
 import { WishlistToggle } from "./WishlistToggle";
 
 const TITLE: Record<"all" | ProductKind, string> = {
