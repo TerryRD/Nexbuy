@@ -4,10 +4,9 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { formatPrice, formatTime } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 
-// Phase 5 PR 1：店家後台 dashboard。今日預約 / 今日訂單 / 低庫存（hardcoded
-// 警戒值 3）。低庫存 email 提醒留給 Phase 5 PR 2。
-
-const LOW_STOCK_THRESHOLD = 3;
+// Phase 5 PR 1：店家後台 dashboard。今日預約 / 今日訂單 / 低庫存。
+// PR 2：警戒值改成 per-product (products.low_stock_threshold) + 每日
+// cron email digest。
 
 type Appointment = {
   id: string;
@@ -32,6 +31,7 @@ type LowStockProduct = {
   slug: string;
   name: string;
   finished_stock: number;
+  low_stock_threshold: number;
 };
 
 function todayInTaipei(): string {
@@ -93,19 +93,24 @@ export default async function AdminDashboardPage() {
       .from("orders")
       .select("id", { count: "exact", head: true })
       .eq("status", "pending_payment"),
+    // 上架成品：之後在 JS 過濾 finished_stock < low_stock_threshold。
+    // PostgREST 沒有直接的「欄位 < 欄位」比較，這裡先全撈回來篩。商品總數
+    // 不會大到必須 SQL 過濾。
     sb
       .from("products")
-      .select("id, slug, name, finished_stock")
+      .select("id, slug, name, finished_stock, low_stock_threshold")
       .eq("kind", "finished")
       .eq("is_online_available", true)
-      .lt("finished_stock", LOW_STOCK_THRESHOLD)
       .order("finished_stock", { ascending: true })
-      .limit(20),
+      .limit(200),
   ]);
 
   const appts = (appointments ?? []) as unknown as Appointment[];
   const orders = (ordersToday ?? []) as Order[];
-  const lows = (lowStock ?? []) as LowStockProduct[];
+  const allOnlineFinished = (lowStock ?? []) as LowStockProduct[];
+  const lows = allOnlineFinished
+    .filter((p) => p.finished_stock < p.low_stock_threshold)
+    .slice(0, 20);
 
   const upcomingToday = appts
     .filter((a) => a.status === "booked" && a.slot)
@@ -227,7 +232,7 @@ export default async function AdminDashboardPage() {
       {/* 低庫存警示 */}
       <Section
         icon={<AlertTriangle className="size-4 text-amber-600" />}
-        title={`低庫存（< ${LOW_STOCK_THRESHOLD}）`}
+        title="低庫存"
         empty="所有上架成品庫存都足夠。"
       >
         {lows.length > 0 && (
@@ -251,6 +256,9 @@ export default async function AdminDashboardPage() {
                   }
                 >
                   庫存 {p.finished_stock}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  警戒值 {p.low_stock_threshold}
                 </span>
               </li>
             ))}
