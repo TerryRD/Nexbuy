@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase/server";
 import type { Product, ProductKind } from "@/lib/types/database";
+import { getWishlistProductIds } from "@/lib/wishlist";
 import { ProductsList } from "./ProductsList";
 import { filterFromSearchParams } from "./AttributeFilters";
 
@@ -36,13 +37,17 @@ export default async function ProductsPage({
   const initialFilter = filterFromSearchParams(sp);
 
   const sb = await createServerSupabase();
-  const { data, error } = await sb
-    .from("products")
-    .select(
-      "id, slug, name, description, price_cents, image_urls, brand, kind, finished_stock, is_online_available, face_shape, frame_size, material, color",
-    )
-    .eq("is_online_available", true)
-    .order("created_at", { ascending: false });
+  const [{ data, error }, wishlistSet, { data: { user } }] = await Promise.all([
+    sb
+      .from("products")
+      .select(
+        "id, slug, name, description, price_cents, image_urls, brand, kind, finished_stock, is_online_available, face_shape, frame_size, material, color",
+      )
+      .eq("is_online_available", true)
+      .order("created_at", { ascending: false }),
+    getWishlistProductIds(),
+    sb.auth.getUser(),
+  ]);
 
   if (error) {
     console.error("products query failed:", error);
@@ -56,6 +61,8 @@ export default async function ProductsPage({
       products={products}
       initialKind={initialKind}
       initialFilter={initialFilter}
+      wishlistIds={Array.from(wishlistSet)}
+      isLoggedIn={!!user}
     />
   );
 }

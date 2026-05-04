@@ -9,6 +9,13 @@ type Params = Promise<{ orderNo: string }>;
 
 const ORDER_NO_RE = /^NB-\d{12}-\d{3}$/;
 
+type ShippingStatus =
+  | "not_shipped"
+  | "preparing"
+  | "shipped"
+  | "delivered"
+  | "returned";
+
 type OrderRow = {
   id: string;
   order_no: string;
@@ -21,6 +28,9 @@ type OrderRow = {
     | "completed"
     | "cancelled"
     | "refunded";
+  shipping_status: ShippingStatus;
+  tracking_number: string | null;
+  tracking_carrier: string | null;
   subtotal_cents: number;
   shipping_fee_cents: number;
   total_cents: number;
@@ -47,6 +57,14 @@ const statusLabels: Record<OrderRow["status"], string> = {
   refunded: "已退款",
 };
 
+const shippingLabels: Record<ShippingStatus, string> = {
+  not_shipped: "尚未出貨",
+  preparing: "備貨中",
+  shipped: "已出貨",
+  delivered: "已送達",
+  returned: "已退貨",
+};
+
 export default async function OrderSuccessPage({ params }: { params: Params }) {
   const { orderNo } = await params;
   if (!ORDER_NO_RE.test(orderNo)) notFound();
@@ -58,7 +76,8 @@ export default async function OrderSuccessPage({ params }: { params: Params }) {
     .from("orders")
     .select(
       `
-      id, order_no, payment_code, status,
+      id, order_no, payment_code, status, shipping_status,
+      tracking_number, tracking_carrier,
       subtotal_cents, shipping_fee_cents, total_cents,
       recipient_name, recipient_phone, shipping_address, note, created_at,
       items:order_items ( product_name, unit_price_cents, quantity, subtotal_cents )
@@ -97,6 +116,23 @@ export default async function OrderSuccessPage({ params }: { params: Params }) {
             {statusLabels[order.status]}
           </Badge>
         </div>
+        {order.shipping_status !== "not_shipped" && (
+          <div className="mt-4 border-t pt-3">
+            <p className="text-muted-foreground">物流狀態</p>
+            <p className="mt-0.5 font-medium">
+              {shippingLabels[order.shipping_status]}
+            </p>
+            {order.tracking_number && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                {order.tracking_carrier ? `${order.tracking_carrier}　` : ""}
+                追蹤碼：
+                <span className="font-mono text-foreground">
+                  {order.tracking_number}
+                </span>
+              </p>
+            )}
+          </div>
+        )}
       </section>
 
       <section className="mb-6 space-y-2 rounded-lg border p-5 text-sm">
