@@ -53,6 +53,12 @@ export default async function AdminProtectedLayout({
           >
             時段維護
           </Link>
+          <Link
+            href="/admin/reports"
+            className="rounded-md px-3 py-2 hover:bg-muted"
+          >
+            銷售報表
+          </Link>
         </nav>
       </aside>
       <div className="flex-1">
