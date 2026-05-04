@@ -44,12 +44,20 @@ export default async function AdminProductsPage() {
             新增、編輯、上下架。下架不會刪商品,只是顧客看不到 / 不能買。
           </p>
         </div>
-        <Link
-          href="/admin/products/new"
-          className={buttonVariants({ size: "default" })}
-        >
-          + 新增商品
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admin/products/import"
+            className={buttonVariants({ variant: "outline", size: "default" })}
+          >
+            批次匯入
+          </Link>
+          <Link
+            href="/admin/products/new"
+            className={buttonVariants({ size: "default" })}
+          >
+            + 新增商品
+          </Link>
+        </div>
       </header>
 
       {rows.length === 0 ? (

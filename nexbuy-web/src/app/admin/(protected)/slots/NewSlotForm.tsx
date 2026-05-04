@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createSlot } from "./actions";
 
-export function NewSlotForm() {
+export function NewSlotForm({ defaultDate }: { defaultDate?: string }) {
   const [state, formAction, isPending] = useActionState(createSlot, null);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -20,6 +20,7 @@ export function NewSlotForm() {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   const tomorrowISO = tomorrow.toISOString().slice(0, 10);
+  const date = defaultDate ?? tomorrowISO;
 
   return (
     <form
@@ -35,7 +36,8 @@ export function NewSlotForm() {
           type="date"
           required
           min={new Date().toISOString().slice(0, 10)}
-          defaultValue={tomorrowISO}
+          defaultValue={date}
+          key={date}
         />
       </div>
       <div className="space-y-1">
