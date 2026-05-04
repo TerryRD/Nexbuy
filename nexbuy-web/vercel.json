@@ -8,6 +8,10 @@
     {
       "path": "/api/cron/low-stock-alert",
       "schedule": "30 2 * * *"
+    },
+    {
+      "path": "/api/cron/marketing-dispatch",
+      "schedule": "*/5 * * * *"
     }
   ]
 }
