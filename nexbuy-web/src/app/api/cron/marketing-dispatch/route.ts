@@ -1,8 +1,12 @@
-// 每 5 分鐘跑一次：撈出 status='scheduled' 且 scheduled_at <= now 的活動，
+// 每日跑一次：撈出 status='scheduled' 且 scheduled_at <= now 的活動，
 // 用 dispatchCampaign 寄送（內含 status CAS 鎖防止 race）。
 //
 // Cron schedule lives in nexbuy-web/vercel.json:
-//   { "path": "/api/cron/marketing-dispatch", "schedule": "*/5 * * * *" }
+//   { "path": "/api/cron/marketing-dispatch", "schedule": "30 2 * * *" }
+// 02:30 UTC = 10:30 Asia/Taipei.
+//
+// 注意：Vercel Hobby 方案 cron 限額 2 顆且只能 daily。「排程寄送」精度
+// 因此降為 1 天。立即寄送 (sendNowAction) 不受影響。
 //
 // 每次最多處理 5 顆活動 — 如果 backlog 多，下一次 cron 會繼續。
 
