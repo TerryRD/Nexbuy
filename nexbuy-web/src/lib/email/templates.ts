@@ -282,3 +282,80 @@ export function appointmentReminderEmail(
     }),
   };
 }
+
+// ---------------------------------------------------------------------------
+// Low-stock digest (admin-facing — 每日 cron 寄一次)
+// ---------------------------------------------------------------------------
+
+export interface LowStockItem {
+  name: string;
+  finishedStock: number;
+  threshold: number;
+  adminUrl: string;
+}
+
+export interface LowStockAlertInput {
+  date: string; // 寄信當天 YYYY-MM-DD (TW)
+  items: LowStockItem[];
+}
+
+export function lowStockAlertEmail(d: LowStockAlertInput): EmailContent {
+  const itemsText = d.items
+    .map(
+      (i) =>
+        `  - ${i.name}：庫存 ${i.finishedStock} (警戒值 ${i.threshold})`,
+    )
+    .join("\n");
+
+  const text =
+    `店家您好，\n` +
+    `\n` +
+    `${d.date}（Asia/Taipei）庫存低於警戒值的商品如下：\n` +
+    `\n` +
+    `${itemsText}\n` +
+    `\n` +
+    `補貨後記得到 /admin/products 把庫存數量更新。\n` +
+    FOOTER_TEXT;
+
+  const itemsHtml = d.items
+    .map(
+      (i) => `
+        <tr>
+          <td style="padding:8px 12px;border-top:1px solid #ece4d6;font-size:14px;">
+            <a href="${escape(i.adminUrl)}" style="color:#5b3b1f;text-decoration:none;">${escape(i.name)}</a>
+          </td>
+          <td style="padding:8px 12px;border-top:1px solid #ece4d6;text-align:right;font-size:14px;${i.finishedStock === 0 ? "color:#b3261e;font-weight:600;" : "color:#7a4f00;"}">
+            庫存 ${i.finishedStock}
+          </td>
+          <td style="padding:8px 12px;border-top:1px solid #ece4d6;text-align:right;font-size:12px;color:#9a8c79;">
+            警戒 ${i.threshold}
+          </td>
+        </tr>`,
+    )
+    .join("");
+
+  const body = `
+    <p style="margin:0 0 12px;">店家您好，</p>
+    <p style="margin:0 0 16px;"><strong>${escape(d.date)}</strong>（Asia/Taipei）庫存低於警戒值的商品共 <strong>${d.items.length}</strong> 項：</p>
+    <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="border:1px solid #ece4d6;border-radius:10px;overflow:hidden;">
+      <thead>
+        <tr style="background:#f6f1ea;">
+          <th align="left" style="padding:8px 12px;font-size:12px;color:#7a6856;font-weight:500;">商品</th>
+          <th align="right" style="padding:8px 12px;font-size:12px;color:#7a6856;font-weight:500;">庫存</th>
+          <th align="right" style="padding:8px 12px;font-size:12px;color:#7a6856;font-weight:500;">警戒</th>
+        </tr>
+      </thead>
+      <tbody>${itemsHtml}</tbody>
+    </table>
+    <p style="margin:16px 0 0;font-size:13px;color:#7a6856;">補貨後到 /admin/products 更新庫存。</p>
+  `;
+
+  return {
+    subject: `[${SENDER_NAME}] 低庫存警示（${d.items.length} 項）— ${d.date}`,
+    text,
+    html: wrapHtml({
+      preheader: `${d.items.length} 項商品庫存低於警戒值`,
+      body,
+    }),
+  };
+}

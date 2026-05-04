@@ -24,6 +24,7 @@ export default function AdminProductNewPage() {
           price_cents: 0,
           kind: "finished",
           finished_stock: 0,
+          low_stock_threshold: 3,
           is_online_available: true,
           image_urls: [],
           face_shape: [],

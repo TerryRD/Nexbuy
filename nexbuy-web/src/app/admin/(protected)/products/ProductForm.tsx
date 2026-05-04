@@ -26,6 +26,7 @@ export interface ProductInitial {
   price_cents: number;
   kind: ProductKind;
   finished_stock: number | null;
+  low_stock_threshold: number;
   is_online_available: boolean;
   image_urls: string[];
   face_shape: string[];
@@ -183,18 +184,39 @@ export function ProductForm({ initial, action, submitLabel }: Props) {
       </fieldset>
 
       {kind === "finished" && (
-        <div className="space-y-2 max-w-xs">
-          <Label htmlFor="p-stock">庫存數量</Label>
-          <Input
-            id="p-stock"
-            name="finished_stock"
-            type="number"
-            min={0}
-            max={99999}
-            required
-            defaultValue={initial.finished_stock ?? 0}
-          />
-          {fieldErr("finished_stock") && <FieldErr msg={fieldErr("finished_stock")!} />}
+        <div className="grid gap-4 sm:grid-cols-2 max-w-xl">
+          <div className="space-y-2">
+            <Label htmlFor="p-stock">庫存數量</Label>
+            <Input
+              id="p-stock"
+              name="finished_stock"
+              type="number"
+              min={0}
+              max={99999}
+              required
+              defaultValue={initial.finished_stock ?? 0}
+            />
+            {fieldErr("finished_stock") && <FieldErr msg={fieldErr("finished_stock")!} />}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="p-low-stock-threshold">
+              低庫存警戒值
+              <span className="ml-1 text-xs font-normal text-muted-foreground">
+                （&lt; 此數寄信通知）
+              </span>
+            </Label>
+            <Input
+              id="p-low-stock-threshold"
+              name="low_stock_threshold"
+              type="number"
+              min={0}
+              max={99999}
+              defaultValue={initial.low_stock_threshold ?? 3}
+            />
+            {fieldErr("low_stock_threshold") && (
+              <FieldErr msg={fieldErr("low_stock_threshold")!} />
+            )}
+          </div>
         </div>
       )}
 
