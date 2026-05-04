@@ -22,6 +22,32 @@ const advanceSchema = z.object({
   ),
 });
 
+export const SHIPPING_STATUSES = [
+  "not_shipped",
+  "preparing",
+  "shipped",
+  "delivered",
+  "returned",
+] as const;
+export type ShippingStatus = (typeof SHIPPING_STATUSES)[number];
+
+const updateShippingSchema = z.object({
+  id: z.uuid(),
+  shipping_status: z.enum(SHIPPING_STATUSES),
+  tracking_number: z
+    .string()
+    .trim()
+    .max(64)
+    .optional()
+    .transform((v) => (v ? v : null)),
+  tracking_carrier: z
+    .string()
+    .trim()
+    .max(32)
+    .optional()
+    .transform((v) => (v ? v : null)),
+});
+
 /**
  * Advance order through: pending_payment → paid → shipped → completed.
  * Includes `from` as guard so a stale double-click on an outdated page
@@ -70,6 +96,33 @@ export async function advanceOrderStatus(formData: FormData): Promise<void> {
         console.error("[orders/admin] 寄信失敗:", err);
       });
     }
+  }
+
+  revalidatePath("/admin/orders");
+}
+
+export async function updateShipping(formData: FormData): Promise<void> {
+  const parsed = updateShippingSchema.safeParse({
+    id: formData.get("id"),
+    shipping_status: formData.get("shipping_status"),
+    tracking_number: formData.get("tracking_number") ?? undefined,
+    tracking_carrier: formData.get("tracking_carrier") ?? undefined,
+  });
+  if (!parsed.success) throw new Error("INVALID_INPUT");
+
+  const sb = await createServerSupabase();
+  const { error } = await sb
+    .from("orders")
+    .update({
+      shipping_status: parsed.data.shipping_status,
+      tracking_number: parsed.data.tracking_number,
+      tracking_carrier: parsed.data.tracking_carrier,
+    })
+    .eq("id", parsed.data.id);
+
+  if (error) {
+    console.error("updateShipping failed:", error);
+    throw new Error("UPDATE_FAILED");
   }
 
   revalidatePath("/admin/orders");

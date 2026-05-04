@@ -19,6 +19,14 @@ const ORDER_STATUS_LABEL: Record<string, string> = {
   refunded: "已退款",
 };
 
+const SHIPPING_STATUS_LABEL: Record<string, string> = {
+  not_shipped: "尚未出貨",
+  preparing: "備貨中",
+  shipped: "已出貨",
+  delivered: "已送達",
+  returned: "已退貨",
+};
+
 const APPOINTMENT_STATUS_LABEL: Record<string, string> = {
   booked: "已預約",
   completed: "已完成",
@@ -46,7 +54,7 @@ export default async function AccountPage() {
       sb
         .from("orders")
         .select(
-          "id, order_no, status, total_cents, created_at, items:order_items(product_name, quantity)",
+          "id, order_no, status, shipping_status, total_cents, created_at, items:order_items(product_name, quantity)",
         )
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
@@ -172,6 +180,13 @@ export default async function AccountPage() {
                       <StatusPill>
                         {ORDER_STATUS_LABEL[o.status] ?? o.status}
                       </StatusPill>
+                      {o.shipping_status &&
+                        o.shipping_status !== "not_shipped" && (
+                          <StatusPill>
+                            {SHIPPING_STATUS_LABEL[o.shipping_status] ??
+                              o.shipping_status}
+                          </StatusPill>
+                        )}
                       <span className="font-medium">
                         {formatPrice(o.total_cents)}
                       </span>
