@@ -1,13 +1,16 @@
 "use client";
 
 import { useActionState } from "react";
-import { loginAction } from "./actions";
+import { loginAction, type LoginState } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export function LoginForm({ next }: { next: string }) {
-  const [state, formAction, isPending] = useActionState(loginAction, null);
+  const [state, formAction, isPending] = useActionState<LoginState, FormData>(
+    loginAction,
+    null,
+  );
 
   return (
     <form action={formAction} className="space-y-4">
@@ -20,6 +23,7 @@ export function LoginForm({ next }: { next: string }) {
           type="email"
           required
           autoComplete="email"
+          defaultValue={state?.email ?? ""}
         />
       </div>
       <div className="space-y-2">
