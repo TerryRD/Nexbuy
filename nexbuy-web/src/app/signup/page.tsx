@@ -6,7 +6,7 @@ import { GoogleSignInButton } from "../auth/GoogleSignInButton";
 import { SignupForm } from "./SignupForm";
 
 export const metadata = {
-  title: "註冊 — 精鋐眼鏡行",
+  title: "註冊",
 };
 
 export default async function SignupPage({

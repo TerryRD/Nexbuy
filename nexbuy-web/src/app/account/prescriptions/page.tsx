@@ -7,7 +7,7 @@ import {
 } from "@/components/site/PrescriptionsTable";
 
 export const metadata = {
-  title: "我的驗光紀錄 — 精鋐眼鏡行",
+  title: "我的驗光紀錄",
 };
 
 export default async function MyPrescriptionsPage() {

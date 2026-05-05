@@ -9,7 +9,7 @@ import { CompareRemoveButton } from "./CompareRemoveButton";
 import { getProductImageUrl } from "@/lib/product-placeholder";
 
 export const metadata = {
-  title: "商品比較 — 精鋐眼鏡行",
+  title: "商品比較",
 };
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
