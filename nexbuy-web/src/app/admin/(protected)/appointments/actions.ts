@@ -36,3 +36,26 @@ export async function updateAppointmentStatus(
 
   revalidatePath("/admin/appointments");
 }
+
+const cancelSchema = z.object({ id: z.uuid() });
+
+/**
+ * admin 代客取消預約（電話 / LINE 通知客戶取消時用）。
+ * 走 admin_cancel_appointment RPC：原子釋放 slot.booked_count + 設
+ * status=cancelled。RPC 內已 is_admin() 檢查。
+ */
+export async function adminCancelAppointment(formData: FormData): Promise<void> {
+  const parsed = cancelSchema.safeParse({ id: formData.get("id") });
+  if (!parsed.success) throw new Error("INVALID_INPUT");
+
+  const sb = await createServerSupabase();
+  const { error } = await sb.rpc("admin_cancel_appointment", {
+    p_appointment_id: parsed.data.id,
+  });
+  if (error) {
+    console.error("adminCancelAppointment failed:", error);
+    throw new Error("CANCEL_FAILED:" + error.message);
+  }
+
+  revalidatePath("/admin/appointments");
+}

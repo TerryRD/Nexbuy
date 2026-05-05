@@ -155,9 +155,10 @@ export async function dispatchCampaign(campaignId: string): Promise<DispatchResu
     const { data, error } = await admin.auth.admin.listUsers({ page, perPage: PER_PAGE });
     if (error) break;
     for (const u of data.users) {
-      if (recipientIdSet.has(u.id) && u.email) {
-        recipients.push({ id: u.id, email: u.email });
-      }
+      if (!recipientIdSet.has(u.id) || !u.email) continue;
+      // role=admin 不寄行銷信給自己
+      if ((u.app_metadata as { role?: string } | null)?.role === "admin") continue;
+      recipients.push({ id: u.id, email: u.email });
     }
     if (data.users.length < PER_PAGE) break;
     page += 1;

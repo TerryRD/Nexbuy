@@ -3,6 +3,7 @@ import { formatDate, formatTime } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { updateAppointmentStatus } from "./actions";
+import { CancelButton } from "./CancelButton";
 
 type AppointmentRow = {
   id: string;
@@ -75,8 +76,8 @@ export default async function AdminAppointmentsPage() {
       <header>
         <h1 className="text-2xl font-semibold tracking-tight">預約清單</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          未來的預約放最上面。到店後標記「已完成」或「未到」,
-          顧客取消走自己的 email 連結(這邊看不到取消按鈕)。
+          未來的預約放最上面。到店後標記「已完成」或「未到」。
+          顧客一般走自己的 email 連結取消；找不到信時 admin 可以直接「代客取消」（會釋放時段容量）。
         </p>
       </header>
 
@@ -145,7 +146,7 @@ function AppointmentCard({ row }: { row: AppointmentRow }) {
         </div>
 
         {row.status === "booked" && (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <form action={updateAppointmentStatus}>
               <input type="hidden" name="id" value={row.id} />
               <input type="hidden" name="status" value="completed" />
@@ -160,6 +161,10 @@ function AppointmentCard({ row }: { row: AppointmentRow }) {
                 標記未到
               </Button>
             </form>
+            <CancelButton
+              appointmentId={row.id}
+              customerName={row.customer_name}
+            />
           </div>
         )}
       </div>

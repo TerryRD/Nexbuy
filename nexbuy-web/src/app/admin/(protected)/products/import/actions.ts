@@ -93,6 +93,20 @@ export type ImportResult =
   | { ok: true; inserted: number; insertedNames: string[] }
   | { ok: false; errors: ImportRowError[]; inserted: number };
 
+export type PreviewResult =
+  | {
+      ok: true;
+      total: number;
+      sample: Array<{
+        name: string;
+        slug: string;
+        kind: "finished" | "prescription_frame";
+        price_cents: number;
+        finished_stock: number | null;
+      }>;
+    }
+  | { ok: false; errors: ImportRowError[] };
+
 const MAX_FILE_BYTES = 1 * 1024 * 1024; // 1MB
 const MAX_ROWS = 500;
 
@@ -244,5 +258,117 @@ export async function importProductsAction(
     ok: true,
     inserted: inserted.length,
     insertedNames: inserted.map((p) => p.name as string),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// previewImport：跟 commit 同一條驗證鏈，但不寫 DB。給 UI 在按下「確認匯入」
+// 之前顯示「會新增 N 筆 / 含這幾筆」做 dry-run。
+// ---------------------------------------------------------------------------
+
+export async function previewImportAction(
+  _prev: PreviewResult | null,
+  formData: FormData,
+): Promise<PreviewResult> {
+  const file = formData.get("csv");
+  if (!(file instanceof File) || file.size === 0) {
+    return { ok: false, errors: [{ line: 0, message: "請選一個 CSV 檔" }] };
+  }
+  if (file.size > MAX_FILE_BYTES) {
+    return { ok: false, errors: [{ line: 0, message: "檔案超過 1MB" }] };
+  }
+
+  const text = await file.text();
+  const { headers, rows } = parseCsv(text);
+
+  const missing = REQUIRED_HEADERS.filter((h) => !headers.includes(h));
+  if (missing.length > 0) {
+    return {
+      ok: false,
+      errors: [
+        { line: 1, message: `CSV header 缺欄位：${missing.join(", ")}` },
+      ],
+    };
+  }
+  if (rows.length === 0) {
+    return { ok: false, errors: [{ line: 1, message: "CSV 沒有資料列" }] };
+  }
+  if (rows.length > MAX_ROWS) {
+    return {
+      ok: false,
+      errors: [
+        { line: 0, message: `一次最多 ${MAX_ROWS} 列，目前 ${rows.length}` },
+      ],
+    };
+  }
+
+  const errors: ImportRowError[] = [];
+  const validated: z.infer<typeof rowSchema>[] = [];
+  rows.forEach((r, idx) => {
+    const lineNo = idx + 2;
+    const parsed = rowSchema.safeParse(r);
+    if (!parsed.success) {
+      for (const issue of parsed.error.issues) {
+        errors.push({
+          line: lineNo,
+          slug: r.slug,
+          message: `${issue.path.join(".") || "row"}: ${issue.message}`,
+        });
+      }
+      return;
+    }
+    validated.push(parsed.data);
+  });
+
+  const slugCounts = new Map<string, number[]>();
+  validated.forEach((r, idx) => {
+    const lines = slugCounts.get(r.slug) ?? [];
+    lines.push(idx + 2);
+    slugCounts.set(r.slug, lines);
+  });
+  for (const [slug, lines] of slugCounts) {
+    if (lines.length > 1) {
+      errors.push({
+        line: lines[1],
+        slug,
+        message: `slug 在 CSV 內重複出現（line ${lines.join(", ")}）`,
+      });
+    }
+  }
+
+  // 額外：檢查 DB 已存在的 slug（commit 階段會炸 23505，提早顯示）
+  if (errors.length === 0 && validated.length > 0) {
+    const sb = await createServerSupabase();
+    const slugs = validated.map((r) => r.slug);
+    const { data: existing } = await sb
+      .from("products")
+      .select("slug")
+      .in("slug", slugs);
+    const existingSet = new Set((existing ?? []).map((r) => r.slug as string));
+    validated.forEach((r, idx) => {
+      if (existingSet.has(r.slug)) {
+        errors.push({
+          line: idx + 2,
+          slug: r.slug,
+          message: `slug 「${r.slug}」已存在於資料庫`,
+        });
+      }
+    });
+  }
+
+  if (errors.length > 0) {
+    return { ok: false, errors };
+  }
+
+  return {
+    ok: true,
+    total: validated.length,
+    sample: validated.slice(0, 10).map((r) => ({
+      name: r.name,
+      slug: r.slug,
+      kind: r.kind,
+      price_cents: r.price_cents,
+      finished_stock: r.finished_stock ?? null,
+    })),
   };
 }

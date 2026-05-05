@@ -45,6 +45,17 @@ export default async function AdminCustomersPage() {
     admin.auth.admin.listUsers({ perPage: 1000 }),
   ]);
 
+  // role=admin 的帳號不應該出現在客戶清單（會誤導報表 / 行銷信對象）。
+  // app_metadata.role 是 server-controlled，可信。
+  const adminUserIds = new Set(
+    usersResp.data.users
+      .filter(
+        (u) =>
+          (u.app_metadata as { role?: string } | null)?.role === "admin",
+      )
+      .map((u) => u.id),
+  );
+
   const emailById = new Map<string, string>(
     usersResp.data.users.map((u) => [u.id, u.email ?? ""]),
   );
@@ -77,23 +88,25 @@ export default async function AdminCustomersPage() {
     apptStats.set(a.user_id, e);
   }
 
-  const rows: CustomerRow[] = (customers ?? []).map((c) => {
-    const o = orderStats.get(c.id);
-    const a = apptStats.get(c.id);
-    return {
-      id: c.id,
-      display_name: c.display_name,
-      phone: c.phone,
-      marketing_opt_in: c.marketing_opt_in,
-      created_at: c.created_at,
-      email: emailById.get(c.id) ?? "—",
-      orderCount: o?.count ?? 0,
-      orderTotalCents: o?.totalCents ?? 0,
-      lastOrderAt: o?.lastAt ?? null,
-      apptCount: a?.count ?? 0,
-      lastApptAt: a?.lastAt ?? null,
-    };
-  });
+  const rows: CustomerRow[] = (customers ?? [])
+    .filter((c) => !adminUserIds.has(c.id))
+    .map((c) => {
+      const o = orderStats.get(c.id);
+      const a = apptStats.get(c.id);
+      return {
+        id: c.id,
+        display_name: c.display_name,
+        phone: c.phone,
+        marketing_opt_in: c.marketing_opt_in,
+        created_at: c.created_at,
+        email: emailById.get(c.id) ?? "—",
+        orderCount: o?.count ?? 0,
+        orderTotalCents: o?.totalCents ?? 0,
+        lastOrderAt: o?.lastAt ?? null,
+        apptCount: a?.count ?? 0,
+        lastApptAt: a?.lastAt ?? null,
+      };
+    });
 
   return (
     <div className="space-y-6">
