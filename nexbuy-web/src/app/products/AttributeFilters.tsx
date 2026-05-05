@@ -2,6 +2,7 @@
 
 import {
   FACE_SHAPES,
+  FRAME_SHAPES,
   FRAME_SIZES,
   MATERIALS,
   COLORS,
@@ -33,7 +34,7 @@ export function AttributeFilters({ value, onChange }: Props) {
     });
   };
 
-  const setSingle = <K extends "frameSize" | "material" | "color">(
+  const setSingle = <K extends "frameShape" | "frameSize" | "material" | "color">(
     key: K,
     next: string,
   ) => {
@@ -46,6 +47,7 @@ export function AttributeFilters({ value, onChange }: Props) {
 
   const hasAny =
     value.faceShapes.length > 0 ||
+    value.frameShape !== null ||
     value.frameSize !== null ||
     value.material !== null ||
     value.color !== null;
@@ -67,6 +69,12 @@ export function AttributeFilters({ value, onChange }: Props) {
         )}
       </div>
 
+      <ChipRow
+        label="框形"
+        options={FRAME_SHAPES}
+        isActive={(o) => value.frameShape === o}
+        onClick={(o) => setSingle("frameShape", o)}
+      />
       <ChipRow
         label="適合臉型"
         options={FACE_SHAPES}

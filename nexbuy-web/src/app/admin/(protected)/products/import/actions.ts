@@ -5,6 +5,7 @@ import { z } from "zod";
 import { createServerSupabase } from "@/lib/supabase/server";
 import {
   FACE_SHAPES,
+  FRAME_SHAPES,
   FRAME_SIZES,
   MATERIALS,
   COLORS,
@@ -61,6 +62,10 @@ const rowSchema = z
           .filter(Boolean);
       })
       .pipe(z.array(z.enum(FACE_SHAPES))),
+    frame_shape: z
+      .union([z.literal(""), z.enum(FRAME_SHAPES)])
+      .optional()
+      .transform((v) => (v ? v : null)),
     frame_size: z
       .union([z.literal(""), z.enum(FRAME_SIZES)])
       .optional()
@@ -214,6 +219,7 @@ export async function importProductsAction(
     is_online_available: r.is_online_available,
     image_urls: [],
     face_shape: r.face_shape,
+    frame_shape: r.frame_shape,
     frame_size: r.frame_size,
     material: r.material,
     color: r.color,

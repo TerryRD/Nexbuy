@@ -16,7 +16,7 @@ export default async function AdminProductEditPage({
   const { data, error } = await sb
     .from("products")
     .select(
-      "id, name, slug, description, brand, price_cents, kind, finished_stock, low_stock_threshold, is_online_available, image_urls, face_shape, frame_size, material, color",
+      "id, name, slug, description, brand, price_cents, kind, finished_stock, low_stock_threshold, is_online_available, image_urls, face_shape, frame_shape, frame_size, material, color",
     )
     .eq("id", id)
     .maybeSingle();

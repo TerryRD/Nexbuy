@@ -30,6 +30,7 @@ function parseFormData(formData: FormData) {
     is_online_available: formData.get("is_online_available") === "on",
     // Phase 3 attributes — face_shape 是多選 checkbox 群組
     face_shape: formData.getAll("face_shape").map((v) => v.toString()),
+    frame_shape: (formData.get("frame_shape") ?? "").toString() || null,
     frame_size: (formData.get("frame_size") ?? "").toString() || null,
     material: (formData.get("material") ?? "").toString() || null,
     color: (formData.get("color") ?? "").toString() || null,
@@ -100,6 +101,7 @@ export async function createProductAction(
     is_online_available: parsed.data.is_online_available,
     image_urls: imageUrl ? [imageUrl] : [],
     face_shape: parsed.data.face_shape,
+    frame_shape: parsed.data.frame_shape,
     frame_size: parsed.data.frame_size,
     material: parsed.data.material,
     color: parsed.data.color,
@@ -172,6 +174,7 @@ export async function updateProductAction(
       is_online_available: parsed.data.is_online_available,
       image_urls: imageUrls,
       face_shape: parsed.data.face_shape,
+      frame_shape: parsed.data.frame_shape,
       frame_size: parsed.data.frame_size,
       material: parsed.data.material,
       color: parsed.data.color,

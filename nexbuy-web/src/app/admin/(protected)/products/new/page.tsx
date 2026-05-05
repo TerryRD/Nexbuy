@@ -28,6 +28,7 @@ export default function AdminProductNewPage() {
           is_online_available: true,
           image_urls: [],
           face_shape: [],
+          frame_shape: null,
           frame_size: null,
           material: null,
           color: null,
