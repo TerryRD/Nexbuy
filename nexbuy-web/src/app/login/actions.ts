@@ -10,22 +10,28 @@ const schema = z.object({
   password: z.string().min(1),
 });
 
+export type LoginState = {
+  error?: string;
+  email?: string; // 失敗後回填，避免使用者重打
+} | null;
+
 export async function loginAction(
-  _prev: { error?: string } | null,
+  _prev: LoginState,
   formData: FormData,
-): Promise<{ error?: string }> {
+): Promise<LoginState> {
+  const rawEmail = (formData.get("email") ?? "").toString();
   const parsed = schema.safeParse({
-    email: formData.get("email"),
+    email: rawEmail,
     password: formData.get("password"),
   });
   if (!parsed.success) {
-    return { error: "Email / 密碼格式不正確" };
+    return { error: "Email / 密碼格式不正確", email: rawEmail };
   }
 
   const sb = await createServerSupabase();
   const { error } = await sb.auth.signInWithPassword(parsed.data);
   if (error) {
-    return { error: localizeAuthError(error.message) };
+    return { error: localizeAuthError(error.message), email: rawEmail };
   }
 
   const next = safeNext(formData.get("next") as string | null);

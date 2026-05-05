@@ -10,11 +10,11 @@ export function CartLink() {
   return (
     <Link
       href="/cart"
-      className="relative inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-muted-foreground transition-colors hover:bg-accent/40 hover:text-foreground"
+      className="relative inline-flex items-center gap-1.5 rounded-full px-2 py-1.5 text-muted-foreground transition-colors hover:bg-accent/40 hover:text-foreground sm:px-3"
       aria-label={`購物車 ${totalQuantity} 件`}
     >
       <ShoppingBag className="size-4" />
-      <span>購物車</span>
+      <span className="hidden sm:inline">購物車</span>
       {totalQuantity > 0 && (
         <span
           aria-hidden

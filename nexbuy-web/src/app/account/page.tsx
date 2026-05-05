@@ -42,7 +42,8 @@ export default async function AccountPage() {
   } = await sb.auth.getUser();
 
   if (!user) {
-    redirect("/login");
+    // 跟 /account/wishlist /account/prescriptions 一致，登入完跳回 /account
+    redirect("/login?next=/account");
   }
 
   const [
