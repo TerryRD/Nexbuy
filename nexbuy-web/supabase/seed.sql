@@ -15,6 +15,9 @@ insert into products (slug, name, description, price_cents, image_urls, brand, k
   ('rx-kids-flexible', '兒童彈性鏡架', 'TR90 不易斷裂、線上預約到店驗光配鏡', 180000, array['https://images.unsplash.com/photo-1508296695146-257a814070b4?w=1200&q=80&auto=format&fit=crop'], null, 'prescription_frame', null, true);
 
 -- 接下來 7 天可預約時段 (每日早 10:00、午 14:00、晚 18:00)
+-- 注意：migration 20260505000010 已會塞 28 天 weekday × 3 段 slot，這邊跟它有
+-- overlap 區段（前 7 天裡的 weekday）。加 on conflict do nothing 避免 unique
+-- key 撞上去。
 insert into appointment_slots (date, start_time, end_time, capacity, is_active)
 select
   (current_date + d)::date,
@@ -24,4 +27,5 @@ select
   true
 from
   generate_series(0, 6) as d,
-  (values (time '10:00'), (time '14:00'), (time '18:00')) as t(time);
+  (values (time '10:00'), (time '14:00'), (time '18:00')) as t(time)
+on conflict (date, start_time) do nothing;

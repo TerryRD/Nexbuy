@@ -55,29 +55,33 @@ update appointment_slots set is_active = false
 -- 2. Test Orders — 涵蓋全部 status × shipping_status
 -- ---------------------------------------------------------------------------
 -- 用固定 order_no（TEST 前綴）+ 預先指定 id 方便 order_items reference
+--
+-- 為了在「新鮮 DB（CI / 全新 supabase reset）」也能跑過：
+-- 凡是引用 auth.users 的 user_id，若該 user 不存在就過濾掉這筆，避免 FK 整支炸掉。
+-- production / dev 早就有這些 user 了，沒影響；CI 變成只插得進 guest 訂單，依然有資料可看。
 
-with test_orders as (
-  insert into orders (
-    id, order_no, payment_code, user_id, status, shipping_status,
-    subtotal_cents, shipping_fee_cents, total_cents,
-    recipient_name, recipient_phone, customer_email, shipping_address,
-    note, tracking_number, tracking_carrier,
-    created_at
-  ) values
+insert into orders (
+  id, order_no, payment_code, user_id, status, shipping_status,
+  subtotal_cents, shipping_fee_cents, total_cents,
+  recipient_name, recipient_phone, customer_email, shipping_address,
+  note, tracking_number, tracking_carrier,
+  created_at
+)
+select v.* from (values
   -- (a) paid — ATM 已對到帳，等備貨
-  ('aaaaaaaa-0001-0000-0000-000000000001',
+  ('aaaaaaaa-0001-0000-0000-000000000001'::uuid,
    'TEST-260503100000-001', '11111',
-   '697d30d9-ff0a-4aa4-8302-8e8deb98e130',
+   '697d30d9-ff0a-4aa4-8302-8e8deb98e130'::uuid,
    'paid', 'not_shipped',
    168000, 0, 168000,
    '林希哲', '0987654321', 'scterry0327@gmail.com', '台北市信義區信義路 5 段 7 號 89 樓',
-   '已收款備貨中', null, null,
+   '已收款備貨中', null::text, null::text,
    now() - interval '5 days'),
 
   -- (b) preparing — 已付款 + 備貨中
-  ('aaaaaaaa-0002-0000-0000-000000000002',
+  ('aaaaaaaa-0002-0000-0000-000000000002'::uuid,
    'TEST-260504100000-002', '22222',
-   null,
+   null::uuid,
    'preparing', 'preparing',
    206000, 0, 206000,
    '陳大文', '0912345678', 'guest1@example.com', '新北市板橋區文化路一段 100 號',
@@ -85,9 +89,9 @@ with test_orders as (
    now() - interval '3 days'),
 
   -- (c) shipped — 已寄出，有 tracking
-  ('aaaaaaaa-0003-0000-0000-000000000003',
+  ('aaaaaaaa-0003-0000-0000-000000000003'::uuid,
    'TEST-260504200000-003', '33333',
-   '20f1fa22-e68c-4132-a65b-7282b6a4f957',
+   '20f1fa22-e68c-4132-a65b-7282b6a4f957'::uuid,
    'shipped', 'shipped',
    188000, 0, 188000,
    'terry19990327', '0922888888', 'terry19990327@gmail.com', '桃園市中壢區中央西路 200 號',
@@ -95,9 +99,9 @@ with test_orders as (
    now() - interval '7 days'),
 
   -- (d) completed — 已收件，已完成
-  ('aaaaaaaa-0004-0000-0000-000000000004',
+  ('aaaaaaaa-0004-0000-0000-000000000004'::uuid,
    'TEST-260420100000-004', '44444',
-   '697d30d9-ff0a-4aa4-8302-8e8deb98e130',
+   '697d30d9-ff0a-4aa4-8302-8e8deb98e130'::uuid,
    'completed', 'delivered',
    136000, 0, 136000,
    '林希哲', '0987654321', 'scterry0327@gmail.com', '台北市信義區信義路 5 段 7 號 89 樓',
@@ -105,9 +109,9 @@ with test_orders as (
    now() - interval '21 days'),
 
   -- (e) cancelled — admin 取消（客戶反悔、缺貨等）
-  ('aaaaaaaa-0005-0000-0000-000000000005',
+  ('aaaaaaaa-0005-0000-0000-000000000005'::uuid,
    'TEST-260415100000-005', '55555',
-   null,
+   null::uuid,
    'cancelled', 'not_shipped',
    78000, 8000, 86000,
    '王小美', '0933444555', 'guest2@example.com', '台中市西屯區台灣大道三段 99 號',
@@ -115,9 +119,9 @@ with test_orders as (
    now() - interval '30 days'),
 
   -- (f) refunded — 已退款（客戶收件後不滿意退貨）
-  ('aaaaaaaa-0006-0000-0000-000000000006',
+  ('aaaaaaaa-0006-0000-0000-000000000006'::uuid,
    'TEST-260408100000-006', '66666',
-   null,
+   null::uuid,
    'refunded', 'returned',
    168000, 0, 168000,
    '李志明', '0966777888', 'guest3@example.com', '高雄市苓雅區四維三路 6 號',
@@ -125,17 +129,24 @@ with test_orders as (
    now() - interval '40 days'),
 
   -- (g) 另一筆 pending_payment（未來會成 paid，順便壓今日報表）
-  ('aaaaaaaa-0007-0000-0000-000000000007',
+  ('aaaaaaaa-0007-0000-0000-000000000007'::uuid,
    'TEST-260505100000-007', '77777',
-   null,
+   null::uuid,
    'pending_payment', 'not_shipped',
    238000, 0, 238000,
    '張小英', '0955666777', 'guest4@example.com', '台南市東區東門路二段 158 號',
    null, null, null,
    now() - interval '6 hours')
-  returning id
+) as v(
+  id, order_no, payment_code, user_id, status, shipping_status,
+  subtotal_cents, shipping_fee_cents, total_cents,
+  recipient_name, recipient_phone, customer_email, shipping_address,
+  note, tracking_number, tracking_carrier,
+  created_at
 )
-select count(*) from test_orders;
+where v.user_id is null
+   or exists (select 1 from auth.users u where u.id = v.user_id)
+on conflict (id) do nothing;
 
 -- ---------------------------------------------------------------------------
 -- 3. Order items — 配對 7 張 order 各買 1-2 件（用真實商品 ID）
@@ -158,7 +169,9 @@ join (values
   ('aaaaaaaa-0006-0000-0000-000000000006'::uuid, 'sunglass-round-gold'),
   ('aaaaaaaa-0007-0000-0000-000000000007'::uuid, 'sunglass-aviator-gold'),
   ('aaaaaaaa-0007-0000-0000-000000000007'::uuid, 'reading-metal-rect')
-) as o(order_id, slug) on o.slug = p.slug;
+) as o(order_id, slug) on o.slug = p.slug
+-- 過濾掉沒成功插入 orders 的 row（CI 會發生：user 不存在 → orders 那一筆被略過）
+where exists (select 1 from orders ord where ord.id = o.order_id);
 
 
 -- ---------------------------------------------------------------------------
@@ -197,6 +210,7 @@ select 'bbbbbbbb-0001-0000-0000-000000000001'::uuid,
        now() - interval '2 hours'
 from appointment_slots s
 where s.date = current_date and s.start_time = '14:00:00'
+  and exists (select 1 from auth.users u where u.id = '697d30d9-ff0a-4aa4-8302-8e8deb98e130'::uuid)
 union all
 -- (b) booked — 3 天後 14:00（會自動 increment booked_count via update）
 select 'bbbbbbbb-0002-0000-0000-000000000002'::uuid,
@@ -240,27 +254,33 @@ on conflict (id) do nothing;
 insert into appointments (
   id, slot_id, user_id, customer_name, customer_email, customer_phone,
   frame_product_id, status, note, cancel_token, created_at
-) values
-('bbbbbbbb-0004-0000-0000-000000000004', 'cccccccc-0001-0000-0000-000000000001',
- '20f1fa22-e68c-4132-a65b-7282b6a4f957',
+)
+select v.* from (values
+('bbbbbbbb-0004-0000-0000-000000000004'::uuid, 'cccccccc-0001-0000-0000-000000000001'::uuid,
+ '20f1fa22-e68c-4132-a65b-7282b6a4f957'::uuid,
  'terry19990327', 'terry19990327@gmail.com', '0922888888',
  (select id from products where slug = 'rx-modern-titanium'),
  'completed', '已配鏡完成', md5(random()::text || clock_timestamp()::text),
  (current_date - interval '15 days')::timestamptz),
 
-('bbbbbbbb-0005-0000-0000-000000000005', 'cccccccc-0002-0000-0000-000000000002',
- null,
+('bbbbbbbb-0005-0000-0000-000000000005'::uuid, 'cccccccc-0002-0000-0000-000000000002'::uuid,
+ null::uuid,
  '李志明', 'guest3@example.com', '0966777888',
  (select id from products where slug = 'rx-classic-tortoise'),
  'noshow', '當天未到', md5(random()::text || clock_timestamp()::text),
  (current_date - interval '22 days')::timestamptz),
 
-('bbbbbbbb-0006-0000-0000-000000000006', 'cccccccc-0003-0000-0000-000000000003',
- '697d30d9-ff0a-4aa4-8302-8e8deb98e130',
+('bbbbbbbb-0006-0000-0000-000000000006'::uuid, 'cccccccc-0003-0000-0000-000000000003'::uuid,
+ '697d30d9-ff0a-4aa4-8302-8e8deb98e130'::uuid,
  '林希哲', 'scterry0327@gmail.com', '0987654321',
  (select id from products where slug = 'rx-business-bold'),
  'cancelled', '臨時有事', md5(random()::text || clock_timestamp()::text),
- (current_date - interval '8 days')::timestamptz);
+ (current_date - interval '8 days')::timestamptz)
+) as v(id, slot_id, user_id, customer_name, customer_email, customer_phone,
+       frame_product_id, status, note, cancel_token, created_at)
+where v.user_id is null
+   or exists (select 1 from auth.users u where u.id = v.user_id)
+on conflict (id) do nothing;
 
 -- ---------------------------------------------------------------------------
 -- 5. Prescriptions — 林希哲 2 筆驗光紀錄（看歷程）
@@ -271,27 +291,37 @@ insert into prescriptions (
   right_sphere, right_cylinder, right_axis, right_add,
   left_sphere, left_cylinder, left_axis, left_add,
   pd, notes
-) values
-('dddddddd-0001-0000-0000-000000000001',
- '697d30d9-ff0a-4aa4-8302-8e8deb98e130', current_date - interval '180 days',
+)
+select v.* from (values
+('dddddddd-0001-0000-0000-000000000001'::uuid,
+ '697d30d9-ff0a-4aa4-8302-8e8deb98e130'::uuid, (current_date - interval '180 days')::date,
  -2.50, -0.75, 90, 0.00,
  -2.75, -0.50, 85, 0.00,
  62, '初診紀錄'),
-('dddddddd-0002-0000-0000-000000000002',
- '697d30d9-ff0a-4aa4-8302-8e8deb98e130', current_date - interval '14 days',
+('dddddddd-0002-0000-0000-000000000002'::uuid,
+ '697d30d9-ff0a-4aa4-8302-8e8deb98e130'::uuid, (current_date - interval '14 days')::date,
  -2.75, -0.75, 90, 0.00,
  -3.00, -0.50, 85, 0.00,
  62, '半年回診，度數略增 0.25')
+) as v(id, customer_id, exam_date,
+       right_sphere, right_cylinder, right_axis, right_add,
+       left_sphere, left_cylinder, left_axis, left_add,
+       pd, notes)
+where exists (select 1 from customers c where c.id = v.customer_id)
 on conflict (id) do nothing;
 
 -- ---------------------------------------------------------------------------
 -- 6. Wishlist — 林希哲收藏 3 件
 -- ---------------------------------------------------------------------------
 
-insert into wishlist_items (customer_id, product_id) values
-('697d30d9-ff0a-4aa4-8302-8e8deb98e130', (select id from products where slug = 'rx-japan-thin-round')),
-('697d30d9-ff0a-4aa4-8302-8e8deb98e130', (select id from products where slug = 'sunglass-classic-black')),
-('697d30d9-ff0a-4aa4-8302-8e8deb98e130', (select id from products where slug = 'reading-clear-round'))
+insert into wishlist_items (customer_id, product_id)
+select v.customer_id, v.product_id from (values
+('697d30d9-ff0a-4aa4-8302-8e8deb98e130'::uuid, (select id from products where slug = 'rx-japan-thin-round')),
+('697d30d9-ff0a-4aa4-8302-8e8deb98e130'::uuid, (select id from products where slug = 'sunglass-classic-black')),
+('697d30d9-ff0a-4aa4-8302-8e8deb98e130'::uuid, (select id from products where slug = 'reading-clear-round'))
+) as v(customer_id, product_id)
+where exists (select 1 from customers c where c.id = v.customer_id)
+  and v.product_id is not null
 on conflict (customer_id, product_id) do nothing;
 
 -- ---------------------------------------------------------------------------
@@ -303,28 +333,35 @@ insert into marketing_campaigns (
   scheduled_at, sent_at,
   recipient_count, success_count, error_count,
   created_by, created_at
-) values
-('eeeeeeee-0001-0000-0000-000000000001',
+)
+select v.* from (values
+('eeeeeeee-0001-0000-0000-000000000001'::uuid,
  '春季新款上市，限定 9 折',
  '<p>嗨，</p><p>春日新款鏡架到貨了，這個月來店配鏡享 9 折 — 包含驗光、鏡架、鏡片。</p><p><a href="https://nexbuy-web.vercel.app/products?kind=prescription_frame">看新款</a></p>',
- 'draft', null, null, 0, 0, 0,
- 'a8367b92-7186-4a60-95df-8b47e77b66df',
- now() - interval '2 days'),
+ 'draft', null::timestamptz, null::timestamptz, 0, 0, 0,
+ 'a8367b92-7186-4a60-95df-8b47e77b66df'::uuid,
+ (now() - interval '2 days')::timestamptz),
 
-('eeeeeeee-0002-0000-0000-000000000002',
+('eeeeeeee-0002-0000-0000-000000000002'::uuid,
  '中秋連假快閃 — 太陽眼鏡 8 折',
  '<p>嗨，</p><p>中秋連假快閃 3 天，所有太陽眼鏡 8 折！</p><p><a href="https://nexbuy-web.vercel.app/products?kind=finished">看太陽眼鏡</a></p>',
  'scheduled',
- now() + interval '14 days', null, 0, 0, 0,
- 'a8367b92-7186-4a60-95df-8b47e77b66df',
- now() - interval '1 day'),
+ (now() + interval '14 days')::timestamptz, null::timestamptz, 0, 0, 0,
+ 'a8367b92-7186-4a60-95df-8b47e77b66df'::uuid,
+ (now() - interval '1 day')::timestamptz),
 
-('eeeeeeee-0003-0000-0000-000000000003',
+('eeeeeeee-0003-0000-0000-000000000003'::uuid,
  '回門市做免費鏡架調整',
  '<p>嗨，</p><p>春暖花開，記得回店做免費鏡架調整 — 鼻墊、鏡腿、清洗都包，半年內買的免費。</p>',
  'sent',
- null, now() - interval '30 days',
+ null::timestamptz, (now() - interval '30 days')::timestamptz,
  1, 1, 0,
- 'a8367b92-7186-4a60-95df-8b47e77b66df',
- now() - interval '32 days')
+ 'a8367b92-7186-4a60-95df-8b47e77b66df'::uuid,
+ (now() - interval '32 days')::timestamptz)
+) as v(id, subject, body, status,
+       scheduled_at, sent_at,
+       recipient_count, success_count, error_count,
+       created_by, created_at)
+where v.created_by is null
+   or exists (select 1 from auth.users u where u.id = v.created_by)
 on conflict (id) do nothing;
