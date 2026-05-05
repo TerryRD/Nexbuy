@@ -54,6 +54,8 @@ export function ProductImageCarousel({ images, alt }: Props) {
           sizes="(min-width: 768px) 50vw, 100vw"
           className="object-cover"
           priority={index === 0}
+          // SVG data URL 已是最終格式 — 跳過 Vercel image optimizer
+          unoptimized={images[index]?.startsWith("data:")}
         />
 
         {total > 1 && (
@@ -103,6 +105,7 @@ export function ProductImageCarousel({ images, alt }: Props) {
                 fill
                 sizes="80px"
                 className="object-cover"
+                unoptimized={src.startsWith("data:")}
               />
             </button>
           ))}
