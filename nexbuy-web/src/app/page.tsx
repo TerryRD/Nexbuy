@@ -221,7 +221,13 @@ export default function HomePage() {
           {STEPS.map((s, i) => (
             <Reveal key={s.n} from="zoom-up" delay={i * 100}>
               <div className="relative h-full rounded-3xl border border-border/60 bg-card/60 p-6 backdrop-blur-sm">
-                <div className="font-heading text-5xl font-semibold leading-none tracking-tight text-primary/30">
+                {/* 純裝飾的步驟序號（01/02/03）— 對視障使用者沒額外資訊
+                 *（後面的標題已自帶順序），故 aria-hidden。axe-core 不再
+                 * 把它當文字檢查 contrast。設計上保留低對比的視覺層次。 */}
+                <div
+                  aria-hidden
+                  className="font-heading text-5xl font-semibold leading-none tracking-tight text-primary/30"
+                >
                   {s.n}
                 </div>
                 <div className="mt-5 font-heading text-xl font-semibold">
@@ -370,7 +376,7 @@ export default function HomePage() {
                       </p>
                       <Link
                         href="/products?kind=prescription_frame"
-                        className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+                        className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary underline underline-offset-2 decoration-primary/40 hover:decoration-primary"
                       >
                         看可預約的鏡架
                         <ArrowRight className="size-3.5" />

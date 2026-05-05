@@ -27,13 +27,16 @@ export function HeaderAuthLink({ loggedIn }: { loggedIn: boolean }) {
     href = `/login?next=${encodeURIComponent(full)}`;
   }
 
+  const label = loggedIn ? "我的帳號" : "登入";
   return (
     <Link
       href={href}
-      className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-muted-foreground transition-colors hover:bg-accent/40 hover:text-foreground"
+      // mobile 隱藏文字只留 icon — aria-label 給 screen reader / a11y tools
+      aria-label={label}
+      className="inline-flex items-center gap-1.5 rounded-full px-2 py-1.5 text-muted-foreground transition-colors hover:bg-accent/40 hover:text-foreground sm:px-3"
     >
-      <User className="size-4" />
-      <span className="hidden sm:inline">{loggedIn ? "我的帳號" : "登入"}</span>
+      <User className="size-4" aria-hidden />
+      <span className="hidden sm:inline">{label}</span>
     </Link>
   );
 }

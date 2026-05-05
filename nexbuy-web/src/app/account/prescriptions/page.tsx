@@ -61,7 +61,7 @@ export default async function MyPrescriptionsPage() {
           歡迎
           <Link
             href="/products?kind=prescription_frame"
-            className="ml-1 text-primary hover:underline"
+            className="ml-1 text-primary underline underline-offset-2 decoration-primary/40 hover:decoration-primary"
           >
             預約到店驗光配鏡
           </Link>
