@@ -1,14 +1,19 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { ForgotPasswordForm } from "./ForgotPasswordForm";
 
 export const metadata = {
   title: "忘記密碼 — 精鋐眼鏡行",
 };
 
-const SUPPORT_EMAIL = "jinghong.optical@gmail.com";
+type SearchParams = Promise<{ err?: string }>;
 
-export default async function ForgotPasswordPage() {
+export default async function ForgotPasswordPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
   const sb = await createServerSupabase();
   const {
     data: { user },
@@ -16,6 +21,9 @@ export default async function ForgotPasswordPage() {
   if (user) {
     redirect("/account");
   }
+
+  const sp = await searchParams;
+  const expired = sp.err === "expired";
 
   return (
     <div className="mx-auto flex min-h-[calc(100vh-64px)] max-w-md items-center px-4 py-10">
@@ -25,22 +33,18 @@ export default async function ForgotPasswordPage() {
             忘記密碼
           </h1>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-            請寄信到下方店家信箱、附上你註冊用的 email，我們會手動為你重設密碼，
-            重設後會把臨時密碼回傳給你。登入後可以到「我的帳號」改成新密碼。
+            輸入註冊用的 email，我們會寄一封含重設連結的信給你。
+            點連結後直接設新密碼，登入即可。
           </p>
         </div>
 
-        <div className="rounded-lg border bg-card/60 p-5 backdrop-blur-sm">
-          <div className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            店家聯絡信箱
-          </div>
-          <a
-            href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("重設密碼申請")}`}
-            className="mt-2 inline-block font-mono text-base text-primary hover:underline"
-          >
-            {SUPPORT_EMAIL}
-          </a>
-        </div>
+        {expired && (
+          <p className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+            重設連結已過期或失效，請重新申請一次。
+          </p>
+        )}
+
+        <ForgotPasswordForm />
 
         <p className="text-sm text-muted-foreground">
           想起來了？{" "}
