@@ -6,6 +6,7 @@ import { z } from "zod";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { createProductSchema, updateProductSchema } from "@/lib/schemas/product";
+import { pingProductUrls } from "@/lib/seo/indexnow";
 
 const MAX_FILE_BYTES = 5 * 1024 * 1024;
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
@@ -113,6 +114,7 @@ export async function createProductAction(
   }
 
   revalidatePath("/admin/products");
+  pingProductUrls([parsed.data.slug]);
   redirect("/admin/products");
 }
 
@@ -185,6 +187,7 @@ export async function updateProductAction(
   revalidatePath("/admin/products");
   revalidatePath(`/admin/products/${productId}/edit`);
   revalidatePath(`/products/${parsed.data.slug}`);
+  pingProductUrls([parsed.data.slug]);
   redirect("/admin/products");
 }
 
@@ -221,16 +224,22 @@ export async function deleteProduct(formData: FormData): Promise<void> {
   // order_items snapshot 商品名/價/qty，appointments.frame_product_id
   // 是 SET NULL，soft delete 也不會破歷史。要復原直接 SQL update 把
   // deleted_at 設回 null。
-  const { error } = await sb
+  const { data, error } = await sb
     .from("products")
     .update({
       deleted_at: new Date().toISOString(),
       is_online_available: false,
     })
-    .eq("id", parsed.data.id);
+    .eq("id", parsed.data.id)
+    .select("slug")
+    .maybeSingle();
   if (error) {
     console.error("deleteProduct (soft) failed:", error);
     throw new Error("DELETE_FAILED:" + error.message);
   }
   revalidatePath("/admin/products");
+  // 商品 URL 變 404 — IndexNow 通知讓搜尋引擎降級該頁
+  if (data?.slug) {
+    pingProductUrls([data.slug as string]);
+  }
 }

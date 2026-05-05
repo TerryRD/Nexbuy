@@ -12,12 +12,19 @@ const serverSchema = z.object({
   SMTP_PORT: z.coerce.number().int().positive().default(465),
   SMTP_USER: z.string().default(""),
   SMTP_PASS: z.string().default(""),
+  // IndexNow：8–128 字元 hex / a-f / 0-9。產一次後固定不要動，否則
+  // /api/seo/indexnow-key 跟 ping payload 會對不起來、被搜尋引擎丟棄。
+  // 沒設時所有 indexNow ping 變 no-op，不影響其他流程。
+  INDEXNOW_KEY: z.string().default(""),
 });
 
 const publicSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.url(),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
   NEXT_PUBLIC_APP_URL: z.url(),
+  // Google Search Console 驗證 token：你新增資源拿到的 content="..."。
+  // 沒設就不渲染 meta tag。設了 deploy 後就能 verify。
+  NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION: z.string().default(""),
 });
 
 // Public env：client-safe
@@ -25,6 +32,8 @@ export const publicEnv = publicSchema.parse({
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
   NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+  NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION:
+    process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ?? "",
 });
 
 // Server env：只在 server-side 檔案 import 這個
@@ -38,5 +47,6 @@ export function getServerEnv() {
     SMTP_PORT: process.env.SMTP_PORT ?? "465",
     SMTP_USER: process.env.SMTP_USER ?? "",
     SMTP_PASS: process.env.SMTP_PASS ?? "",
+    INDEXNOW_KEY: process.env.INDEXNOW_KEY ?? "",
   });
 }
