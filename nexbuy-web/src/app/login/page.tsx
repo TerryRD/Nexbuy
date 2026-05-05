@@ -36,7 +36,7 @@ export default async function LoginPage({
             還沒有帳號？{" "}
             <Link
               href={`/signup?next=${encodeURIComponent(safe)}`}
-              className="text-primary hover:underline"
+              className="text-primary underline underline-offset-2 decoration-primary/40 hover:decoration-primary"
             >
               建立一個
             </Link>
@@ -57,7 +57,7 @@ export default async function LoginPage({
         <p className="text-center text-sm text-muted-foreground">
           <Link
             href="/forgot-password"
-            className="text-primary hover:underline"
+            className="text-primary underline underline-offset-2 decoration-primary/40 hover:decoration-primary"
           >
             忘記密碼？
           </Link>

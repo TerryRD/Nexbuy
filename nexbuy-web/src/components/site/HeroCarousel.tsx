@@ -23,7 +23,14 @@ export function HeroCarousel({ slides }: { slides: readonly Slide[] }) {
   }, [slides.length, paused]);
 
   return (
+    // role + aria-roledescription：給 screen reader 知道這是「輪播」而非
+    // 一張圖；hover 暫停是視覺輔助，鍵盤使用者本來就看不到自動切換的
+    // 動畫所以不需鍵盤等價（不會錯過資訊），故 disable 規則。
+    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <div
+      role="region"
+      aria-roledescription="輪播"
+      aria-label="店家照片"
       className="relative aspect-[4/3] overflow-hidden rounded-3xl border border-border/60 shadow-2xl shadow-primary/15 ring-1 ring-foreground/5"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}

@@ -336,7 +336,7 @@ function Section({
           {emptyLink && (
             <Link
               href={emptyLink.href}
-              className="ml-1 text-primary hover:underline"
+              className="ml-1 text-primary underline underline-offset-2 decoration-primary/40 hover:decoration-primary"
             >
               {emptyLink.label}
             </Link>

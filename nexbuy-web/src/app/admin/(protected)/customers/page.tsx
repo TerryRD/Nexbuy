@@ -194,7 +194,7 @@ export default async function AdminCustomersPage() {
                   <td className="px-4 py-3 text-right">
                     <Link
                       href={`/admin/customers/${r.id}`}
-                      className="text-xs text-primary hover:underline"
+                      className="text-xs text-primary underline underline-offset-2 decoration-primary/40 hover:decoration-primary"
                     >
                       詳情 →
                     </Link>

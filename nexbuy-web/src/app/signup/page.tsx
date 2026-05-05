@@ -36,7 +36,7 @@ export default async function SignupPage({
             已經有帳號了？{" "}
             <Link
               href={`/login?next=${encodeURIComponent(safe)}`}
-              className="text-primary hover:underline"
+              className="text-primary underline underline-offset-2 decoration-primary/40 hover:decoration-primary"
             >
               登入
             </Link>

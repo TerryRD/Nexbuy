@@ -47,7 +47,7 @@ export default async function ResetPasswordPage() {
 
         <p className="text-sm text-muted-foreground">
           想取消？{" "}
-          <Link href="/login" className="text-primary hover:underline">
+          <Link href="/login" className="text-primary underline underline-offset-2 decoration-primary/40 hover:decoration-primary">
             回到登入
           </Link>
         </p>
