@@ -6,7 +6,7 @@ import { GoogleSignInButton } from "../auth/GoogleSignInButton";
 import { LoginForm } from "./LoginForm";
 
 export const metadata = {
-  title: "登入 — 精鋐眼鏡行",
+  title: "登入",
 };
 
 export default async function LoginPage({

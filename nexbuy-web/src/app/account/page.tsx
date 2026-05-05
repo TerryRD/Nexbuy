@@ -7,7 +7,7 @@ import { formatDate, formatPrice, formatTime } from "@/lib/format";
 import { ChangePasswordForm } from "./ChangePasswordForm";
 
 export const metadata = {
-  title: "我的帳號 — 精鋐眼鏡行",
+  title: "我的帳號",
 };
 
 const ORDER_STATUS_LABEL: Record<string, string> = {

@@ -45,6 +45,18 @@ function hashUnit(slug: string): number {
   return ((h >>> 0) % 1000) / 1000;
 }
 
+/** 第二個獨立 hash 給挑形狀用，避免 slug → tilt 的相關性把樣式鎖在某幾種。*/
+function hashIndex(slug: string, n: number, salt = 0): number {
+  let h = 5381 + salt * 31;
+  for (let i = 0; i < slug.length; i++) {
+    h = (h * 33) ^ slug.charCodeAt(i);
+  }
+  return (h >>> 0) % n;
+}
+
+const FALLBACK_SHAPES = ["圓形", "方形", "橢圓", "心型", "倒三角"] as const;
+const FALLBACK_COLORS = ["黑", "棕", "玳瑁", "金", "銀", "透明"] as const;
+
 /**
  * 依臉型決定鏡框 path：
  *   圓形    → 圓
@@ -74,8 +86,16 @@ function lensPath(shape: string, cx: number, cy: number, rx: number, ry: number)
 }
 
 export function productPlaceholderSvg(input: PlaceholderInput): string {
-  const palette = PALETTES[input.color ?? ""] ?? PALETTES.default;
-  const shape = input.face_shape?.[0] ?? "預設";
+  // 沒設 color → 用 slug hash 決定（保證 deterministic + 看起來各自不同）
+  const colorKey =
+    input.color && PALETTES[input.color]
+      ? input.color
+      : FALLBACK_COLORS[hashIndex(input.slug, FALLBACK_COLORS.length, 1)];
+  const palette = PALETTES[colorKey] ?? PALETTES.default;
+  // 沒設 face_shape → 同樣 slug hash
+  const shape =
+    input.face_shape?.[0] ??
+    FALLBACK_SHAPES[hashIndex(input.slug, FALLBACK_SHAPES.length, 2)];
   const t = hashUnit(input.slug);
   const tilt = (t - 0.5) * 6; // -3deg..+3deg 微擺
   const lensRx = 105 + (t * 20 - 10); // 95–115
