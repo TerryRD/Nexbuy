@@ -228,7 +228,7 @@ export default function HomePage() {
                  * 但對 bg-card/60 通過 WCAG AA large-text 3:1。 */}
                 <div
                   aria-hidden
-                  className="font-heading text-5xl font-semibold leading-none tracking-tight text-primary/60"
+                  className="font-heading text-5xl font-semibold leading-none tracking-tight text-primary/80"
                 >
                   {s.n}
                 </div>
