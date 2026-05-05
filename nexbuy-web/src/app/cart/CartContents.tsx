@@ -41,6 +41,7 @@ export function CartContents() {
                   alt={item.name}
                   fill
                   sizes="80px"
+                  unoptimized={item.image_url.startsWith("data:")}
                   className="object-cover"
                 />
               ) : null}

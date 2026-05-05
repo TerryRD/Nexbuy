@@ -47,11 +47,19 @@ export async function generateMetadata({
 const isValidKind = (v: string | undefined): v is ProductKind =>
   v === "finished" || v === "prescription_frame";
 
-// All products fetched once; the client component filters in-memory so pill
-// switches are instant (no per-click Supabase roundtrip / server re-render).
-// We still read searchParams here to 404 invalid kinds and to pass the
-// initial active filter to the client (so a deep-linked ?kind= URL renders
-// in the right state on first paint).
+// 規模化策略：
+// MVP 階段（< 50 件商品）一次撈全部、client 端做篩選 — pill 切換瞬間 0
+// roundtrip。代價是 HTML payload 隨商品數線性成長（每件 ~1KB JSON）。
+//
+// 為了 future-proof：硬 LIMIT 500 件。超過上限：
+//   1. ProductsList 顯示「目前只列出最新 500 件」hint
+//   2. 改成 server-side filter / pagination（搬 attribute filter 到 SQL，
+//      用 ?kind=&material=&page= URL 帶狀態，client 變 SSR shell）
+//
+// 監控訊號：每筆 product row JSON 約 1KB；250 件 = 250KB HTML，行動 4G
+// 邊緣可接受。500 件 = 500KB 該動手。完整策略 → docs/scaling.md
+const PRODUCT_LIST_LIMIT = 500;
+
 export default async function ProductsPage({
   searchParams,
 }: {
@@ -68,17 +76,20 @@ export default async function ProductsPage({
   const initialFilter = filterFromSearchParams(sp);
 
   const sb = await createServerSupabase();
-  const [{ data, error }, wishlistSet, { data: { user } }] = await Promise.all([
-    sb
-      .from("products")
-      .select(
-        "id, slug, name, description, price_cents, image_urls, brand, kind, finished_stock, is_online_available, face_shape, frame_size, material, color",
-      )
-      .eq("is_online_available", true)
-      .order("created_at", { ascending: false }),
-    getWishlistProductIds(),
-    sb.auth.getUser(),
-  ]);
+  const [{ data, error, count }, wishlistSet, { data: { user } }] =
+    await Promise.all([
+      sb
+        .from("products")
+        .select(
+          "id, slug, name, description, price_cents, image_urls, brand, kind, finished_stock, is_online_available, face_shape, frame_size, material, color",
+          { count: "exact" },
+        )
+        .eq("is_online_available", true)
+        .order("created_at", { ascending: false })
+        .limit(PRODUCT_LIST_LIMIT),
+      getWishlistProductIds(),
+      sb.auth.getUser(),
+    ]);
 
   if (error) {
     console.error("products query failed:", error);
@@ -86,10 +97,14 @@ export default async function ProductsPage({
   }
 
   const products = (data ?? []) as Product[];
+  const totalCount = count ?? products.length;
+  const truncated = totalCount > products.length;
 
   return (
     <ProductsList
       products={products}
+      totalCount={totalCount}
+      truncated={truncated}
       initialKind={initialKind}
       initialFilter={initialFilter}
       wishlistIds={Array.from(wishlistSet)}
