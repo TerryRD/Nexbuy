@@ -1,7 +1,7 @@
 import { ImportForm } from "./ImportForm";
 
 export const metadata = {
-  title: "批次匯入商品 — 精鋐眼鏡行 admin",
+  title: "批次匯入商品",
 };
 
 export default function AdminProductImportPage() {

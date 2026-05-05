@@ -16,7 +16,7 @@ import {
 import { WishlistRemoveButton } from "./WishlistRemoveButton";
 
 export const metadata = {
-  title: "我的收藏 — 精鋐眼鏡行",
+  title: "我的收藏",
 };
 
 interface WishlistRow {

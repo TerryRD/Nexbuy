@@ -4,7 +4,7 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { ResetPasswordForm } from "./ResetPasswordForm";
 
 export const metadata = {
-  title: "設定新密碼 — 精鋐眼鏡行",
+  title: "設定新密碼",
 };
 
 /**

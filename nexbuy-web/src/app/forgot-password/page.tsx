@@ -4,7 +4,7 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { ForgotPasswordForm } from "./ForgotPasswordForm";
 
 export const metadata = {
-  title: "忘記密碼 — 精鋐眼鏡行",
+  title: "忘記密碼",
 };
 
 type SearchParams = Promise<{ err?: string }>;
