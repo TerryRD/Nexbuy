@@ -103,7 +103,7 @@ export function ProductsList({
         </p>
       ) : (
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((p) => (
+          {filtered.map((p, idx) => (
             <li key={p.id}>
               <Link href={`/products/${p.slug}`} className="group block">
                 <Card className="h-full overflow-hidden transition-shadow hover:shadow-md">
@@ -113,6 +113,9 @@ export function ProductsList({
                         src={p.image_urls[0]}
                         alt={p.name}
                         fill
+                        // 桌面 grid 第 1 row（lg 3 欄、sm 2 欄）跟 LCP 競爭，
+                        // 先 3 張 priority 預載；後面卡片 lazy 由 next/image 預設處理。
+                        priority={idx < 3}
                         sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                         className="object-cover transition-transform duration-300 group-hover:scale-105"
                       />

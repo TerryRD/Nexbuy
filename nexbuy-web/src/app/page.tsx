@@ -11,6 +11,8 @@ import {
 import { buttonVariants } from "@/components/ui/button";
 import { HeroCarousel } from "@/components/site/HeroCarousel";
 import { Reveal } from "@/components/site/Reveal";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { organizationSchema, websiteSchema } from "@/lib/seo/schema";
 
 const MAP_LABEL = encodeURIComponent("精鋐眼鏡行");
 const MAP_EMBED_SRC = `https://maps.google.com/maps?q=25.0173074,121.2956103+(${MAP_LABEL})&hl=zh-TW&z=17&output=embed`;
@@ -86,6 +88,8 @@ const GALLERY = [
 export default function HomePage() {
   return (
     <div className="relative">
+      <JsonLd data={organizationSchema()} />
+      <JsonLd data={websiteSchema()} />
       {/* ---------------- Hero ---------------- */}
       <section className="relative isolate overflow-hidden">
         <div
