@@ -1,9 +1,14 @@
 "use client";
 
-import { useActionState, useRef } from "react";
+import { useActionState, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { importProductsAction, type ImportResult } from "./actions";
+import {
+  importProductsAction,
+  previewImportAction,
+  type ImportResult,
+  type PreviewResult,
+} from "./actions";
 
 const CSV_TEMPLATE = `name,slug,kind,price_cents,finished_stock,is_online_available,description,brand,face_shape,frame_size,material,color
 經典玳瑁圓框,classic-tortoise-round,finished,128000,5,true,輕量醋酸纖維,Acetate Co.,圓形;橢圓,M,醋酸纖維,玳瑁
@@ -13,12 +18,37 @@ const CSV_TEMPLATE = `name,slug,kind,price_cents,finished_stock,is_online_availa
 const TEMPLATE_DATA_URL =
   "data:text/csv;charset=utf-8," + encodeURIComponent(CSV_TEMPLATE);
 
+const KIND_LABEL: Record<"finished" | "prescription_frame", string> = {
+  finished: "成品",
+  prescription_frame: "處方鏡架",
+};
+
 export function ImportForm() {
-  const [state, action, isPending] = useActionState<
+  const formRef = useRef<HTMLFormElement>(null);
+  const [preview, previewAction, isPreviewing] = useActionState<
+    PreviewResult | null,
+    FormData
+  >(previewImportAction, null);
+
+  const [importState, importDispatcher, isImporting] = useActionState<
     ImportResult | null,
     FormData
   >(importProductsAction, null);
-  const formRef = useRef<HTMLFormElement>(null);
+  const [isPending, startTransition] = useTransition();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  function onConfirmImport() {
+    const form = formRef.current;
+    if (!form) return;
+    const fd = new FormData(form);
+    startTransition(() => {
+      importDispatcher(fd);
+      setConfirmOpen(false);
+    });
+  }
+
+  // 在已成功 import 完之後不再顯示 preview 區塊
+  const showPreviewBox = preview !== null && importState?.ok !== true;
 
   return (
     <div className="space-y-6">
@@ -59,7 +89,7 @@ export function ImportForm() {
 
       <form
         ref={formRef}
-        action={action}
+        action={previewAction}
         className="space-y-4 rounded-lg border bg-card p-4"
       >
         <div className="space-y-2">
@@ -72,14 +102,31 @@ export function ImportForm() {
             type="file"
             accept=".csv,text/csv"
             required
-            disabled={isPending}
+            disabled={isPreviewing || isImporting || isPending}
             className="block w-full text-sm file:mr-4 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-primary-foreground hover:file:bg-primary/90"
           />
+          <p className="text-xs text-muted-foreground">
+            按「解析預覽」會驗證欄位、檢查 DB 重複 slug，但<strong>不會寫入</strong>。
+            預覽 OK 後再按「確認匯入」才實際寫入。
+          </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button type="submit" disabled={isPending}>
-            {isPending ? "匯入中..." : "匯入"}
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            type="submit"
+            variant="outline"
+            disabled={isPreviewing || isImporting || isPending}
+          >
+            {isPreviewing ? "解析中..." : "解析預覽"}
           </Button>
+          {preview?.ok && (
+            <Button
+              type="button"
+              onClick={() => setConfirmOpen(true)}
+              disabled={isImporting || isPending}
+            >
+              {isImporting || isPending ? "匯入中..." : `確認匯入 ${preview.total} 筆`}
+            </Button>
+          )}
           <Link
             href="/admin/products"
             className="text-sm text-muted-foreground hover:text-foreground hover:underline"
@@ -89,8 +136,114 @@ export function ImportForm() {
         </div>
       </form>
 
-      {state && <ResultPanel result={state} />}
+      {showPreviewBox && preview && <PreviewPanel preview={preview} />}
+      {importState && <ResultPanel result={importState} />}
+
+      {confirmOpen && preview?.ok && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+        >
+          <div className="w-full max-w-md rounded-xl bg-card p-6 shadow-lg">
+            <h2 className="text-lg font-semibold">
+              確認匯入 {preview.total} 筆商品？
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              預覽通過、DB 沒有重複 slug。送出後會直接寫入。
+              如果預覽到送出之間有人改了 DB，匯入仍會 all-or-nothing：失敗就完全不寫。
+            </p>
+            <div className="mt-5 flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setConfirmOpen(false)}
+                disabled={isImporting || isPending}
+              >
+                取消
+              </Button>
+              <Button
+                type="button"
+                onClick={onConfirmImport}
+                disabled={isImporting || isPending}
+              >
+                {isImporting || isPending ? "匯入中..." : "確認匯入"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+function PreviewPanel({ preview }: { preview: PreviewResult }) {
+  if (!preview.ok) {
+    return (
+      <section className="space-y-3 rounded-lg border border-destructive/40 bg-destructive/10 p-4 text-sm">
+        <h2 className="font-medium text-destructive">
+          預覽失敗（{preview.errors.length} 個錯誤）
+        </h2>
+        <ul className="space-y-1.5 text-muted-foreground">
+          {preview.errors.slice(0, 50).map((e, i) => (
+            <li key={i}>
+              {e.line > 0 && <span className="font-mono">Line {e.line}</span>}
+              {e.slug && (
+                <span className="ml-2 font-mono text-xs">「{e.slug}」</span>
+              )}
+              <span className="ml-2">{e.message}</span>
+            </li>
+          ))}
+          {preview.errors.length > 50 && (
+            <li>… 還有 {preview.errors.length - 50} 個錯誤未列出</li>
+          )}
+        </ul>
+        <p className="text-xs text-muted-foreground">
+          修好 CSV 後再按一次「解析預覽」。
+        </p>
+      </section>
+    );
+  }
+
+  return (
+    <section className="space-y-3 rounded-lg border border-emerald-500/40 bg-emerald-500/10 p-4 text-sm">
+      <h2 className="font-medium text-emerald-700 dark:text-emerald-400">
+        預覽通過：將新增 {preview.total} 筆商品
+      </h2>
+      <div className="overflow-x-auto rounded-md border bg-card">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-muted/40 text-left text-xs text-muted-foreground">
+              <th className="px-3 py-2 font-medium">商品名</th>
+              <th className="px-3 py-2 font-medium">slug</th>
+              <th className="px-3 py-2 font-medium">類型</th>
+              <th className="px-3 py-2 text-right font-medium">售價</th>
+              <th className="px-3 py-2 text-right font-medium">庫存</th>
+            </tr>
+          </thead>
+          <tbody>
+            {preview.sample.map((r, i) => (
+              <tr key={i} className="border-t">
+                <td className="px-3 py-2">{r.name}</td>
+                <td className="px-3 py-2 font-mono text-xs">{r.slug}</td>
+                <td className="px-3 py-2">{KIND_LABEL[r.kind]}</td>
+                <td className="px-3 py-2 text-right tabular-nums">
+                  ${(r.price_cents / 100).toLocaleString("zh-TW")}
+                </td>
+                <td className="px-3 py-2 text-right tabular-nums">
+                  {r.finished_stock ?? "—"}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {preview.total > preview.sample.length && (
+        <p className="text-xs text-muted-foreground">
+          只顯示前 {preview.sample.length} 筆 — 共 {preview.total} 筆。
+        </p>
+      )}
+    </section>
   );
 }
 
@@ -141,7 +294,7 @@ function ResultPanel({ result }: { result: ImportResult }) {
         )}
       </ul>
       <p className="text-xs text-muted-foreground">
-        修好 CSV 後再上傳一次。匯入是 all-or-nothing：任一錯都不寫入。
+        修好 CSV 後再按「解析預覽」一次。匯入是 all-or-nothing：任一錯都不寫入。
       </p>
     </section>
   );

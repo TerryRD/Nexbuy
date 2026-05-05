@@ -10,6 +10,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { runAppointmentReminder } from "@/lib/cron/appointment-reminder";
 import { runLowStockAlert } from "@/lib/cron/low-stock-alert";
+import { withCronLogging } from "@/lib/cron/log";
 
 export async function GET(request: NextRequest) {
   const expected = process.env.CRON_SECRET;
@@ -26,14 +27,27 @@ export async function GET(request: NextRequest) {
   }
 
   // 兩個任務獨立、不互相依賴 — 並行跑省時間。
-  const [appointment, lowStock] = await Promise.all([
-    runAppointmentReminder(),
-    runLowStockAlert(),
+  // allSettled：一支 throw 不會把另一支拖下水，個別在 Vercel logs 看得到。
+  const [appointmentRes, lowStockRes] = await Promise.allSettled([
+    withCronLogging("appointment-reminder", () => runAppointmentReminder()),
+    withCronLogging("low-stock-alert", () => runLowStockAlert()),
   ]);
 
-  return NextResponse.json({
-    ok: true,
-    appointment_reminder: appointment,
-    low_stock_alert: lowStock,
-  });
+  const anyFailed =
+    appointmentRes.status === "rejected" || lowStockRes.status === "rejected";
+
+  return NextResponse.json(
+    {
+      ok: !anyFailed,
+      appointment_reminder:
+        appointmentRes.status === "fulfilled"
+          ? appointmentRes.value
+          : { error: String(appointmentRes.reason) },
+      low_stock_alert:
+        lowStockRes.status === "fulfilled"
+          ? lowStockRes.value
+          : { error: String(lowStockRes.reason) },
+    },
+    { status: anyFailed ? 500 : 200 },
+  );
 }

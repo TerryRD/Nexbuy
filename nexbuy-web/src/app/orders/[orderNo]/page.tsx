@@ -1,13 +1,17 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createAdminSupabase } from "@/lib/supabase/admin";
+import { createServerSupabase } from "@/lib/supabase/server";
 import { formatPrice } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 
 type Params = Promise<{ orderNo: string }>;
+type SearchParams = Promise<{ t?: string | string[] }>;
 
 const ORDER_NO_RE = /^NB-\d{12}-\d{3}$/;
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 type ShippingStatus =
   | "not_shipped"
@@ -20,6 +24,8 @@ type OrderRow = {
   id: string;
   order_no: string;
   payment_code: string;
+  lookup_token: string;
+  user_id: string | null;
   status:
     | "pending_payment"
     | "paid"
@@ -65,18 +71,32 @@ const shippingLabels: Record<ShippingStatus, string> = {
   returned: "已退貨",
 };
 
-export default async function OrderSuccessPage({ params }: { params: Params }) {
+export default async function OrderSuccessPage({
+  params,
+  searchParams,
+}: {
+  params: Params;
+  searchParams: SearchParams;
+}) {
   const { orderNo } = await params;
   if (!ORDER_NO_RE.test(orderNo)) notFound();
 
-  // Use admin client: orders has RLS (owner/admin only for select) and guest
-  // orders have user_id=null. The order_no acts as a shared secret.
+  const sp = await searchParams;
+  const tokenRaw = Array.isArray(sp.t) ? sp.t[0] : sp.t;
+  const token = tokenRaw && UUID_RE.test(tokenRaw) ? tokenRaw : null;
+
+  // 授權三條路徑：
+  //   1. URL 帶有效 lookup_token → 任何人都能看（guest 收信箱裡的連結）
+  //   2. 已登入且是訂單擁有者 (orders.user_id = auth.uid()) → 不需 token
+  //   3. 已登入且是 admin → 不需 token
+  // 三條都不通 → 一律 404，避免時序攻擊洩漏「這個 order_no 存在」。
   const admin = createAdminSupabase();
   const { data, error } = await admin
     .from("orders")
     .select(
       `
-      id, order_no, payment_code, status, shipping_status,
+      id, order_no, payment_code, lookup_token, user_id,
+      status, shipping_status,
       tracking_number, tracking_carrier,
       subtotal_cents, shipping_fee_cents, total_cents,
       recipient_name, recipient_phone, shipping_address, note, created_at,
@@ -93,6 +113,25 @@ export default async function OrderSuccessPage({ params }: { params: Params }) {
 
   if (!data) notFound();
   const order = data as unknown as OrderRow;
+
+  // token 走常數時間比對。比較簡單：UUID v4 各位元已隨機，直接 string compare 也夠。
+  const tokenOk = token !== null && token.toLowerCase() === order.lookup_token.toLowerCase();
+  let viewerOk = tokenOk;
+  if (!viewerOk) {
+    const sb = await createServerSupabase();
+    const {
+      data: { user },
+    } = await sb.auth.getUser();
+    if (user) {
+      if (order.user_id === user.id) {
+        viewerOk = true;
+      } else {
+        const role = (user.app_metadata as { role?: string } | null)?.role;
+        if (role === "admin") viewerOk = true;
+      }
+    }
+  }
+  if (!viewerOk) notFound();
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">

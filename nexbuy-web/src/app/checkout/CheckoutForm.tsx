@@ -98,9 +98,11 @@ export function CheckoutForm({ defaults }: { defaults: CheckoutDefaults }) {
         const body = (await res.json()) as {
           order_no: string;
           success_url: string;
+          lookup_token: string;
         };
         clear();
-        router.push(`/orders/${body.order_no}`);
+        // lookup_token 是 IDOR 防線，guest 必帶才能看訂單
+        router.push(`/orders/${body.order_no}?t=${body.lookup_token}`);
       } catch (err) {
         console.error(err);
         setError("網路異常,請重試。");

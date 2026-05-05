@@ -26,6 +26,19 @@ export function ChangePasswordForm() {
       action={formAction}
       className="space-y-4 rounded-3xl border bg-card/60 p-6 backdrop-blur-sm"
     >
+      <div className="space-y-2">
+        <Label htmlFor="cp-current">目前密碼</Label>
+        <Input
+          id="cp-current"
+          name="current_password"
+          type="password"
+          required
+          autoComplete="current-password"
+        />
+        <p className="text-xs text-muted-foreground">
+          為了安全，改密碼前要先驗證一次。
+        </p>
+      </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="cp-password">新密碼</Label>

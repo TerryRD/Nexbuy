@@ -8,8 +8,8 @@ import {
   updateCampaignAction,
   scheduleCampaignAction,
   cancelCampaignAction,
-  sendNowAction,
 } from "../actions";
+import { SendNowButton } from "./SendNowButton";
 
 type Params = Promise<{ id: string }>;
 
@@ -50,18 +50,25 @@ export default async function CampaignDetailPage({
 }) {
   const { id } = await params;
   const sb = await createServerSupabase();
-  const { data, error } = await sb
-    .from("marketing_campaigns")
-    .select(
-      "id, subject, body, status, scheduled_at, sent_at, recipient_count, success_count, error_count, created_at",
-    )
-    .eq("id", id)
-    .maybeSingle();
+  const [{ data, error }, { count: optInCount }] = await Promise.all([
+    sb
+      .from("marketing_campaigns")
+      .select(
+        "id, subject, body, status, scheduled_at, sent_at, recipient_count, success_count, error_count, created_at",
+      )
+      .eq("id", id)
+      .maybeSingle(),
+    sb
+      .from("customers")
+      .select("id", { count: "exact", head: true })
+      .eq("marketing_opt_in", true),
+  ]);
 
   if (error) throw new Error("Failed to load campaign");
   if (!data) notFound();
   const c = data as Campaign;
   const editable = c.status === "draft" || c.status === "scheduled";
+  const recipientCount = optInCount ?? 0;
 
   return (
     <div className="space-y-6">
@@ -150,10 +157,7 @@ export default async function CampaignDetailPage({
           )}
 
           <div className="flex flex-wrap gap-2">
-            <form action={sendNowAction}>
-              <input type="hidden" name="id" value={c.id} />
-              <Button type="submit">立即寄送</Button>
-            </form>
+            <SendNowButton campaignId={c.id} recipientCount={recipientCount} />
             <form action={cancelCampaignAction}>
               <input type="hidden" name="id" value={c.id} />
               <Button type="submit" variant="outline" className="text-destructive">
@@ -163,8 +167,9 @@ export default async function CampaignDetailPage({
           </div>
 
           <p className="text-xs text-muted-foreground">
-            排程後，每 5 分鐘的 cron 會在到時撈出來寄。立即寄送會直接觸發、
-            可能比 cron 快一些（避免併發，dispatch 用 status CAS 鎖定）。
+            目前可寄送名單：{recipientCount} 位（marketing_opt_in=true）。
+            排程後每 5 分鐘的 cron 會在到時撈出來寄；立即寄送會跳確認 dialog。
+            （dispatch 用 status CAS 鎖定，避免併發雙寄）
           </p>
         </section>
       )}

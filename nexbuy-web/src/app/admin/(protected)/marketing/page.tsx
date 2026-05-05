@@ -23,23 +23,46 @@ const STATUS_LABEL: Record<string, string> = {
   cancelled: "已取消",
 };
 
+// 跟 dispatch.ts 同一個常數，這邊純展示。改要兩邊一起改。
+const MAX_DAILY_DISPATCHES = 3;
+
+function taipeiTodayStartUtcIso(): string {
+  return new Date(
+    `${new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Taipei",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(new Date())}T00:00:00+08:00`,
+  ).toISOString();
+}
+
 export default async function AdminMarketingPage() {
   const sb = await createServerSupabase();
-  const [{ data: rows }, { count: optInCount }] = await Promise.all([
-    sb
-      .from("marketing_campaigns")
-      .select(
-        "id, subject, status, scheduled_at, sent_at, recipient_count, success_count, error_count, created_at",
-      )
-      .order("created_at", { ascending: false })
-      .limit(100),
-    sb
-      .from("customers")
-      .select("id", { count: "exact", head: true })
-      .eq("marketing_opt_in", true),
-  ]);
+  const todayStart = taipeiTodayStartUtcIso();
+  const [{ data: rows }, { count: optInCount }, { count: sentToday }] =
+    await Promise.all([
+      sb
+        .from("marketing_campaigns")
+        .select(
+          "id, subject, status, scheduled_at, sent_at, recipient_count, success_count, error_count, created_at",
+        )
+        .order("created_at", { ascending: false })
+        .limit(100),
+      sb
+        .from("customers")
+        .select("id", { count: "exact", head: true })
+        .eq("marketing_opt_in", true),
+      sb
+        .from("marketing_campaigns")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "sent")
+        .gte("sent_at", todayStart),
+    ]);
 
   const campaigns = (rows ?? []) as Campaign[];
+  const todayCount = sentToday ?? 0;
+  const capReached = todayCount >= MAX_DAILY_DISPATCHES;
 
   return (
     <div className="space-y-6">
@@ -47,8 +70,15 @@ export default async function AdminMarketingPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">行銷活動</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            目前可寄送名單：{optInCount ?? 0} 位（marketing_opt_in=true）
+            可寄送名單：{optInCount ?? 0} 位（marketing_opt_in=true）·
+            今日已寄 <strong>{todayCount}</strong> / {MAX_DAILY_DISPATCHES} 顆
           </p>
+          {capReached && (
+            <p className="mt-2 rounded-md border border-amber-300 bg-amber-50 p-2 text-xs text-amber-900">
+              已達當日 dispatch 上限 — 新的寄送會被拒絕，明天再試。這是
+              admin 帳號被盜時的安全閥；要永久放寬請改 MAX_DAILY_DISPATCHES。
+            </p>
+          )}
         </div>
         <Link
           href="/admin/marketing/new"

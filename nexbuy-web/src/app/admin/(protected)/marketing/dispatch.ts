@@ -1,6 +1,7 @@
 import "server-only";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { sendEmail, isEmailConfigured } from "@/lib/email/send";
+import { sanitizeMarketingHtml } from "@/lib/email/sanitize";
 
 // 共用：把指定 campaign 寄給所有 marketing_opt_in=true 的客戶。
 // 由 sendNowAction 與 cron 兩個入口呼叫。
@@ -62,8 +63,45 @@ function htmlToText(html: string): string {
     .trim();
 }
 
+// 每日 dispatch 上限：擋帳號被盜時的暴力 blast。當天已成功送出的 campaign
+// 達上限就拒絕新的 dispatch（不論 sendNow 或 cron），admin 隔天再試。
+// 數字保守，後續真有大量需求再調。
+const MAX_DAILY_DISPATCHES = 3;
+
+function taipeiTodayStartUtcIso(): string {
+  return new Date(
+    `${new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Taipei",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(new Date())}T00:00:00+08:00`,
+  ).toISOString();
+}
+
 export async function dispatchCampaign(campaignId: string): Promise<DispatchResult> {
   const admin = createAdminSupabase();
+
+  // 每日上限檢查：admin 帳號被盜時的安全閥。
+  // 用 sent_at（dispatch 完成才寫）count 完成的 dispatch；sending 是短暫
+  // 過渡態（status CAS lock 保證至多 1 顆同時 sending），不算進來。
+  const { count: sentToday } = await admin
+    .from("marketing_campaigns")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "sent")
+    .gte("sent_at", taipeiTodayStartUtcIso());
+  if ((sentToday ?? 0) >= MAX_DAILY_DISPATCHES) {
+    console.warn(
+      `[marketing] daily dispatch cap reached (${sentToday}/${MAX_DAILY_DISPATCHES}) — refusing campaign ${campaignId}`,
+    );
+    return {
+      ok: false,
+      recipient_count: 0,
+      success_count: 0,
+      error_count: 0,
+      reason: "daily-cap-reached",
+    };
+  }
 
   // 取出 campaign，並把狀態切到 'sending' 防止 race（cron + sendNow 同時點）
   const { data: campaign, error: fetchErr } = await admin
@@ -155,9 +193,10 @@ export async function dispatchCampaign(campaignId: string): Promise<DispatchResu
     const { data, error } = await admin.auth.admin.listUsers({ page, perPage: PER_PAGE });
     if (error) break;
     for (const u of data.users) {
-      if (recipientIdSet.has(u.id) && u.email) {
-        recipients.push({ id: u.id, email: u.email });
-      }
+      if (!recipientIdSet.has(u.id) || !u.email) continue;
+      // role=admin 不寄行銷信給自己
+      if ((u.app_metadata as { role?: string } | null)?.role === "admin") continue;
+      recipients.push({ id: u.id, email: u.email });
     }
     if (data.users.length < PER_PAGE) break;
     page += 1;
@@ -166,8 +205,17 @@ export async function dispatchCampaign(campaignId: string): Promise<DispatchResu
   let success = 0;
   let errCount = 0;
 
-  const html = HTML_WRAPPER_OPEN + campaign.body + HTML_WRAPPER_CLOSE;
-  const text = htmlToText(campaign.body);
+  // Allowlist sanitizer：剝掉 <script> / <style> / 任意 attribute / 不合法 href。
+  // admin 帳號是信任邊界，但被盜或誤貼仍要擋。
+  const { html: safeBody, removed } = sanitizeMarketingHtml(campaign.body);
+  if (removed.length > 0) {
+    console.warn(
+      `[marketing] campaign ${campaign.id} 過濾掉 disallowed tags:`,
+      removed,
+    );
+  }
+  const html = HTML_WRAPPER_OPEN + safeBody + HTML_WRAPPER_CLOSE;
+  const text = htmlToText(safeBody);
   const subject = SUBJECT_PREFIX + campaign.subject;
 
   for (const r of recipients) {

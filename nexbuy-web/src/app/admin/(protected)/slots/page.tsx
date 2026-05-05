@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { NewSlotForm } from "./NewSlotForm";
 import { SlotsCalendar } from "./SlotsCalendar";
+import { BulkSlotsForm } from "./BulkSlotsForm";
 import { toggleSlotActive } from "./actions";
 
 type SlotRow = {
@@ -96,6 +97,8 @@ export default async function AdminSlotsPage({
           停用 = 顧客看不到，已預約不受影響。
         </p>
       </header>
+
+      <BulkSlotsForm defaultStartDate={today} />
 
       <SlotsCalendar
         month={month}
