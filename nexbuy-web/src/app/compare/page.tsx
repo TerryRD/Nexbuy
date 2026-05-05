@@ -35,7 +35,7 @@ export default async function ComparePage({
     const { data, error } = await sb
       .from("products")
       .select(
-        "id, slug, name, description, price_cents, image_urls, brand, kind, finished_stock, is_online_available, face_shape, frame_size, material, color",
+        "id, slug, name, description, price_cents, image_urls, brand, kind, finished_stock, is_online_available, face_shape, frame_shape, frame_size, material, color",
       )
       .in("id", ids)
       .eq("is_online_available", true);
@@ -144,6 +144,10 @@ function ComparisonGrid({ slots }: { slots: (Product | null)[] }) {
         ) : (
           "—"
         ),
+    },
+    {
+      label: "框形",
+      render: (p) => p.frame_shape ?? "—",
     },
     {
       label: "鏡架尺寸",

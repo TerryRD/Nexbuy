@@ -10,6 +10,15 @@ export const FACE_SHAPES = [
   "心型",
   "倒三角",
 ] as const;
+// 框形 — 鏡架本身的形狀（跟 FACE_SHAPES「適合的臉型」是不同維度）
+export const FRAME_SHAPES = [
+  "圓框",
+  "方框",
+  "橢圓",
+  "飛行員",
+  "貓眼",
+  "雷朋",
+] as const;
 export const FRAME_SIZES = ["S", "M", "L"] as const;
 export const MATERIALS = ["金屬", "醋酸纖維", "TR90", "複合"] as const;
 export const COLORS = [
@@ -43,6 +52,7 @@ const baseShape = {
   is_online_available: z.coerce.boolean(),
   // Phase 3 — attributes 全選填
   face_shape: z.array(z.enum(FACE_SHAPES)).default([]),
+  frame_shape: z.enum(FRAME_SHAPES).optional().nullable(),
   frame_size: z.enum(FRAME_SIZES).optional().nullable(),
   material: z.enum(MATERIALS).optional().nullable(),
   color: z.enum(COLORS).optional().nullable(),

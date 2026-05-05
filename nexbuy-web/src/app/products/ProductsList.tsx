@@ -61,6 +61,9 @@ export function ProductsList({
         );
         if (!match) return false;
       }
+      if (attrFilter.frameShape && p.frame_shape !== attrFilter.frameShape) {
+        return false;
+      }
       if (attrFilter.frameSize && p.frame_size !== attrFilter.frameSize) {
         return false;
       }

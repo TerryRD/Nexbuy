@@ -9,6 +9,7 @@ import { filterFromSearchParams } from "./attribute-filter";
 type SearchParams = Promise<{
   kind?: string;
   face_shape?: string | string[];
+  frame_shape?: string;
   frame_size?: string;
   material?: string;
   color?: string;
@@ -81,7 +82,7 @@ export default async function ProductsPage({
       sb
         .from("products")
         .select(
-          "id, slug, name, description, price_cents, image_urls, brand, kind, finished_stock, is_online_available, face_shape, frame_size, material, color",
+          "id, slug, name, description, price_cents, image_urls, brand, kind, finished_stock, is_online_available, face_shape, frame_shape, frame_size, material, color",
           { count: "exact" },
         )
         .eq("is_online_available", true)
