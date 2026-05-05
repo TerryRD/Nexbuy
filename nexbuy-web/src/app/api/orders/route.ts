@@ -76,7 +76,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "INTERNAL" }, { status: 500 });
   }
 
-  const successUrl = `${publicEnv.NEXT_PUBLIC_APP_URL}/orders/${row.order_no}`;
+  // lookup_token 是 IDOR 防線：guest 必帶 ?t=token 才能看訂單。
+  // 已登入下單者也帶上，瀏覽器分享連結時不會洩漏。
+  const successUrl = `${publicEnv.NEXT_PUBLIC_APP_URL}/orders/${row.order_no}?t=${row.lookup_token}`;
 
   // Fetch the just-created order's items + total for the confirmation email.
   // Separate query (vs returning everything from place_order) keeps the RPC
@@ -119,6 +121,7 @@ export async function POST(request: NextRequest) {
     {
       order_id: row.order_id,
       order_no: row.order_no,
+      lookup_token: row.lookup_token,
       success_url: successUrl,
     },
     { status: 201 },

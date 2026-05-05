@@ -60,7 +60,7 @@ export async function advanceOrderStatus(formData: FormData): Promise<void> {
     .update({ status: nextStatus })
     .eq("id", parsed.data.id)
     .eq("status", parsed.data.from)
-    .select("id, order_no, recipient_name, customer_email");
+    .select("id, order_no, lookup_token, recipient_name, customer_email");
 
   if (error) {
     console.error("advanceOrderStatus failed:", error);
@@ -82,7 +82,8 @@ export async function advanceOrderStatus(formData: FormData): Promise<void> {
       const content = orderPaidEmail({
         customerName: o.recipient_name,
         orderNo: o.order_no,
-        successUrl: `${publicEnv.NEXT_PUBLIC_APP_URL}/orders/${o.order_no}`,
+        // 必帶 lookup_token，否則收信人點進去會 404
+        successUrl: `${publicEnv.NEXT_PUBLIC_APP_URL}/orders/${o.order_no}?t=${o.lookup_token}`,
       });
       sendEmail({ to, ...content }).catch((err) => {
         console.error("[orders/admin] 寄信失敗:", err);
