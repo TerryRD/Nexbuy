@@ -48,7 +48,7 @@ export default async function ForgotPasswordPage({
 
         <p className="text-sm text-muted-foreground">
           想起來了？{" "}
-          <Link href="/login" className="text-primary hover:underline">
+          <Link href="/login" className="text-primary underline underline-offset-2 decoration-primary/40 hover:decoration-primary">
             回到登入
           </Link>
         </p>

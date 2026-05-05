@@ -84,7 +84,7 @@ export default async function WishlistPage() {
           還沒有收藏的鏡架。
           <Link
             href="/products"
-            className="ml-1 text-primary hover:underline"
+            className="ml-1 text-primary underline underline-offset-2 decoration-primary/40 hover:decoration-primary"
           >
             去逛逛
           </Link>

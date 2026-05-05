@@ -202,7 +202,7 @@ export default async function AccountPage() {
             還沒有預約紀錄。
             <Link
               href="/products?kind=prescription_frame"
-              className="ml-1 text-primary hover:underline"
+              className="ml-1 text-primary underline underline-offset-2 decoration-primary/40 hover:decoration-primary"
             >
               看可預約的鏡架
             </Link>
@@ -265,7 +265,7 @@ export default async function AccountPage() {
             還沒有訂單。
             <Link
               href="/products?kind=finished"
-              className="ml-1 text-primary hover:underline"
+              className="ml-1 text-primary underline underline-offset-2 decoration-primary/40 hover:decoration-primary"
             >
               逛成品眼鏡
             </Link>
