@@ -1,6 +1,8 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { createAdminSupabase } from "@/lib/supabase/admin";
 import { formatPrice } from "@/lib/format";
 import type { Product } from "@/lib/types/database";
 import { buttonVariants } from "@/components/ui/button";
@@ -10,8 +12,57 @@ import { AddToCartButton } from "./AddToCartButton";
 import { CompareToggle } from "./CompareToggle";
 import { ProductImageCarousel } from "./ProductImageCarousel";
 import { WishlistToggle } from "../WishlistToggle";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { productSchema } from "@/lib/seo/schema";
 
 type Params = Promise<{ slug: string }>;
+
+// 動態 metadata：title / description 帶商品名 + 主要屬性，OG image 用商品圖。
+// generateMetadata 跑在 page render 之前，但 Next.js 會 dedupe 同一 request
+// 內的重複 fetch（同一個 slug query 不會重打兩次）。
+export async function generateMetadata({
+  params,
+}: {
+  params: Params;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  // 用 admin client 繞 RLS — 我們只 select 公開欄位給 metadata 用
+  const admin = createAdminSupabase();
+  const { data } = await admin
+    .from("products")
+    .select("name, description, image_urls, kind, brand, is_online_available, deleted_at")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (!data || !data.is_online_available || data.deleted_at) {
+    return { title: "找不到商品" };
+  }
+
+  const kindText = data.kind === "finished" ? "成品眼鏡" : "處方鏡架";
+  const desc =
+    (data.description as string | null) ??
+    `${kindText}${data.brand ? ` · ${data.brand}` : ""}`;
+  const ogImage = (data.image_urls as string[])?.[0];
+
+  return {
+    title: data.name as string,
+    description: desc,
+    alternates: { canonical: `/products/${slug}` },
+    openGraph: {
+      type: "website",
+      url: `/products/${slug}`,
+      title: data.name as string,
+      description: desc,
+      images: ogImage ? [{ url: ogImage }] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: data.name as string,
+      description: desc,
+      images: ogImage ? [ogImage] : undefined,
+    },
+  };
+}
 
 export default async function ProductDetailPage({
   params,
@@ -49,6 +100,19 @@ export default async function ProductDetailPage({
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
+      <JsonLd
+        data={productSchema({
+          slug: product.slug,
+          name: product.name,
+          description: product.description,
+          priceCents: product.price_cents,
+          imageUrl: product.image_urls[0],
+          kind: product.kind,
+          brand: product.brand,
+          finishedStock: product.finished_stock,
+          isOnlineAvailable: product.is_online_available,
+        })}
+      />
       <div className="grid gap-8 md:grid-cols-2">
         {product.image_urls.length > 0 ? (
           <ProductImageCarousel

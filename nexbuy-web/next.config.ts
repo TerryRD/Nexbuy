@@ -15,7 +15,15 @@ const nextConfig: NextConfig = {
         : { protocol: "https" as const, hostname: "*.supabase.co", pathname: "/storage/v1/object/public/**" },
       { protocol: "https", hostname: "images.unsplash.com" },
     ],
+    // AVIF 比 WebP 再小 ~25%；Chromium / Safari 16+ 支援。Next.js 自動依
+    // Accept header 退到 WebP / 原圖。
+    formats: ["image/avif", "image/webp"],
+    // 30 天 — 商品照變動慢，cache 久一點降低 Vercel image transform 用量。
+    minimumCacheTTL: 60 * 60 * 24 * 30,
   },
+  // 拿掉 X-Powered-By: Next.js header — security-through-obscurity 但無害
+  poweredByHeader: false,
+  compress: true,
 };
 
 export default nextConfig;

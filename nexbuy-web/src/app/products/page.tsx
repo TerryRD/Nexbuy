@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase/server";
 import type { Product, ProductKind } from "@/lib/types/database";
@@ -12,6 +13,36 @@ type SearchParams = Promise<{
   material?: string;
   color?: string;
 }>;
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}): Promise<Metadata> {
+  const sp = await searchParams;
+  if (sp.kind === "finished") {
+    return {
+      title: "成品眼鏡",
+      description:
+        "精鋐眼鏡行：太陽眼鏡、平光眼鏡、抗藍光等成品眼鏡。線上下單到家。",
+      alternates: { canonical: "/products?kind=finished" },
+    };
+  }
+  if (sp.kind === "prescription_frame") {
+    return {
+      title: "處方鏡架",
+      description:
+        "精鋐眼鏡行：醋酸纖維、鈦金屬、TR90 等處方鏡架。線上挑款，到店驗光配鏡。",
+      alternates: { canonical: "/products?kind=prescription_frame" },
+    };
+  }
+  return {
+    title: "全部眼鏡",
+    description:
+      "精鋐眼鏡行：成品眼鏡可線上直購；處方鏡架線上挑款、到店配鏡。",
+    alternates: { canonical: "/products" },
+  };
+}
 
 const isValidKind = (v: string | undefined): v is ProductKind =>
   v === "finished" || v === "prescription_frame";
