@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import {
   Eye,
@@ -70,20 +69,8 @@ const HERO_SLIDES = [
     alt: "鏡架特寫示意",
   },
 ] as const;
-const GALLERY = [
-  {
-    src: "https://images.unsplash.com/photo-1556306535-0f09a537f0a3?w=900&q=80&auto=format&fit=crop",
-    alt: "鏡框陳列示意",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1577803645773-f96470509666?w=900&q=80&auto=format&fit=crop",
-    alt: "經典款式示意",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1542838132-92c53300491e?w=900&q=80&auto=format&fit=crop",
-    alt: "鏡架特寫示意",
-  },
-] as const;
+// 之前的 GALLERY 三張 stock photo 已替換為「我們怎麼陪你」資訊卡，
+// 等實拍店內照齊全再 PR 切回圖片版。
 
 export default function HomePage() {
   return (
@@ -249,31 +236,53 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ---------------- Gallery ---------------- */}
-      <section id="gallery" className="mx-auto max-w-5xl px-4 py-20">
+      {/* ---------------- 服務內容 ---------------- */}
+      {/*
+       * 之前這區塊是「店裡的樣子」三張 stock photo（被 QA 抓到 cap / 蔬菜 /
+       * 路人混進來），在真正拍店內照之前改成資訊卡更有業務價值。
+       * admin 拍好真照後可以再回來換成圖片版。
+       */}
+      <section id="services" className="mx-auto max-w-5xl px-4 py-20">
         <Reveal from="left">
           <div className="mb-10">
             <h2 className="font-heading text-3xl font-semibold tracking-tight md:text-4xl">
-              店裡的樣子
+              我們怎麼陪你
             </h2>
             <p className="mt-2 max-w-md text-sm text-muted-foreground">
-              木質檯面、金屬鏡架、慢工細活 — 走進來看看就懂。
+              一副眼鏡可以戴五年，所以前後每一步都用心做。
             </p>
           </div>
         </Reveal>
         <div className="grid gap-4 md:grid-cols-3">
-          {GALLERY.map((g, i) => (
-            <Reveal key={g.src} from="zoom-up" delay={i * 100}>
-              <div className="group relative aspect-[4/5] overflow-hidden rounded-3xl border border-border/60 shadow-xl shadow-primary/5">
-                <Image
-                  src={g.src}
-                  alt={g.alt}
-                  fill
-                  sizes="(min-width: 768px) 33vw, 100vw"
-                  className="object-cover transition-transform duration-700 group-hover:scale-[1.04]"
-                />
-                <div className="bg-grain absolute inset-0" aria-hidden />
-              </div>
+          {[
+            {
+              title: "完整驗光不趕時間",
+              desc: "每位客人預留 30–45 分鐘。從度數、瞳距、瞳孔距離量到雙眼平衡，必要時加做色覺與立體感檢查。寧可慢一點不要錯。",
+              tag: "驗光",
+            },
+            {
+              title: "鏡架實戴試三次",
+              desc: "選好框先戴 5 分鐘繞店內走一圈、看遠看近、找適合的鼻墊角度。覺得不對可以重來，沒人會在後面催你。",
+              tag: "選框",
+            },
+            {
+              title: "保固期內無條件調整",
+              desc: "鏡腿鬆了、鼻墊歪了、鏡片刮了想再買同款 — 半年內回來都免費。我們希望你戴得安心。",
+              tag: "售後",
+            },
+          ].map((card, i) => (
+            <Reveal key={card.title} from="zoom-up" delay={i * 100}>
+              <article className="group relative h-full overflow-hidden rounded-3xl border border-border/60 bg-card p-7 shadow-xl shadow-primary/5 transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-2xl hover:shadow-primary/10">
+                <div className="text-[10px] font-medium uppercase tracking-[0.2em] text-primary">
+                  {card.tag}
+                </div>
+                <h3 className="mt-3 font-heading text-xl font-semibold leading-snug">
+                  {card.title}
+                </h3>
+                <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+                  {card.desc}
+                </p>
+              </article>
             </Reveal>
           ))}
         </div>

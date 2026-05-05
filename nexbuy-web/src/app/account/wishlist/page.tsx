@@ -5,6 +5,7 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { formatPrice } from "@/lib/format";
 import type { Product } from "@/lib/types/database";
 import { Badge } from "@/components/ui/badge";
+import { getProductImageUrl } from "@/lib/product-placeholder";
 import {
   Card,
   CardContent,
@@ -95,15 +96,14 @@ export default async function WishlistPage() {
               <Card className="h-full overflow-hidden transition-shadow hover:shadow-md">
                 <Link href={`/products/${p.slug}`} className="group block">
                   <div className="relative aspect-square overflow-hidden rounded-t-lg bg-muted">
-                    {p.image_urls[0] ? (
-                      <Image
-                        src={p.image_urls[0]}
-                        alt={p.name}
-                        fill
-                        sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
-                    ) : null}
+                    <Image
+                      src={getProductImageUrl(p)}
+                      alt={p.name}
+                      fill
+                      sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                      unoptimized={!p.image_urls[0]}
+                      className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
                   </div>
                   <CardHeader>
                     <div className="flex items-start justify-between gap-2">

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ProductFilter } from "@/components/site/ProductFilter";
 import { formatPrice } from "@/lib/format";
 import type { Product, ProductKind } from "@/lib/types/database";
+import { getProductImageUrl } from "@/lib/product-placeholder";
 import {
   Card,
   CardContent,
@@ -29,12 +30,18 @@ const TITLE: Record<"all" | ProductKind, string> = {
 
 export function ProductsList({
   products,
+  totalCount,
+  truncated,
   initialKind,
   initialFilter,
   wishlistIds,
   isLoggedIn,
 }: {
   products: Product[];
+  /** server count(*) — 可能 > products.length（軟 LIMIT 截斷時）*/
+  totalCount: number;
+  /** 是否被 LIMIT 截斷 — 截斷時提示「需要 server-side 分頁」*/
+  truncated: boolean;
   initialKind: ProductKind | null;
   initialFilter: AttributeFilterState;
   wishlistIds: string[];
@@ -87,11 +94,26 @@ export function ProductsList({
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
       <header className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <h1 className="font-heading text-3xl font-semibold tracking-tight md:text-4xl">
-          {title}
-        </h1>
+        <div>
+          <h1 className="font-heading text-3xl font-semibold tracking-tight md:text-4xl">
+            {title}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            共 {totalCount} 件
+            {filtered.length !== totalCount && (
+              <> · 篩選後 {filtered.length} 件</>
+            )}
+          </p>
+        </div>
         <ProductFilter active={active} onChange={handleChange} />
       </header>
+
+      {truncated && (
+        <p className="mb-4 rounded-md border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900">
+          ⚠️ 商品數已超過頁面顯示上限，目前只列出最新 {products.length} 件 — 需要動 server-side
+          分頁，請聯絡技術人員。
+        </p>
+      )}
 
       <div className="mb-8">
         <AttributeFilters value={attrFilter} onChange={handleAttrChange} />
@@ -108,18 +130,18 @@ export function ProductsList({
               <Link href={`/products/${p.slug}`} className="group block">
                 <Card className="h-full overflow-hidden transition-shadow hover:shadow-md">
                   <div className="relative aspect-square overflow-hidden rounded-t-lg bg-muted">
-                    {p.image_urls[0] ? (
-                      <Image
-                        src={p.image_urls[0]}
-                        alt={p.name}
-                        fill
-                        // 桌面 grid 第 1 row（lg 3 欄、sm 2 欄）跟 LCP 競爭，
-                        // 先 3 張 priority 預載；後面卡片 lazy 由 next/image 預設處理。
-                        priority={idx < 3}
-                        sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
-                    ) : null}
+                    <Image
+                      src={getProductImageUrl(p)}
+                      alt={p.name}
+                      fill
+                      // 桌面 grid 第 1 row（lg 3 欄、sm 2 欄）跟 LCP 競爭，
+                      // 先 3 張 priority 預載；後面卡片 lazy 由 next/image 預設處理。
+                      priority={idx < 3}
+                      sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                      // SVG placeholder 已是最終格式，不再過 Vercel image transform
+                      unoptimized={!p.image_urls[0]}
+                      className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
                     <WishlistToggle
                       productId={p.id}
                       initialInWishlist={wishlistIds.includes(p.id)}

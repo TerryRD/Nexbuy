@@ -14,6 +14,7 @@ import { ProductImageCarousel } from "./ProductImageCarousel";
 import { WishlistToggle } from "../WishlistToggle";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { productSchema } from "@/lib/seo/schema";
+import { getProductImageUrl } from "@/lib/product-placeholder";
 
 type Params = Promise<{ slug: string }>;
 
@@ -98,6 +99,13 @@ export default async function ProductDetailPage({
     product.kind === "finished" &&
     (product.finished_stock ?? 0) <= 0;
 
+  // 沒上傳真品照 → 走 SVG placeholder（每個 slug deterministic，視覺
+  // 跟 kind / face_shape / color 對齊）
+  const displayImages =
+    product.image_urls.length > 0
+      ? product.image_urls
+      : [getProductImageUrl(product)];
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
       <JsonLd
@@ -106,7 +114,8 @@ export default async function ProductDetailPage({
           name: product.name,
           description: product.description,
           priceCents: product.price_cents,
-          imageUrl: product.image_urls[0],
+          // JSON-LD 用 placeholder 也合法（schema.org image 接受 data URL）
+          imageUrl: displayImages[0],
           kind: product.kind,
           brand: product.brand,
           finishedStock: product.finished_stock,
@@ -114,14 +123,7 @@ export default async function ProductDetailPage({
         })}
       />
       <div className="grid gap-8 md:grid-cols-2">
-        {product.image_urls.length > 0 ? (
-          <ProductImageCarousel
-            images={product.image_urls}
-            alt={product.name}
-          />
-        ) : (
-          <div className="relative aspect-square overflow-hidden rounded-lg border bg-muted/50" />
-        )}
+        <ProductImageCarousel images={displayImages} alt={product.name} />
         <div className="space-y-5">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
@@ -185,7 +187,7 @@ export default async function ProductDetailPage({
                     slug: product.slug,
                     name: product.name,
                     price_cents: product.price_cents,
-                    image_url: product.image_urls?.[0],
+                    image_url: displayImages[0],
                   }}
                   disabled={soldOut}
                   disabledReason={soldOut ? "已售完" : undefined}
