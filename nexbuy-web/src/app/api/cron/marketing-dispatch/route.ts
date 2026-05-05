@@ -13,6 +13,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { dispatchCampaign } from "@/app/admin/(protected)/marketing/dispatch";
+import { withCronLogging } from "@/lib/cron/log";
 
 const MAX_PER_RUN = 5;
 
@@ -30,32 +31,39 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  const admin = createAdminSupabase();
-  const nowIso = new Date().toISOString();
+  try {
+    const result = await withCronLogging("marketing-dispatch", async () => {
+      const admin = createAdminSupabase();
+      const nowIso = new Date().toISOString();
 
-  const { data, error } = await admin
-    .from("marketing_campaigns")
-    .select("id")
-    .eq("status", "scheduled")
-    .lte("scheduled_at", nowIso)
-    .order("scheduled_at", { ascending: true })
-    .limit(MAX_PER_RUN);
+      const { data, error } = await admin
+        .from("marketing_campaigns")
+        .select("id")
+        .eq("status", "scheduled")
+        .lte("scheduled_at", nowIso)
+        .order("scheduled_at", { ascending: true })
+        .limit(MAX_PER_RUN);
 
-  if (error) {
-    console.error("[cron/marketing] query failed:", error);
-    return NextResponse.json({ error: "INTERNAL" }, { status: 500 });
+      if (error) {
+        throw new Error("campaigns query failed: " + error.message);
+      }
+
+      const due = data ?? [];
+      if (due.length === 0) {
+        return { dispatched: 0, results: [] };
+      }
+
+      const results = [];
+      for (const c of due) {
+        const r = await dispatchCampaign(c.id as string);
+        results.push({ id: c.id, ...r });
+      }
+      return { dispatched: results.length, results };
+    });
+
+    return NextResponse.json({ ok: true, ...result });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-
-  const due = data ?? [];
-  if (due.length === 0) {
-    return NextResponse.json({ ok: true, dispatched: 0 });
-  }
-
-  const results = [];
-  for (const c of due) {
-    const r = await dispatchCampaign(c.id as string);
-    results.push({ id: c.id, ...r });
-  }
-
-  return NextResponse.json({ ok: true, dispatched: results.length, results });
 }

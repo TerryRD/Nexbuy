@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { createAdminSupabase } from "@/lib/supabase/admin";
+import { publicEnv } from "@/lib/env";
 
 const schema = z.object({
   id: z.uuid(),
@@ -39,14 +40,6 @@ async function requireAdminSession() {
   return user;
 }
 
-// Generate a 12-char temp password using crypto random — easy to read aloud
-// (no l/I/0/O ambiguity), safe-enough as a one-time temp.
-function generateTempPassword(): string {
-  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
-  const buf = new Uint8Array(12);
-  crypto.getRandomValues(buf);
-  return Array.from(buf, (b) => alphabet[b % alphabet.length]).join("");
-}
 
 export type UpdateCustomerState = {
   error?: string;
@@ -90,13 +83,13 @@ export async function updateCustomerAction(
 
 export type ResetCustomerPasswordState = {
   error?: string;
-  tempPassword?: string;
+  sentTo?: string; // 寄出去的 email — 給 admin 看「寄到誰」
 } | null;
 
 /**
- * Generate a temp password for the customer and overwrite via Supabase admin
- * API. Admin gives the temp password to the customer (LINE / phone / email);
- * customer logs in and is expected to change it via /account.
+ * 觸發 Supabase 寄重設連結給客戶。客戶點信進 /auth/callback?code=...&next=/auth/reset-password
+ * → recovery session → 自己設新密碼。admin 只看到「已寄出」訊息，不會碰到明文密碼，
+ * 隱私 / PII 風險比舊版「產生臨時密碼透過 LINE 告知」更小。
  */
 export async function resetCustomerPasswordAction(
   _prev: ResetCustomerPasswordState,
@@ -113,16 +106,25 @@ export async function resetCustomerPasswordAction(
     return { error: "客戶 ID 格式錯誤" };
   }
 
-  const tempPassword = generateTempPassword();
+  // 用 admin client 撈客戶 email（auth.users 不開 RLS）
   const admin = createAdminSupabase();
-  const { error } = await admin.auth.admin.updateUserById(parsed.data.id, {
-    password: tempPassword,
+  const { data: userResp, error: lookupError } =
+    await admin.auth.admin.getUserById(parsed.data.id);
+  if (lookupError || !userResp?.user?.email) {
+    console.error("[admin/reset-password] customer lookup failed:", lookupError);
+    return { error: "找不到客戶 email" };
+  }
+  const email = userResp.user.email;
+
+  // 用 admin client 觸發 reset email — 走 Supabase 內建寄信。
+  const redirectTo = `${publicEnv.NEXT_PUBLIC_APP_URL}/auth/callback?next=/auth/reset-password`;
+  const { error } = await admin.auth.resetPasswordForEmail(email, {
+    redirectTo,
   });
   if (error) {
-    return { error: "重設失敗：" + error.message };
+    console.error("[admin/reset-password] resetPasswordForEmail failed:", error);
+    return { error: "寄送失敗：" + error.message };
   }
 
-  // Don't revalidate — we want to keep the tempPassword visible in the same
-  // server action response without a page rerender wiping it.
-  return { tempPassword };
+  return { sentTo: email };
 }

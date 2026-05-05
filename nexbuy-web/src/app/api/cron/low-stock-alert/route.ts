@@ -5,6 +5,7 @@
 
 import { NextResponse, type NextRequest } from "next/server";
 import { runLowStockAlert } from "@/lib/cron/low-stock-alert";
+import { withCronLogging } from "@/lib/cron/log";
 
 export async function GET(request: NextRequest) {
   const expected = process.env.CRON_SECRET;
@@ -20,9 +21,16 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  const result = await runLowStockAlert();
-  if ("error" in result) {
-    return NextResponse.json(result, { status: 500 });
+  try {
+    const result = await withCronLogging("low-stock-alert", () =>
+      runLowStockAlert(),
+    );
+    if ("error" in result) {
+      return NextResponse.json(result, { status: 500 });
+    }
+    return NextResponse.json(result);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-  return NextResponse.json(result);
 }

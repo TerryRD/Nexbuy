@@ -63,8 +63,45 @@ function htmlToText(html: string): string {
     .trim();
 }
 
+// 每日 dispatch 上限：擋帳號被盜時的暴力 blast。當天已成功送出的 campaign
+// 達上限就拒絕新的 dispatch（不論 sendNow 或 cron），admin 隔天再試。
+// 數字保守，後續真有大量需求再調。
+const MAX_DAILY_DISPATCHES = 3;
+
+function taipeiTodayStartUtcIso(): string {
+  return new Date(
+    `${new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Taipei",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(new Date())}T00:00:00+08:00`,
+  ).toISOString();
+}
+
 export async function dispatchCampaign(campaignId: string): Promise<DispatchResult> {
   const admin = createAdminSupabase();
+
+  // 每日上限檢查：admin 帳號被盜時的安全閥。
+  // 用 sent_at（dispatch 完成才寫）count 完成的 dispatch；sending 是短暫
+  // 過渡態（status CAS lock 保證至多 1 顆同時 sending），不算進來。
+  const { count: sentToday } = await admin
+    .from("marketing_campaigns")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "sent")
+    .gte("sent_at", taipeiTodayStartUtcIso());
+  if ((sentToday ?? 0) >= MAX_DAILY_DISPATCHES) {
+    console.warn(
+      `[marketing] daily dispatch cap reached (${sentToday}/${MAX_DAILY_DISPATCHES}) — refusing campaign ${campaignId}`,
+    );
+    return {
+      ok: false,
+      recipient_count: 0,
+      success_count: 0,
+      error_count: 0,
+      reason: "daily-cap-reached",
+    };
+  }
 
   // 取出 campaign，並把狀態切到 'sending' 防止 race（cron + sendNow 同時點）
   const { data: campaign, error: fetchErr } = await admin
