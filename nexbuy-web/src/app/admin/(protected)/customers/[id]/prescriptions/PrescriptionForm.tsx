@@ -155,7 +155,7 @@ function EyeRow({
         step={0.25}
         min={-30}
         max={30}
-        placeholder="-2.50"
+        placeholder="例 -2.50"
         err={fieldErr(`${eye}_sphere`)}
       />
       <NumField
@@ -166,7 +166,7 @@ function EyeRow({
         step={0.25}
         min={-10}
         max={10}
-        placeholder="-0.75"
+        placeholder="例 -0.75"
         err={fieldErr(`${eye}_cylinder`)}
       />
       <NumField
@@ -177,7 +177,7 @@ function EyeRow({
         step={1}
         min={0}
         max={180}
-        placeholder="90"
+        placeholder="例 90"
         err={fieldErr(`${eye}_axis`)}
       />
       <NumField
@@ -188,7 +188,7 @@ function EyeRow({
         step={0.25}
         min={0}
         max={5}
-        placeholder="0.00"
+        placeholder="例 0.00"
         err={fieldErr(`${eye}_add`)}
       />
     </div>

@@ -63,7 +63,9 @@ export function CampaignForm({ initial, action, submitLabel, cancelHref }: Props
           className="font-mono text-xs"
         />
         <p className="text-xs text-muted-foreground">
-          寄出時會自動套上 wrapper（標題 / 退訂提示）。可用 &lt;p&gt; / &lt;a&gt; / &lt;br&gt; 等。
+          寄出時自動套 wrapper（標題 / 退訂提示）。允許 tag：
+          &lt;p&gt; &lt;br&gt; &lt;a&gt; &lt;strong&gt; &lt;em&gt; &lt;ul&gt; &lt;ol&gt; &lt;li&gt; &lt;h1&gt;~&lt;h4&gt; &lt;blockquote&gt; &lt;hr&gt;。
+          其他 tag、所有 attribute（除了 a 的 href）會被剝掉，連結強制 http(s) / mailto。
         </p>
         {fieldErr("body") && (
           <p className="text-xs text-destructive">{fieldErr("body")}</p>

@@ -1,6 +1,7 @@
 import "server-only";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { sendEmail, isEmailConfigured } from "@/lib/email/send";
+import { sanitizeMarketingHtml } from "@/lib/email/sanitize";
 
 // 共用：把指定 campaign 寄給所有 marketing_opt_in=true 的客戶。
 // 由 sendNowAction 與 cron 兩個入口呼叫。
@@ -166,8 +167,17 @@ export async function dispatchCampaign(campaignId: string): Promise<DispatchResu
   let success = 0;
   let errCount = 0;
 
-  const html = HTML_WRAPPER_OPEN + campaign.body + HTML_WRAPPER_CLOSE;
-  const text = htmlToText(campaign.body);
+  // Allowlist sanitizer：剝掉 <script> / <style> / 任意 attribute / 不合法 href。
+  // admin 帳號是信任邊界，但被盜或誤貼仍要擋。
+  const { html: safeBody, removed } = sanitizeMarketingHtml(campaign.body);
+  if (removed.length > 0) {
+    console.warn(
+      `[marketing] campaign ${campaign.id} 過濾掉 disallowed tags:`,
+      removed,
+    );
+  }
+  const html = HTML_WRAPPER_OPEN + safeBody + HTML_WRAPPER_CLOSE;
+  const text = htmlToText(safeBody);
   const subject = SUBJECT_PREFIX + campaign.subject;
 
   for (const r of recipients) {
