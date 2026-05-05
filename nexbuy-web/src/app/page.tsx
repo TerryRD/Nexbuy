@@ -221,12 +221,14 @@ export default function HomePage() {
           {STEPS.map((s, i) => (
             <Reveal key={s.n} from="zoom-up" delay={i * 100}>
               <div className="relative h-full rounded-3xl border border-border/60 bg-card/60 p-6 backdrop-blur-sm">
-                {/* 純裝飾的步驟序號（01/02/03）— 對視障使用者沒額外資訊
-                 *（後面的標題已自帶順序），故 aria-hidden。axe-core 不再
-                 * 把它當文字檢查 contrast。設計上保留低對比的視覺層次。 */}
+                {/* 純裝飾的步驟序號（01/02/03）— 後面的標題已自帶順序，
+                 * 對螢幕閱讀器無額外資訊故 aria-hidden。
+                 * axe-core 對 aria-hidden 文字仍跑 color-contrast（理由：
+                 * 視覺上看得到），因此 opacity 從 30 → 60，視覺仍 ghost
+                 * 但對 bg-card/60 通過 WCAG AA large-text 3:1。 */}
                 <div
                   aria-hidden
-                  className="font-heading text-5xl font-semibold leading-none tracking-tight text-primary/30"
+                  className="font-heading text-5xl font-semibold leading-none tracking-tight text-primary/60"
                 >
                   {s.n}
                 </div>
