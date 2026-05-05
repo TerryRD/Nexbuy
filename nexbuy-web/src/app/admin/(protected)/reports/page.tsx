@@ -112,19 +112,43 @@ export default async function AdminReportsPage({
     return o.items.some((i) => productLookup.get(i.product_name)?.kind === kindFilter);
   });
 
-  // 排除取消 / 退款的訂單算營收
-  const revenueOrders = filteredOrders.filter(
+  // 預估營收（含待付款）：排除 cancelled / refunded
+  // 已收營收：客戶 ATM 已到帳，status 至少 paid 起算（paid / preparing /
+  //          shipped / completed）
+  const PAID_STATUSES = new Set([
+    "paid",
+    "preparing",
+    "shipped",
+    "completed",
+  ]);
+  const projectedOrders = filteredOrders.filter(
     (o) => o.status !== "cancelled" && o.status !== "refunded",
   );
+  const collectedOrders = filteredOrders.filter((o) =>
+    PAID_STATUSES.has(o.status),
+  );
+  const pendingOrders = filteredOrders.filter(
+    (o) => o.status === "pending_payment",
+  );
 
-  const totalRevenue = revenueOrders.reduce(
+  const projectedRevenue = projectedOrders.reduce(
+    (s, o) => s + o.total_cents,
+    0,
+  );
+  const collectedRevenue = collectedOrders.reduce(
+    (s, o) => s + o.total_cents,
+    0,
+  );
+  const pendingRevenue = pendingOrders.reduce(
     (s, o) => s + o.total_cents,
     0,
   );
   const orderCount = filteredOrders.length;
-  const revenueOrderCount = revenueOrders.length;
-  const avgOrderValue =
-    revenueOrderCount > 0 ? Math.round(totalRevenue / revenueOrderCount) : 0;
+  const collectedOrderCount = collectedOrders.length;
+  const avgCollectedValue =
+    collectedOrderCount > 0
+      ? Math.round(collectedRevenue / collectedOrderCount)
+      : 0;
 
   // breakdown by status
   const byStatus = aggregate(filteredOrders, (o) => o.status);
@@ -158,8 +182,10 @@ export default async function AdminReportsPage({
       <header>
         <h1 className="text-2xl font-semibold tracking-tight">銷售報表</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          {from} ~ {to}（Asia/Taipei）。已取消 / 已退款不計入營收，但會列在
-          status breakdown。
+          {from} ~ {to}（Asia/Taipei）。
+          <strong>預估營收</strong>含待付款（ATM 還沒到帳），
+          <strong>已收營收</strong>從 paid 起算；
+          已取消 / 已退款一律不計。
         </p>
       </header>
 
@@ -223,16 +249,26 @@ export default async function AdminReportsPage({
       </form>
 
       {/* KPI */}
-      <section className="grid gap-3 sm:grid-cols-3">
-        <Stat label="總營收" value={formatPrice(totalRevenue)} />
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Stat
-          label="訂單數"
-          value={`${orderCount} 筆`}
-          suffix={`含營收 ${revenueOrderCount} 筆`}
+          label="預估營收"
+          value={formatPrice(projectedRevenue)}
+          suffix={`含待付款 ${pendingOrders.length} 筆`}
         />
         <Stat
-          label="平均客單價"
-          value={revenueOrderCount > 0 ? formatPrice(avgOrderValue) : "—"}
+          label="已收營收"
+          value={formatPrice(collectedRevenue)}
+          suffix={`paid 起算 ${collectedOrderCount} 筆`}
+        />
+        <Stat
+          label="待付款"
+          value={formatPrice(pendingRevenue)}
+          suffix={`${pendingOrders.length} 筆等對帳`}
+        />
+        <Stat
+          label="平均客單價（已收）"
+          value={collectedOrderCount > 0 ? formatPrice(avgCollectedValue) : "—"}
+          suffix={`${orderCount} 筆 / 期間總訂單`}
         />
       </section>
 

@@ -216,12 +216,20 @@ export async function deleteProduct(formData: FormData): Promise<void> {
   if (!parsed.success) throw new Error("INVALID_INPUT");
 
   const sb = await createServerSupabase();
-  // Hard delete. order_items snapshots the product name + price + qty when an
-  // order is placed, so deleting a product doesn't break historical orders.
-  // appointments.frame_product_id has ON DELETE SET NULL so those survive too.
-  const { error } = await sb.from("products").delete().eq("id", parsed.data.id);
+  // Soft delete：設 deleted_at + 同步把 is_online_available 切掉，避免
+  // 任何漏網之魚（例如某查詢只看 is_online_available 沒看 deleted_at）。
+  // order_items snapshot 商品名/價/qty，appointments.frame_product_id
+  // 是 SET NULL，soft delete 也不會破歷史。要復原直接 SQL update 把
+  // deleted_at 設回 null。
+  const { error } = await sb
+    .from("products")
+    .update({
+      deleted_at: new Date().toISOString(),
+      is_online_available: false,
+    })
+    .eq("id", parsed.data.id);
   if (error) {
-    console.error("deleteProduct failed:", error);
+    console.error("deleteProduct (soft) failed:", error);
     throw new Error("DELETE_FAILED:" + error.message);
   }
   revalidatePath("/admin/products");

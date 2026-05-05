@@ -4,7 +4,8 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { formatPrice } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { toggleProductOnline, deleteProduct } from "./actions";
+import { toggleProductOnline } from "./actions";
+import { DeleteProductButton } from "./DeleteProductButton";
 
 type ProductRow = {
   id: string;
@@ -26,6 +27,8 @@ export default async function AdminProductsPage() {
     .select(
       "id, slug, name, brand, price_cents, kind, finished_stock, is_online_available, image_urls, created_at",
     )
+    // 軟刪除的商品不在主清單顯示；要復原走 SQL（rare 操作）。
+    .is("deleted_at", null)
     .order("created_at", { ascending: false })
     .limit(500);
 
@@ -136,17 +139,7 @@ function ProductRow({ p }: { p: ProductRow }) {
             {p.is_online_available ? "下架" : "上架"}
           </Button>
         </form>
-        <form action={deleteProduct}>
-          <input type="hidden" name="id" value={p.id} />
-          <Button
-            type="submit"
-            variant="outline"
-            size="sm"
-            className="text-destructive"
-          >
-            刪除
-          </Button>
-        </form>
+        <DeleteProductButton productId={p.id} productName={p.name} />
       </div>
     </li>
   );
