@@ -74,6 +74,15 @@ export const metadata: Metadata = {
   formatDetection: {
     telephone: false,
   },
+  // GSC 驗證：env 沒設 → 不渲染 meta；設了 → Next.js 自動產
+  // <meta name="google-site-verification" content="...">
+  ...(publicEnv.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+    ? {
+        verification: {
+          google: publicEnv.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+        },
+      }
+    : {}),
 };
 
 export default function RootLayout({

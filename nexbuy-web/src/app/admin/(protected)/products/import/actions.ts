@@ -10,6 +10,7 @@ import {
   COLORS,
 } from "@/lib/schemas/product";
 import { parseCsv } from "./csv";
+import { pingProductUrls } from "@/lib/seo/indexnow";
 
 // CSV 欄位（header 名與這裡一致）：
 //   name, slug, kind, price_cents, finished_stock, is_online_available,
@@ -253,6 +254,12 @@ export async function importProductsAction(
 
   const inserted = data ?? [];
   revalidatePath("/admin/products");
+
+  // IndexNow 通知：批次 import 後一次推所有新增 slug
+  const insertedSlugs = inserted.map((p) => p.slug as string).filter(Boolean);
+  if (insertedSlugs.length > 0) {
+    pingProductUrls(insertedSlugs);
+  }
 
   return {
     ok: true,
