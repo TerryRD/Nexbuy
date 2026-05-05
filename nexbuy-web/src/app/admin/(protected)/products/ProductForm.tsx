@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   slugify,
   FACE_SHAPES,
+  FRAME_SHAPES,
   FRAME_SIZES,
   MATERIALS,
   COLORS,
@@ -30,6 +31,7 @@ export interface ProductInitial {
   is_online_available: boolean;
   image_urls: string[];
   face_shape: string[];
+  frame_shape: string | null;
   frame_size: string | null;
   material: string | null;
   color: string | null;
@@ -289,7 +291,13 @@ export function ProductForm({ initial, action, submitLabel }: Props) {
           </div>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <SelectField
+            label="框形"
+            name="frame_shape"
+            options={FRAME_SHAPES}
+            initial={initial.frame_shape}
+          />
           <SelectField
             label="鏡架尺寸"
             name="frame_size"

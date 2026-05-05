@@ -77,7 +77,7 @@ export default async function ProductDetailPage({
     sb
       .from("products")
       .select(
-        "id, slug, name, description, price_cents, image_urls, brand, kind, finished_stock, is_online_available, face_shape, frame_size, material, color",
+        "id, slug, name, description, price_cents, image_urls, brand, kind, finished_stock, is_online_available, face_shape, frame_shape, frame_size, material, color",
       )
       .eq("slug", slug)
       .eq("is_online_available", true)
@@ -224,6 +224,9 @@ function ProductAttributes({ product }: { product: Product }) {
         </div>
       ),
     });
+  }
+  if (product.frame_shape) {
+    rows.push({ label: "框形", value: product.frame_shape });
   }
   if (product.frame_size) {
     rows.push({ label: "鏡架尺寸", value: product.frame_size });
