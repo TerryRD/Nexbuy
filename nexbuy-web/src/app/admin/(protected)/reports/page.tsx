@@ -1,10 +1,16 @@
 import Link from "next/link";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { formatPrice } from "@/lib/format";
+import {
+  DailyRevenueChart,
+  KindBreakdownChart,
+  StatusBreakdownChart,
+  TopProductsChart,
+} from "./ReportsCharts";
 
 // Phase 6 PR 1：銷售報表。SSR + URL searchParams（from / to / kind）。
-// 不做圖表（chart 是 client-side 套件、加 deps），先用數字 + 表格，
-// 老闆能 export Excel 才是重點。
+// 圖表用 Recharts client-side render（reports 是 admin only / 低流量，
+// 可以接受 client bundle），server 仍 SSR 數據 + 表格，圖表 hydrate 後填上。
 
 type SearchParams = Promise<{
   from?: string;
@@ -38,6 +44,34 @@ interface ProductLookupRow {
   name: string;
   brand: string | null;
   kind: string;
+}
+
+// 從 byDay buckets 展開為連續 from~to 每日資料（沒訂單的日子補 0）。
+// chart 的 X 軸需要連續日，否則一週空檔會自動 collapse 看起來假。
+function expandDailySeries(
+  buckets: Bucket[],
+  from: string,
+  to: string,
+): { date: string; revenue: number; count: number }[] {
+  const map = new Map<string, Bucket>();
+  for (const b of buckets) map.set(b.key, b);
+  const out: { date: string; revenue: number; count: number }[] = [];
+  const start = new Date(`${from}T00:00:00+08:00`);
+  const end = new Date(`${to}T00:00:00+08:00`);
+  // 上限 90 天保險，避免極端範圍時迴圈過久
+  let guard = 0;
+  for (let d = new Date(start); d <= end && guard < 365; d.setUTCDate(d.getUTCDate() + 1)) {
+    const key = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Taipei",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(d);
+    const b = map.get(key);
+    out.push({ date: key, revenue: b?.revenue ?? 0, count: b?.count ?? 0 });
+    guard += 1;
+  }
+  return out;
 }
 
 function todayInTaipei(): string {
@@ -177,6 +211,45 @@ export default async function AdminReportsPage({
     }).format(new Date(o.created_at));
   });
 
+  // 圖表用：填補 from~to 之間沒訂單的天，X 軸才是連續的
+  const dailySeries = expandDailySeries(byDay, from, to);
+
+  // 熱銷商品：穿過 order_items 聚合，已退款 / 已取消的 items 不算營收
+  // （但保留 count，老闆需要看「即使被退也曾賣出」的訊號可以參考；先不顯示）
+  const productMap = new Map<string, { revenue: number; count: number }>();
+  for (const o of filteredOrders) {
+    const countable =
+      o.status !== "cancelled" && o.status !== "refunded";
+    for (const it of o.items) {
+      const prev = productMap.get(it.product_name) ?? { revenue: 0, count: 0 };
+      prev.count += it.quantity;
+      if (countable) prev.revenue += it.subtotal_cents;
+      productMap.set(it.product_name, prev);
+    }
+  }
+  const topProducts = Array.from(productMap.entries())
+    .map(([name, v]) => ({ name, revenue: v.revenue, count: v.count }))
+    .filter((p) => p.revenue > 0)
+    .sort((a, b) => b.revenue - a.revenue)
+    .slice(0, 5);
+
+  // 圖表 / chart-friendly shape（中文 label 給 chart legend / axis 用）
+  const KIND_LABEL: Record<string, string> = {
+    finished: "成品眼鏡",
+    prescription_frame: "處方鏡架",
+    unknown: "（已刪商品）",
+  };
+  const kindChartData = byKind.map((b) => ({
+    name: KIND_LABEL[b.key] ?? b.key,
+    revenue: b.revenue,
+    count: b.count,
+  }));
+  const statusChartData = byStatus.map((b) => ({
+    name: ORDER_STATUS_LABEL[b.key] ?? b.key,
+    count: b.count,
+    revenue: b.revenue,
+  }));
+
   return (
     <div className="space-y-8">
       <header>
@@ -272,22 +345,41 @@ export default async function AdminReportsPage({
         />
       </section>
 
-      <Breakdown
-        title="按 status 分"
-        rows={byStatus}
-        labelMap={ORDER_STATUS_LABEL}
+      {/* Charts — Recharts 在 client，server 仍 SSR 數據 + 表格 */}
+      <DailyRevenueChart
+        data={dailySeries}
+        hint={`${from} ~ ${to}`}
       />
-      <Breakdown
-        title="按 kind 分"
-        rows={byKind}
-        labelMap={{
-          finished: "成品",
-          prescription_frame: "處方鏡架",
-          unknown: "（已刪商品）",
-        }}
-      />
-      <Breakdown title="按品牌分" rows={byBrand} />
-      <Breakdown title="按日分" rows={byDay} sortKey="key" descKey={false} />
+      <div className="grid gap-4 lg:grid-cols-2">
+        <KindBreakdownChart data={kindChartData} />
+        <TopProductsChart data={topProducts} />
+      </div>
+      <StatusBreakdownChart data={statusChartData} />
+
+      {/* 細節表格 — 老闆 export Excel / 仔細對帳時用 */}
+      <details className="rounded-lg border bg-muted/20 p-4">
+        <summary className="cursor-pointer text-sm font-medium">
+          展開詳細表格
+        </summary>
+        <div className="mt-4 space-y-6">
+          <Breakdown
+            title="按 status 分"
+            rows={byStatus}
+            labelMap={ORDER_STATUS_LABEL}
+          />
+          <Breakdown
+            title="按 kind 分"
+            rows={byKind}
+            labelMap={{
+              finished: "成品",
+              prescription_frame: "處方鏡架",
+              unknown: "（已刪商品）",
+            }}
+          />
+          <Breakdown title="按品牌分" rows={byBrand} />
+          <Breakdown title="按日分" rows={byDay} sortKey="key" descKey={false} />
+        </div>
+      </details>
     </div>
   );
 }
