@@ -5,6 +5,41 @@
 
 ---
 
+## 效能預算（Performance budget）
+
+**目標**：每個公開頁面（warm function）TTFB < 300ms、total < 500ms。
+
+**Production 現況基準**（2026-05-06，11 個公開路徑都達標）：
+
+| Path | TTFB | total |
+|---|---|---|
+| / | 260ms | 380ms |
+| /products | 231ms | 387ms |
+| /products?kind=finished | 267ms | 399ms |
+| /products/[slug] | 254ms | 330ms |
+| /appointment/book/[slug] | 260ms | 352ms |
+| /login /signup /cart /compare | 220-250ms | 240-280ms |
+
+新增 server component / 改 layout / 加 DB query 時要評估這個預算。改完
+prod warm 數字超過 500ms 要在 PR 裡標出來。
+
+### 三條已埋下、未來不要踩的坑
+
+1. **Vercel function region 鎖在 `hnd1`（Tokyo）** — 跟 Supabase 同
+   region。配置在 `nexbuy-web/vercel.json` 的 `regions: ["hnd1"]`。
+   改去其他 region 之前要確認 Supabase 在哪 — 不同 region 的話 SSR
+   每次都繞地球，TTFB 會多 200-400ms。實測（PR #136）：iad1 vs hnd1 對
+   PDP total 差 813ms。
+2. **量測前要 warm function** — cold start 第一發約 600-700ms，連 hit
+   5 次取 median 才是真實值。CI / lighthouse 跑數據前要先 warm。
+3. **Layout 的 Header 會 `auth.getUser()` 讀 cookies** — 這把整個 route
+   標成 dynamic，`export const revalidate = N` / ISR 在公開頁不生效。
+   實測（PR #138 close）：加 revalidate 後連 hit 8 次都 `x-vercel-cache:
+   MISS`。如果未來真的要 edge cache 公開頁（例如 / 想 < 100ms TTFB），
+   要先把 Header 重構為 client-side auth 才有意義。
+
+---
+
 ## 商品列表 (`/products`)
 
 **現況**：server fetch 全部 `is_online_available=true and deleted_at is
