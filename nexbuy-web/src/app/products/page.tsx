@@ -97,7 +97,18 @@ export default async function ProductsPage({
     throw new Error("Failed to load products");
   }
 
-  const products = (data ?? []) as Product[];
+  // List 卡片只用 description 的前 ~2 行（line-clamp-2）+ image_urls[0]，
+  // 把多餘的 bytes 在 server 砍掉再塞 RSC payload。100 件商品 / per-row
+  // 60 字 description 全傳 ≈ 12KB；trim 後 ≈ 2KB。商品詳情頁會重 fetch
+  // 完整資料，所以 list trim 不影響 PDP。
+  const products = (data ?? []).map((p) => ({
+    ...p,
+    description:
+      p.description && p.description.length > 100
+        ? p.description.slice(0, 100)
+        : p.description,
+    image_urls: p.image_urls?.slice(0, 1) ?? [],
+  })) as Product[];
   const totalCount = count ?? products.length;
   const truncated = totalCount > products.length;
 
