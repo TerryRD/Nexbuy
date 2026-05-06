@@ -13,6 +13,14 @@ import { Reveal } from "@/components/site/Reveal";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { organizationSchema, websiteSchema } from "@/lib/seo/schema";
 
+// 首頁純靜態（無 DB / searchParams / user-specific 資料）。Vercel revalidate
+// 1 小時 — 第一個用戶觸發後，下一小時內所有用戶從香港 edge 直接拿，TTFB
+// 應該從 500ms 降到 < 100ms。
+//
+// 注意：layout 的 Header 會 auth.getUser() 讀 cookies，理論上會把整個 route
+// 標成 dynamic 蓋掉這個設定。實測看 Next.js 16 是否聰明到分層 cache。
+export const revalidate = 3600;
+
 const MAP_LABEL = encodeURIComponent("精鋐眼鏡行");
 const MAP_EMBED_SRC = `https://maps.google.com/maps?q=25.0173074,121.2956103+(${MAP_LABEL})&hl=zh-TW&z=17&output=embed`;
 const MAP_PUBLIC_URL = "https://maps.app.goo.gl/CBbpuKyNDXS7oPi38";
