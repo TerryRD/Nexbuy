@@ -6,6 +6,7 @@ import { formatPrice } from "@/lib/format";
 import type { Product } from "@/lib/types/database";
 import { Badge } from "@/components/ui/badge";
 import { CompareRemoveButton } from "./CompareRemoveButton";
+import { CompareUrlSync } from "./CompareUrlSync";
 import { getProductImageUrl } from "@/lib/product-placeholder";
 
 export const metadata = {
@@ -62,6 +63,7 @@ export default async function ComparePage({
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
+      <CompareUrlSync />
       <header className="mb-8">
         <Link
           href="/products"
