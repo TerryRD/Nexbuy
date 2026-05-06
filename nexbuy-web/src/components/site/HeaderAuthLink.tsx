@@ -33,7 +33,7 @@ export function HeaderAuthLink({ loggedIn }: { loggedIn: boolean }) {
       href={href}
       // mobile 隱藏文字只留 icon — aria-label 給 screen reader / a11y tools
       aria-label={label}
-      className="inline-flex items-center gap-1.5 rounded-full px-2 py-1.5 text-muted-foreground transition-colors hover:bg-accent/40 hover:text-foreground sm:px-3"
+      className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-full text-muted-foreground transition-colors hover:bg-accent/40 hover:text-foreground sm:min-h-0 sm:min-w-0 sm:px-3 sm:py-1.5"
     >
       <User className="size-4" aria-hidden />
       <span className="hidden sm:inline">{label}</span>

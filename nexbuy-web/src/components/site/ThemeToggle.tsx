@@ -24,6 +24,8 @@ export function ThemeToggle() {
       type="button"
       variant="ghost"
       size="icon-sm"
+      // Mobile: 44×44 hit target. Desktop: keep compact 28×28 from icon-sm.
+      className="size-11 sm:size-7"
       aria-label={isDark ? "切換淺色模式" : "切換深色模式"}
       onClick={() => setTheme(isDark ? "light" : "dark")}
     >
