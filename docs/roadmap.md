@@ -98,6 +98,36 @@ Auth → Providers → Google：
 
 工時：~10–12 天。
 
+## SEO / 對外能見度（待店家有預算再啟動）
+
+依賴：店家決定 + 預算（網域費 ~NT$700/年）。
+
+技術面 SEO 已就緒（`robots.ts` / `sitemap.ts` / schema.org Optician
+JSON-LD / IndexNow infra 都做了），但 Google 搜「精鋐眼鏡行」找不到。
+主因不是程式 — 是缺自有網域 + 沒主動提交 GSC + 沒 Google Business Profile。
+
+依優先序：
+
+1. **買自有網域**（最重要）
+   - `vercel.app` 子網域 Google 排名給很低，要有自有網域才有可能搜得到「精鋐眼鏡行」
+   - 推薦 [Cloudflare Registrar](https://www.cloudflare.com/products/registrar/) /
+     [Gandi](https://www.gandi.net)，`.tw` 約 NT$700/年
+   - 買完 Vercel Settings → Domains 加上去；技術側我把 `NEXT_PUBLIC_APP_URL` env
+     換掉，sitemap / OG / JSON-LD / canonical 自動跟著
+2. **Google Business Profile**（[business.google.com](https://business.google.com)）
+   - 免費，比 Search Console 還重要
+   - 實體店有 GBP 才會在「眼鏡行 + 地名」/ Google Maps 搜尋出現、店家資訊卡跳出
+3. **Google Search Console**（[search.google.com/search-console](https://search.google.com/search-console)）
+   - 驗證網域所有權、提交 `sitemap.xml`、用 URL Inspection 手動 request indexing
+   - 索引時間從幾週縮到幾天
+
+技術側可做（任一條觸發時直接做）：
+- 加 GSC verification meta tag（拿到 token 後我貼到 layout metadata）
+- 把 `Optician` schema 補成完整 LocalBusiness（電話 / 地址 / 營業時間 NAP）
+- 設 `INDEXNOW_KEY` env（商品上下架自動 ping Bing / Yandex 重索引）
+
+工時：技術側 ~1 天（拆 3 個小 PR）。
+
 ## 進度
 
 - 2026-05-02：roadmap 確認、Phase 1 開始
