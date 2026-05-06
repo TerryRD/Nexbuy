@@ -30,6 +30,30 @@ Stack: Next.js 16 + Supabase + Vercel（細節見 [`README.md`](README.md)）。
 
 若 GStack 指令的預設動作與上列衝突，以上列為準。
 
+## 效能規範（Performance budget）
+
+**目標**：每個公開頁面（warm function）TTFB < 300ms，total < 500ms。
+新增 server component / 改動 layout / 加 DB query 時要評估這個預算。
+
+詳細 playbook 見 [`docs/scaling.md`](docs/scaling.md)。要點：
+
+1. **Vercel function region 鎖在 `hnd1`（Tokyo）** — 跟 Supabase 同 region。
+   不要動 `nexbuy-web/vercel.json` 的 `regions`。如果 Supabase 之後搬，
+   要同步搬，否則 SSR 會繞地球變慢 2x。
+2. **量測時要 warm** — cold start 第一發約 600-700ms，連 hit 5 次才看
+   median。CI 上看 prod 數據以這個為準。
+3. **Layout 的 Header 會 `auth.getUser()` 讀 cookies** — 整個 route 樹
+   會被標 dynamic、ISR / `revalidate` 不會生效。新增公開頁要 edge cache，
+   要先重構 Header（把 auth 推到 client component），不然加 `revalidate`
+   是空頭支票（已驗證 PR #138 close）。
+4. **商品列表規模化門檻**（見 scaling.md 表）：
+   - ≤ 100 件：不動
+   - 100–250 件：description trim、image_urls 只留首張（已預先做完，PR #134）
+   - 250–500 件：搬 attribute filter 到 SQL + 加分頁
+   - > 500 件：硬 LIMIT 截斷，必須動
+
+如果改完 prod warm 數字超過 500ms，要在 PR 裡標出來、說明取捨。
+
 ## 專案結構
 
 - `nexbuy-web/` — 主程式碼（Next.js 16 App Router + Supabase）
