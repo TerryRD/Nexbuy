@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { Search } from "lucide-react";
 import { ProductFilter } from "@/components/site/ProductFilter";
 import { formatPrice } from "@/lib/format";
 import type { Product, ProductKind } from "@/lib/types/database";
@@ -15,6 +16,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { AttributeFilters } from "./AttributeFilters";
 import {
   filterToQueryString,
@@ -50,10 +52,18 @@ export function ProductsList({
   const [active, setActive] = useState<ProductKind | null>(initialKind);
   const [attrFilter, setAttrFilter] =
     useState<AttributeFilterState>(initialFilter);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const filtered = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
     return products.filter((p) => {
       if (active && p.kind !== active) return false;
+      if (q) {
+        const haystack = [p.name, p.brand ?? "", p.description ?? ""]
+          .join(" ")
+          .toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
       // face_shape：多選 OR — 商品任一適合臉型符合就算
       if (attrFilter.faceShapes.length > 0) {
         const match = attrFilter.faceShapes.some((s) =>
@@ -118,13 +128,26 @@ export function ProductsList({
         </p>
       )}
 
+      <div className="mb-4 relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
+        <Input
+          type="search"
+          placeholder="搜尋商品名稱、品牌…"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+
       <div className="mb-8">
         <AttributeFilters value={attrFilter} onChange={handleAttrChange} />
       </div>
 
       {filtered.length === 0 ? (
         <p className="py-12 text-center text-muted-foreground">
-          目前沒有商品。
+          {searchQuery.trim()
+            ? `找不到「${searchQuery.trim()}」相關商品。`
+            : "目前沒有商品。"}
         </p>
       ) : (
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
