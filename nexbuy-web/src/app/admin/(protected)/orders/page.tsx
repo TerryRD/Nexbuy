@@ -59,10 +59,13 @@ const isSortKey = (v: string | undefined): v is SortKey =>
 const isStatus = (v: string | undefined): v is OrderStatus =>
   !!v && (ORDER_STATUSES as readonly string[]).includes(v);
 
+const PAGE_SIZE = 50;
+
 type SearchParams = Promise<{
   status?: string;
   sort?: string;
   q?: string;
+  page?: string;
 }>;
 
 export default async function AdminOrdersPage({
@@ -76,7 +79,10 @@ export default async function AdminOrdersPage({
     : null;
   const sort: SortKey = isSortKey(sp.sort) ? sp.sort : "created_desc";
   const q = (sp.q ?? "").trim();
+  const page = Math.max(1, parseInt(sp.page ?? "1") || 1);
   const sortDef = SORTS[sort];
+  const rangeFrom = (page - 1) * PAGE_SIZE;
+  const rangeTo = rangeFrom + PAGE_SIZE - 1;
 
   const sb = await createServerSupabase();
 
@@ -94,7 +100,7 @@ export default async function AdminOrdersPage({
       { count: "exact" },
     )
     .order(sortDef.col, { ascending: sortDef.asc })
-    .limit(200);
+    .range(rangeFrom, rangeTo);
 
   if (activeStatus) {
     query = query.eq("status", activeStatus);
@@ -152,6 +158,11 @@ export default async function AdminOrdersPage({
       <Section
         rows={rows}
         count={count ?? rows.length}
+        page={page}
+        pageSize={PAGE_SIZE}
+        activeStatus={activeStatus}
+        sort={sort}
+        q={q}
         empty={
           q || activeStatus
             ? "目前篩選條件下沒有訂單。"
@@ -283,18 +294,48 @@ function FilterBar({
 // Section + OrderCard
 // ---------------------------------------------------------------------------
 
+function pageHref(
+  p: number,
+  activeStatus: OrderStatus | null,
+  sort: SortKey,
+  q: string,
+): string {
+  const params = new URLSearchParams();
+  if (activeStatus) params.set("status", activeStatus);
+  if (sort !== "created_desc") params.set("sort", sort);
+  if (q) params.set("q", q);
+  if (p > 1) params.set("page", String(p));
+  const qs = params.toString();
+  return qs ? `/admin/orders?${qs}` : "/admin/orders";
+}
+
 function Section({
   rows,
   count,
+  page,
+  pageSize,
+  activeStatus,
+  sort,
+  q,
   empty,
 }: {
   rows: OrderRow[];
   count: number;
+  page: number;
+  pageSize: number;
+  activeStatus: OrderStatus | null;
+  sort: SortKey;
+  q: string;
   empty: string;
 }) {
+  const totalPages = Math.ceil(count / pageSize);
+
   return (
     <section className="space-y-3">
-      <h2 className="text-sm text-muted-foreground">共 {count} 筆</h2>
+      <h2 className="text-sm text-muted-foreground">
+        共 {count} 筆
+        {totalPages > 1 && ` · 第 ${page} / ${totalPages} 頁`}
+      </h2>
       {rows.length === 0 ? (
         <p className="rounded-md border bg-muted/30 p-4 text-sm text-muted-foreground">
           {empty}
@@ -305,6 +346,30 @@ function Section({
             <OrderCard key={r.id} row={r} />
           ))}
         </ul>
+      )}
+
+      {totalPages > 1 && (
+        <nav className="flex items-center justify-center gap-2 pt-2">
+          {page > 1 && (
+            <Link
+              href={pageHref(page - 1, activeStatus, sort, q)}
+              className="rounded-md border px-3 py-1.5 text-sm hover:bg-muted"
+            >
+              ← 上一頁
+            </Link>
+          )}
+          <span className="text-sm text-muted-foreground">
+            {page} / {totalPages}
+          </span>
+          {page < totalPages && (
+            <Link
+              href={pageHref(page + 1, activeStatus, sort, q)}
+              className="rounded-md border px-3 py-1.5 text-sm hover:bg-muted"
+            >
+              下一頁 →
+            </Link>
+          )}
+        </nav>
       )}
     </section>
   );
