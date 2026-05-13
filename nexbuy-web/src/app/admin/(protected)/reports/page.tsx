@@ -117,22 +117,40 @@ export default async function AdminReportsPage({
   const toUtc = taipeiDayBoundsUtc(to).end;
 
   const sb = await createServerSupabase();
-  const [{ data: orderRows }, { data: productRows }] = await Promise.all([
-    sb
-      .from("orders")
-      .select(
-        `id, status, total_cents, subtotal_cents, shipping_fee_cents, created_at,
+  const [{ data: orderRows }, { data: productRows }, { data: apptRows }] =
+    await Promise.all([
+      sb
+        .from("orders")
+        .select(
+          `id, status, total_cents, subtotal_cents, shipping_fee_cents, created_at,
          items:order_items ( product_name, quantity, subtotal_cents )`,
-      )
-      .gte("created_at", fromUtc)
-      .lt("created_at", toUtc)
-      .order("created_at", { ascending: false })
-      .limit(2000),
-    sb.from("products").select("name, brand, kind"),
-  ]);
+        )
+        .gte("created_at", fromUtc)
+        .lt("created_at", toUtc)
+        .order("created_at", { ascending: false })
+        .limit(2000),
+      sb.from("products").select("name, brand, kind"),
+      sb
+        .from("appointments")
+        .select("id, status, created_at")
+        .gte("created_at", fromUtc)
+        .lt("created_at", toUtc)
+        .limit(2000),
+    ]);
 
   const orders = (orderRows ?? []) as unknown as OrderRow[];
   const products = (productRows ?? []) as ProductLookupRow[];
+
+  // 預約統計
+  type ApptStatus = "booked" | "completed" | "noshow" | "cancelled";
+  const appts = (apptRows ?? []) as { id: string; status: ApptStatus; created_at: string }[];
+  const apptTotal = appts.length;
+  const apptCompleted = appts.filter((a) => a.status === "completed").length;
+  const apptNoshow = appts.filter((a) => a.status === "noshow").length;
+  const apptCancelled = appts.filter((a) => a.status === "cancelled").length;
+  const apptBooked = appts.filter((a) => a.status === "booked").length;
+  const completionRate =
+    apptTotal > 0 ? Math.round((apptCompleted / apptTotal) * 100) : null;
 
   // product_name → { brand, kind } 對照 — order_items 是快照，不見得能 join
   // 到現存商品；但歷史訂單拿不到 kind 就只能標 "unknown"
@@ -343,6 +361,46 @@ export default async function AdminReportsPage({
           value={collectedOrderCount > 0 ? formatPrice(avgCollectedValue) : "—"}
           suffix={`${orderCount} 筆 / 期間總訂單`}
         />
+      </section>
+
+      {/* 預約漏斗 */}
+      <section className="space-y-3">
+        <h2 className="text-base font-medium">預約漏斗（同期間建立）</h2>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <Stat
+            label="預約總數"
+            value={String(apptTotal)}
+            suffix={apptBooked > 0 ? `尚有 ${apptBooked} 筆待處理` : ""}
+          />
+          <Stat
+            label="完成到店"
+            value={String(apptCompleted)}
+            suffix={completionRate !== null ? `完成率 ${completionRate}%` : "—"}
+          />
+          <Stat
+            label="未到店"
+            value={String(apptNoshow)}
+            suffix={
+              apptTotal > 0
+                ? `未到率 ${Math.round((apptNoshow / apptTotal) * 100)}%`
+                : ""
+            }
+          />
+          <Stat
+            label="顧客取消"
+            value={String(apptCancelled)}
+            suffix={
+              apptTotal > 0
+                ? `取消率 ${Math.round((apptCancelled / apptTotal) * 100)}%`
+                : ""
+            }
+          />
+        </div>
+        {apptTotal === 0 && (
+          <p className="rounded-md border bg-muted/30 p-3 text-sm text-muted-foreground">
+            這個期間沒有預約紀錄。
+          </p>
+        )}
       </section>
 
       {/* Charts — Recharts 在 client，server 仍 SSR 數據 + 表格 */}
