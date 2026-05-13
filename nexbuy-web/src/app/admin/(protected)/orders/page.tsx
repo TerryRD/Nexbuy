@@ -406,8 +406,10 @@ function OrderCard({ row }: { row: OrderRow }) {
         </div>
       )}
 
-      <ShippingForm row={row} />
       {row.status !== "cancelled" && row.status !== "refunded" && (
+        <ShippingForm row={row} />
+      )}
+      {(row.status === "paid" || row.status === "shipped" || row.status === "completed") && (
         <RefundForm row={row} />
       )}
     </li>
