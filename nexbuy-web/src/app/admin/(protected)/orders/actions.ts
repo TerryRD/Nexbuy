@@ -94,6 +94,69 @@ export async function advanceOrderStatus(formData: FormData): Promise<void> {
   revalidatePath("/admin/orders");
 }
 
+const cancelOrderSchema = z.object({
+  id: z.string().uuid(),
+});
+
+export async function cancelOrder(formData: FormData): Promise<void> {
+  const parsed = cancelOrderSchema.safeParse({ id: formData.get("id") });
+  if (!parsed.success) throw new Error("INVALID_INPUT");
+
+  const sb = await createServerSupabase();
+  const { error } = await sb
+    .from("orders")
+    .update({
+      status: "cancelled",
+      cancelled_at: new Date().toISOString(),
+    })
+    .eq("id", parsed.data.id)
+    .in("status", ["pending_payment"]);
+
+  if (error) {
+    console.error("cancelOrder failed:", error);
+    throw new Error("UPDATE_FAILED");
+  }
+
+  revalidatePath("/admin/orders");
+}
+
+const refundOrderSchema = z.object({
+  id: z.string().uuid(),
+  refund_amount_yuan: z.coerce.number().int().positive(),
+  refund_method: z.string().trim().max(50).default(""),
+  refund_note: z.string().trim().max(500).optional().transform((v) => v || null),
+});
+
+export async function refundOrder(formData: FormData): Promise<void> {
+  const parsed = refundOrderSchema.safeParse({
+    id: formData.get("id"),
+    refund_amount_yuan: formData.get("refund_amount_yuan"),
+    refund_method: formData.get("refund_method") ?? "",
+    refund_note: formData.get("refund_note") ?? undefined,
+  });
+  if (!parsed.success) throw new Error("INVALID_INPUT");
+
+  const sb = await createServerSupabase();
+  const { error } = await sb
+    .from("orders")
+    .update({
+      status: "refunded",
+      refund_amount_cents: parsed.data.refund_amount_yuan * 100,
+      refund_method: parsed.data.refund_method || null,
+      refund_note: parsed.data.refund_note,
+      refunded_at: new Date().toISOString(),
+    })
+    .eq("id", parsed.data.id)
+    .not("status", "in", '("cancelled","refunded")');
+
+  if (error) {
+    console.error("refundOrder failed:", error);
+    throw new Error("UPDATE_FAILED");
+  }
+
+  revalidatePath("/admin/orders");
+}
+
 export async function updateShipping(formData: FormData): Promise<void> {
   const parsed = updateShippingSchema.safeParse({
     id: formData.get("id"),

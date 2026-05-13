@@ -2,7 +2,7 @@ import Link from "next/link";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { formatPrice } from "@/lib/format";
 import { Button } from "@/components/ui/button";
-import { advanceOrderStatus, updateShipping } from "./actions";
+import { advanceOrderStatus, cancelOrder, refundOrder, updateShipping } from "./actions";
 import { SHIPPING_STATUSES, type ShippingStatus } from "./shipping-status";
 import {
   ORDER_STATUSES,
@@ -28,6 +28,11 @@ type OrderRow = {
   note: string | null;
   created_at: string;
   items: { product_name: string; quantity: number }[];
+  refund_amount_cents: number | null;
+  refund_method: string | null;
+  refund_note: string | null;
+  refunded_at: string | null;
+  cancelled_at: string | null;
 };
 
 const shippingLabels: Record<ShippingStatus, string> = {
@@ -89,6 +94,7 @@ export default async function AdminOrdersPage({
       id, order_no, payment_code, status, shipping_status,
       tracking_number, tracking_carrier, total_cents,
       recipient_name, recipient_phone, shipping_address, note, created_at,
+      refund_amount_cents, refund_method, refund_note, refunded_at, cancelled_at,
       items:order_items ( product_name, quantity )
     `,
       { count: "exact" },
@@ -359,18 +365,51 @@ function OrderCard({ row }: { row: OrderRow }) {
           </div>
         </div>
 
-        {actionable && nextActionLabel[row.status] && (
-          <form action={advanceOrderStatus}>
-            <input type="hidden" name="id" value={row.id} />
-            <input type="hidden" name="from" value={row.status} />
-            <Button type="submit" size="sm">
-              {nextActionLabel[row.status]}
-            </Button>
-          </form>
-        )}
+        <div className="flex flex-wrap gap-2">
+          {actionable && nextActionLabel[row.status] && (
+            <form action={advanceOrderStatus}>
+              <input type="hidden" name="id" value={row.id} />
+              <input type="hidden" name="from" value={row.status} />
+              <Button type="submit" size="sm">
+                {nextActionLabel[row.status]}
+              </Button>
+            </form>
+          )}
+          {row.status === "pending_payment" && (
+            <form action={cancelOrder}>
+              <input type="hidden" name="id" value={row.id} />
+              <Button type="submit" size="sm" variant="outline" className="text-destructive border-destructive/40 hover:bg-destructive/10">
+                取消訂單
+              </Button>
+            </form>
+          )}
+        </div>
       </div>
 
+      {row.status === "refunded" && row.refunded_at && (
+        <div className="mt-3 rounded-md border border-orange-200 bg-orange-50 p-3 text-sm dark:border-orange-900 dark:bg-orange-950/30">
+          <p className="font-medium text-orange-800 dark:text-orange-300">已退款</p>
+          <div className="mt-1 space-y-0.5 text-xs text-orange-700 dark:text-orange-400">
+            {row.refund_amount_cents && (
+              <p>退款金額：{formatPrice(row.refund_amount_cents)}</p>
+            )}
+            {row.refund_method && <p>退款方式：{row.refund_method}</p>}
+            {row.refund_note && <p>備註：{row.refund_note}</p>}
+            <p>退款時間：{new Date(row.refunded_at).toLocaleString("zh-TW")}</p>
+          </div>
+        </div>
+      )}
+
+      {row.status === "cancelled" && row.cancelled_at && (
+        <div className="mt-3 rounded-md border border-muted bg-muted/30 p-3 text-xs text-muted-foreground">
+          已取消：{new Date(row.cancelled_at).toLocaleString("zh-TW")}
+        </div>
+      )}
+
       <ShippingForm row={row} />
+      {row.status !== "cancelled" && row.status !== "refunded" && (
+        <RefundForm row={row} />
+      )}
     </li>
   );
 }
@@ -434,6 +473,59 @@ function ShippingForm({ row }: { row: OrderRow }) {
         <Button type="submit" size="sm" variant="outline" className="self-end">
           更新
         </Button>
+      </form>
+    </details>
+  );
+}
+
+function RefundForm({ row }: { row: OrderRow }) {
+  return (
+    <details className="mt-2 rounded-md border bg-muted/20 p-3 text-sm">
+      <summary className="cursor-pointer select-none text-muted-foreground">
+        退款登記
+      </summary>
+      <form
+        action={refundOrder}
+        className="mt-3 grid gap-2 sm:grid-cols-[1fr_1fr_auto]"
+      >
+        <input type="hidden" name="id" value={row.id} />
+        <label className="flex flex-col gap-1 text-xs">
+          <span className="text-muted-foreground">退款金額（NT$）</span>
+          <input
+            type="number"
+            name="refund_amount_yuan"
+            defaultValue={Math.round(row.total_cents / 100)}
+            min={1}
+            step={1}
+            required
+            className="h-8 rounded-md border bg-background px-2 text-sm"
+          />
+        </label>
+        <label className="flex flex-col gap-1 text-xs">
+          <span className="text-muted-foreground">退款方式</span>
+          <select
+            name="refund_method"
+            className="h-8 rounded-md border bg-background px-2 text-sm"
+          >
+            <option value="">未指定</option>
+            <option value="ATM 轉帳">ATM 轉帳</option>
+            <option value="現金">現金</option>
+            <option value="其他">其他</option>
+          </select>
+        </label>
+        <Button type="submit" size="sm" variant="outline" className="self-end text-destructive border-destructive/40 hover:bg-destructive/10">
+          登記退款
+        </Button>
+        <label className="flex flex-col gap-1 text-xs sm:col-span-3">
+          <span className="text-muted-foreground">備註</span>
+          <input
+            type="text"
+            name="refund_note"
+            placeholder="退款原因（選填）"
+            maxLength={500}
+            className="h-8 rounded-md border bg-background px-2 text-sm"
+          />
+        </label>
       </form>
     </details>
   );
