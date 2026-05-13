@@ -4,6 +4,7 @@ import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { ThemeProvider } from "@/components/site/ThemeProvider";
 import { CompareBar } from "@/components/site/CompareBar";
+import { CartSync } from "@/components/site/CartSync";
 import { publicEnv } from "@/lib/env";
 import "./globals.css";
 
@@ -107,6 +108,7 @@ export default function RootLayout({
           <main className="flex-1">{children}</main>
           <Footer />
           <CompareBar />
+          <CartSync />
         </ThemeProvider>
       </body>
     </html>

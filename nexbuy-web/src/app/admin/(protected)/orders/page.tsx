@@ -2,7 +2,7 @@ import Link from "next/link";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { formatPrice } from "@/lib/format";
 import { Button } from "@/components/ui/button";
-import { advanceOrderStatus, updateShipping } from "./actions";
+import { advanceOrderStatus, cancelOrder, refundOrder, updateShipping } from "./actions";
 import { SHIPPING_STATUSES, type ShippingStatus } from "./shipping-status";
 import {
   ORDER_STATUSES,
@@ -28,6 +28,11 @@ type OrderRow = {
   note: string | null;
   created_at: string;
   items: { product_name: string; quantity: number }[];
+  refund_amount_cents: number | null;
+  refund_method: string | null;
+  refund_note: string | null;
+  refunded_at: string | null;
+  cancelled_at: string | null;
 };
 
 const shippingLabels: Record<ShippingStatus, string> = {
@@ -59,10 +64,13 @@ const isSortKey = (v: string | undefined): v is SortKey =>
 const isStatus = (v: string | undefined): v is OrderStatus =>
   !!v && (ORDER_STATUSES as readonly string[]).includes(v);
 
+const PAGE_SIZE = 50;
+
 type SearchParams = Promise<{
   status?: string;
   sort?: string;
   q?: string;
+  page?: string;
 }>;
 
 export default async function AdminOrdersPage({
@@ -76,7 +84,10 @@ export default async function AdminOrdersPage({
     : null;
   const sort: SortKey = isSortKey(sp.sort) ? sp.sort : "created_desc";
   const q = (sp.q ?? "").trim();
+  const page = Math.max(1, parseInt(sp.page ?? "1") || 1);
   const sortDef = SORTS[sort];
+  const rangeFrom = (page - 1) * PAGE_SIZE;
+  const rangeTo = rangeFrom + PAGE_SIZE - 1;
 
   const sb = await createServerSupabase();
 
@@ -89,12 +100,13 @@ export default async function AdminOrdersPage({
       id, order_no, payment_code, status, shipping_status,
       tracking_number, tracking_carrier, total_cents,
       recipient_name, recipient_phone, shipping_address, note, created_at,
+      refund_amount_cents, refund_method, refund_note, refunded_at, cancelled_at,
       items:order_items ( product_name, quantity )
     `,
       { count: "exact" },
     )
     .order(sortDef.col, { ascending: sortDef.asc })
-    .limit(200);
+    .range(rangeFrom, rangeTo);
 
   if (activeStatus) {
     query = query.eq("status", activeStatus);
@@ -152,6 +164,11 @@ export default async function AdminOrdersPage({
       <Section
         rows={rows}
         count={count ?? rows.length}
+        page={page}
+        pageSize={PAGE_SIZE}
+        activeStatus={activeStatus}
+        sort={sort}
+        q={q}
         empty={
           q || activeStatus
             ? "目前篩選條件下沒有訂單。"
@@ -283,18 +300,48 @@ function FilterBar({
 // Section + OrderCard
 // ---------------------------------------------------------------------------
 
+function pageHref(
+  p: number,
+  activeStatus: OrderStatus | null,
+  sort: SortKey,
+  q: string,
+): string {
+  const params = new URLSearchParams();
+  if (activeStatus) params.set("status", activeStatus);
+  if (sort !== "created_desc") params.set("sort", sort);
+  if (q) params.set("q", q);
+  if (p > 1) params.set("page", String(p));
+  const qs = params.toString();
+  return qs ? `/admin/orders?${qs}` : "/admin/orders";
+}
+
 function Section({
   rows,
   count,
+  page,
+  pageSize,
+  activeStatus,
+  sort,
+  q,
   empty,
 }: {
   rows: OrderRow[];
   count: number;
+  page: number;
+  pageSize: number;
+  activeStatus: OrderStatus | null;
+  sort: SortKey;
+  q: string;
   empty: string;
 }) {
+  const totalPages = Math.ceil(count / pageSize);
+
   return (
     <section className="space-y-3">
-      <h2 className="text-sm text-muted-foreground">共 {count} 筆</h2>
+      <h2 className="text-sm text-muted-foreground">
+        共 {count} 筆
+        {totalPages > 1 && ` · 第 ${page} / ${totalPages} 頁`}
+      </h2>
       {rows.length === 0 ? (
         <p className="rounded-md border bg-muted/30 p-4 text-sm text-muted-foreground">
           {empty}
@@ -305,6 +352,30 @@ function Section({
             <OrderCard key={r.id} row={r} />
           ))}
         </ul>
+      )}
+
+      {totalPages > 1 && (
+        <nav className="flex items-center justify-center gap-2 pt-2">
+          {page > 1 && (
+            <Link
+              href={pageHref(page - 1, activeStatus, sort, q)}
+              className="rounded-md border px-3 py-1.5 text-sm hover:bg-muted"
+            >
+              ← 上一頁
+            </Link>
+          )}
+          <span className="text-sm text-muted-foreground">
+            {page} / {totalPages}
+          </span>
+          {page < totalPages && (
+            <Link
+              href={pageHref(page + 1, activeStatus, sort, q)}
+              className="rounded-md border px-3 py-1.5 text-sm hover:bg-muted"
+            >
+              下一頁 →
+            </Link>
+          )}
+        </nav>
       )}
     </section>
   );
@@ -359,18 +430,55 @@ function OrderCard({ row }: { row: OrderRow }) {
           </div>
         </div>
 
-        {actionable && nextActionLabel[row.status] && (
-          <form action={advanceOrderStatus}>
-            <input type="hidden" name="id" value={row.id} />
-            <input type="hidden" name="from" value={row.status} />
-            <Button type="submit" size="sm">
-              {nextActionLabel[row.status]}
-            </Button>
-          </form>
-        )}
+        <div className="flex flex-wrap gap-2">
+          {actionable && nextActionLabel[row.status] && (
+            <form action={advanceOrderStatus}>
+              <input type="hidden" name="id" value={row.id} />
+              <input type="hidden" name="from" value={row.status} />
+              <Button type="submit" size="sm">
+                {nextActionLabel[row.status]}
+              </Button>
+            </form>
+          )}
+          {row.status === "pending_payment" && (
+            <form action={cancelOrder}>
+              <input type="hidden" name="id" value={row.id} />
+              <Button type="submit" size="sm" variant="outline" className="text-destructive border-destructive/40 hover:bg-destructive/10">
+                取消訂單
+              </Button>
+            </form>
+          )}
+        </div>
       </div>
 
-      <ShippingForm row={row} />
+      {row.status === "refunded" && (
+        <div className="mt-3 rounded-md border border-orange-200 bg-orange-50 p-3 text-sm dark:border-orange-900 dark:bg-orange-950/30">
+          <p className="font-medium text-orange-800 dark:text-orange-300">已退款</p>
+          <div className="mt-1 space-y-0.5 text-xs text-orange-700 dark:text-orange-400">
+            {row.refund_amount_cents && (
+              <p>退款金額：{formatPrice(row.refund_amount_cents)}</p>
+            )}
+            {row.refund_method && <p>退款方式：{row.refund_method}</p>}
+            {row.refund_note && <p>備註：{row.refund_note}</p>}
+            {row.refunded_at && (
+              <p>退款時間：{new Date(row.refunded_at).toLocaleString("zh-TW")}</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {row.status === "cancelled" && (
+        <div className="mt-3 rounded-md border border-muted bg-muted/30 p-3 text-xs text-muted-foreground">
+          已取消{row.cancelled_at ? `：${new Date(row.cancelled_at).toLocaleString("zh-TW")}` : ""}
+        </div>
+      )}
+
+      {row.status !== "cancelled" && row.status !== "refunded" && (
+        <ShippingForm row={row} />
+      )}
+      {(row.status === "paid" || row.status === "shipped" || row.status === "completed") && (
+        <RefundForm row={row} />
+      )}
     </li>
   );
 }
@@ -434,6 +542,59 @@ function ShippingForm({ row }: { row: OrderRow }) {
         <Button type="submit" size="sm" variant="outline" className="self-end">
           更新
         </Button>
+      </form>
+    </details>
+  );
+}
+
+function RefundForm({ row }: { row: OrderRow }) {
+  return (
+    <details className="mt-2 rounded-md border bg-muted/20 p-3 text-sm">
+      <summary className="cursor-pointer select-none text-muted-foreground">
+        退款登記
+      </summary>
+      <form
+        action={refundOrder}
+        className="mt-3 grid gap-2 sm:grid-cols-[1fr_1fr_auto]"
+      >
+        <input type="hidden" name="id" value={row.id} />
+        <label className="flex flex-col gap-1 text-xs">
+          <span className="text-muted-foreground">退款金額（NT$）</span>
+          <input
+            type="number"
+            name="refund_amount_yuan"
+            defaultValue={Math.round(row.total_cents / 100)}
+            min={1}
+            step={1}
+            required
+            className="h-8 rounded-md border bg-background px-2 text-sm"
+          />
+        </label>
+        <label className="flex flex-col gap-1 text-xs">
+          <span className="text-muted-foreground">退款方式</span>
+          <select
+            name="refund_method"
+            className="h-8 rounded-md border bg-background px-2 text-sm"
+          >
+            <option value="">未指定</option>
+            <option value="ATM 轉帳">ATM 轉帳</option>
+            <option value="現金">現金</option>
+            <option value="其他">其他</option>
+          </select>
+        </label>
+        <Button type="submit" size="sm" variant="outline" className="self-end text-destructive border-destructive/40 hover:bg-destructive/10">
+          登記退款
+        </Button>
+        <label className="flex flex-col gap-1 text-xs sm:col-span-3">
+          <span className="text-muted-foreground">備註</span>
+          <input
+            type="text"
+            name="refund_note"
+            placeholder="退款原因（選填）"
+            maxLength={500}
+            className="h-8 rounded-md border bg-background px-2 text-sm"
+          />
+        </label>
       </form>
     </details>
   );

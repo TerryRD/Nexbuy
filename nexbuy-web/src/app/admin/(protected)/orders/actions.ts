@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { sendEmail, isEmailConfigured } from "@/lib/email/send";
-import { orderPaidEmail } from "@/lib/email/templates";
+import { orderPaidEmail, orderShippedEmail } from "@/lib/email/templates";
 import { publicEnv } from "@/lib/env";
 import { SHIPPING_STATUSES } from "./shipping-status";
 
@@ -70,25 +70,121 @@ export async function advanceOrderStatus(formData: FormData): Promise<void> {
     throw new Error("STATE_CHANGED"); // 其他 admin 已更新過
   }
 
-  // Notify customer when payment is confirmed (pending_payment → paid).
-  // Other transitions (→ shipped → completed) don't email; we'd add SMS or
-  // tracking-no based notifications later.
-  if (nextStatus === "paid") {
-    const o = data[0];
-    const to = [o.customer_email];
+  const o = data[0];
+  const orderUrl = `${publicEnv.NEXT_PUBLIC_APP_URL}/orders/${o.order_no}?t=${o.lookup_token}`;
+  const to = [o.customer_email].filter(Boolean);
+
+  if (nextStatus === "paid" || nextStatus === "shipped") {
     if (!isEmailConfigured() || to.length === 0) {
       console.warn("[orders/admin] 未寄 email (缺 SMTP 設定 或 收件人)");
     } else {
-      const content = orderPaidEmail({
-        customerName: o.recipient_name,
-        orderNo: o.order_no,
-        // 必帶 lookup_token，否則收信人點進去會 404
-        successUrl: `${publicEnv.NEXT_PUBLIC_APP_URL}/orders/${o.order_no}?t=${o.lookup_token}`,
-      });
+      const content =
+        nextStatus === "paid"
+          ? orderPaidEmail({
+              customerName: o.recipient_name,
+              orderNo: o.order_no,
+              successUrl: orderUrl,
+            })
+          : orderShippedEmail({
+              customerName: o.recipient_name,
+              orderNo: o.order_no,
+              successUrl: orderUrl,
+            });
       sendEmail({ to, ...content }).catch((err) => {
         console.error("[orders/admin] 寄信失敗:", err);
       });
     }
+  }
+
+  revalidatePath("/admin/orders");
+}
+
+const cancelOrderSchema = z.object({
+  id: z.string().uuid(),
+});
+
+export async function cancelOrder(formData: FormData): Promise<void> {
+  const parsed = cancelOrderSchema.safeParse({ id: formData.get("id") });
+  if (!parsed.success) throw new Error("INVALID_INPUT");
+
+  const sb = await createServerSupabase();
+  const { error, data } = await sb
+    .from("orders")
+    .update({
+      status: "cancelled",
+      cancelled_at: new Date().toISOString(),
+    })
+    .eq("id", parsed.data.id)
+    .in("status", ["pending_payment"])
+    .select("id");
+
+  if (error) {
+    console.error("cancelOrder failed:", error);
+    throw new Error("UPDATE_FAILED");
+  }
+  if (!data || data.length === 0) {
+    throw new Error("STATE_CHANGED");
+  }
+
+  revalidatePath("/admin/orders");
+}
+
+const refundOrderSchema = z.object({
+  id: z.string().uuid(),
+  refund_amount_yuan: z.coerce.number().int().positive(),
+  refund_method: z.string().trim().max(50).default(""),
+  refund_note: z.string().trim().max(500).optional().transform((v) => v || null),
+});
+
+export async function refundOrder(formData: FormData): Promise<void> {
+  const parsed = refundOrderSchema.safeParse({
+    id: formData.get("id"),
+    refund_amount_yuan: formData.get("refund_amount_yuan"),
+    refund_method: formData.get("refund_method") ?? "",
+    refund_note: formData.get("refund_note") ?? undefined,
+  });
+  if (!parsed.success) throw new Error("INVALID_INPUT");
+
+  const refundCents = parsed.data.refund_amount_yuan * 100;
+  const sb = await createServerSupabase();
+
+  // 先讀訂單總額，避免退款金額 > 訂單金額。同時當作 status guard 的一部分。
+  const { data: order, error: fetchErr } = await sb
+    .from("orders")
+    .select("total_cents, status")
+    .eq("id", parsed.data.id)
+    .maybeSingle();
+  if (fetchErr) {
+    console.error("refundOrder fetch failed:", fetchErr);
+    throw new Error("UPDATE_FAILED");
+  }
+  if (!order) throw new Error("NOT_FOUND");
+  if (order.status === "cancelled" || order.status === "refunded") {
+    throw new Error("STATE_CHANGED");
+  }
+  if (refundCents > order.total_cents) {
+    throw new Error("REFUND_EXCEEDS_TOTAL");
+  }
+
+  const { error, data } = await sb
+    .from("orders")
+    .update({
+      status: "refunded",
+      refund_amount_cents: refundCents,
+      refund_method: parsed.data.refund_method || null,
+      refund_note: parsed.data.refund_note,
+      refunded_at: new Date().toISOString(),
+    })
+    .eq("id", parsed.data.id)
+    .not("status", "in", '("cancelled","refunded")')
+    .select("id");
+
+  if (error) {
+    console.error("refundOrder failed:", error);
+    throw new Error("UPDATE_FAILED");
+  }
+  if (!data || data.length === 0) {
+    throw new Error("STATE_CHANGED");
   }
 
   revalidatePath("/admin/orders");
@@ -104,18 +200,23 @@ export async function updateShipping(formData: FormData): Promise<void> {
   if (!parsed.success) throw new Error("INVALID_INPUT");
 
   const sb = await createServerSupabase();
-  const { error } = await sb
+  const { error, data } = await sb
     .from("orders")
     .update({
       shipping_status: parsed.data.shipping_status,
       tracking_number: parsed.data.tracking_number,
       tracking_carrier: parsed.data.tracking_carrier,
     })
-    .eq("id", parsed.data.id);
+    .eq("id", parsed.data.id)
+    .not("status", "in", '("cancelled","refunded")')
+    .select("id");
 
   if (error) {
     console.error("updateShipping failed:", error);
     throw new Error("UPDATE_FAILED");
+  }
+  if (!data || data.length === 0) {
+    throw new Error("STATE_CHANGED");
   }
 
   revalidatePath("/admin/orders");
