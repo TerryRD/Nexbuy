@@ -108,18 +108,22 @@ export async function cancelOrder(formData: FormData): Promise<void> {
   if (!parsed.success) throw new Error("INVALID_INPUT");
 
   const sb = await createServerSupabase();
-  const { error } = await sb
+  const { error, data } = await sb
     .from("orders")
     .update({
       status: "cancelled",
       cancelled_at: new Date().toISOString(),
     })
     .eq("id", parsed.data.id)
-    .in("status", ["pending_payment"]);
+    .in("status", ["pending_payment"])
+    .select("id");
 
   if (error) {
     console.error("cancelOrder failed:", error);
     throw new Error("UPDATE_FAILED");
+  }
+  if (!data || data.length === 0) {
+    throw new Error("STATE_CHANGED");
   }
 
   revalidatePath("/admin/orders");
@@ -141,22 +145,46 @@ export async function refundOrder(formData: FormData): Promise<void> {
   });
   if (!parsed.success) throw new Error("INVALID_INPUT");
 
+  const refundCents = parsed.data.refund_amount_yuan * 100;
   const sb = await createServerSupabase();
-  const { error } = await sb
+
+  // 先讀訂單總額，避免退款金額 > 訂單金額。同時當作 status guard 的一部分。
+  const { data: order, error: fetchErr } = await sb
+    .from("orders")
+    .select("total_cents, status")
+    .eq("id", parsed.data.id)
+    .maybeSingle();
+  if (fetchErr) {
+    console.error("refundOrder fetch failed:", fetchErr);
+    throw new Error("UPDATE_FAILED");
+  }
+  if (!order) throw new Error("NOT_FOUND");
+  if (order.status === "cancelled" || order.status === "refunded") {
+    throw new Error("STATE_CHANGED");
+  }
+  if (refundCents > order.total_cents) {
+    throw new Error("REFUND_EXCEEDS_TOTAL");
+  }
+
+  const { error, data } = await sb
     .from("orders")
     .update({
       status: "refunded",
-      refund_amount_cents: parsed.data.refund_amount_yuan * 100,
+      refund_amount_cents: refundCents,
       refund_method: parsed.data.refund_method || null,
       refund_note: parsed.data.refund_note,
       refunded_at: new Date().toISOString(),
     })
     .eq("id", parsed.data.id)
-    .not("status", "in", '("cancelled","refunded")');
+    .not("status", "in", '("cancelled","refunded")')
+    .select("id");
 
   if (error) {
     console.error("refundOrder failed:", error);
     throw new Error("UPDATE_FAILED");
+  }
+  if (!data || data.length === 0) {
+    throw new Error("STATE_CHANGED");
   }
 
   revalidatePath("/admin/orders");
@@ -172,18 +200,23 @@ export async function updateShipping(formData: FormData): Promise<void> {
   if (!parsed.success) throw new Error("INVALID_INPUT");
 
   const sb = await createServerSupabase();
-  const { error } = await sb
+  const { error, data } = await sb
     .from("orders")
     .update({
       shipping_status: parsed.data.shipping_status,
       tracking_number: parsed.data.tracking_number,
       tracking_carrier: parsed.data.tracking_carrier,
     })
-    .eq("id", parsed.data.id);
+    .eq("id", parsed.data.id)
+    .not("status", "in", '("cancelled","refunded")')
+    .select("id");
 
   if (error) {
     console.error("updateShipping failed:", error);
     throw new Error("UPDATE_FAILED");
+  }
+  if (!data || data.length === 0) {
+    throw new Error("STATE_CHANGED");
   }
 
   revalidatePath("/admin/orders");

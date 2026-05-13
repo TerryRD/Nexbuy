@@ -30,6 +30,25 @@ Stack: Next.js 16 + Supabase + Vercel（細節見 [`README.md`](README.md)）。
 
 若 GStack 指令的預設動作與上列衝突，以上列為準。
 
+## 程式碼設計規範
+
+**動程式碼前必讀**：[`docs/conventions.md`](docs/conventions.md)
+
+該文件規範了：
+
+- **訂單狀態機**：7 種 status 的合法轉移、`status` vs `shipping_status` 的分工、唯一來源
+  在 `src/lib/order-status.ts`（admin 跟顧客頁都從這裡 import label / 配色）
+- **Server action 樣板**：Zod 驗證 + status guard + `.select("id")` + 0 rows 偵測 + revalidate。
+  違反這個樣板的後果是「靜默成功」——admin 以為動到資料其實沒動，等用戶抱怨才發現。
+- **金額處理**：DB 一律 cents、UI 用 `formatPrice`、表單用元（`*_yuan`）、退款類驗 amount 上限
+- **Migration 政策**：新欄位一律 nullable、UI 必須容忍 null、不寫 data backfill SQL
+- **Email 通知時機**：哪些狀態變化要發信給顧客 / 哪些不發、fire-and-forget pattern
+- **顧客 vs 後台路徑分離**：訂單頁三條授權路徑、`notFound()` 避免時序攻擊
+- **Next.js 16 常見地雷**：`params` 是 Promise、Server Component 不能綁 event handler、
+  Header auth 會讓整 route tree 變 dynamic
+
+改動核心流程（訂單、付款、預約、會員）前先讀完，並對照文件最末的 checklist 自檢。
+
 ## 效能規範（Performance budget）
 
 **目標**：每個公開頁面（warm function）TTFB < 300ms，total < 500ms。
