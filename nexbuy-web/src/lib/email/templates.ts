@@ -361,6 +361,38 @@ export function lowStockAlertEmail(d: LowStockAlertInput): EmailContent {
 }
 
 // ---------------------------------------------------------------------------
+// Order shipped (admin marked as shipped)
+// ---------------------------------------------------------------------------
+
+export interface OrderShippedInput {
+  customerName: string;
+  orderNo: string;
+  successUrl: string;
+}
+
+export function orderShippedEmail(d: OrderShippedInput): EmailContent {
+  const text =
+    `${d.customerName} 您好，\n` +
+    `\n` +
+    `訂單 ${d.orderNo} 已出貨，正在配送途中。如有任何問題，歡迎與我們聯繫。\n` +
+    `\n` +
+    `查看訂單：${d.successUrl}\n` +
+    FOOTER_TEXT;
+
+  const body = `
+    <p style="margin:0 0 12px;">${escape(d.customerName)} 您好，</p>
+    <p style="margin:0 0 16px;">訂單 <strong>${escape(d.orderNo)}</strong> 已出貨，正在配送途中。如有任何問題，歡迎與我們聯繫。</p>
+    ${htmlButton("查看訂單", d.successUrl)}
+  `;
+
+  return {
+    subject: `[${SENDER_NAME}] 訂單已出貨 ${d.orderNo}`,
+    text,
+    html: wrapHtml({ preheader: `${d.orderNo} 已出貨，配送中`, body }),
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Admin: new order notification
 // ---------------------------------------------------------------------------
 

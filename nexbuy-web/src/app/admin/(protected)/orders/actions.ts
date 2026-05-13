@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { sendEmail, isEmailConfigured } from "@/lib/email/send";
-import { orderPaidEmail } from "@/lib/email/templates";
+import { orderPaidEmail, orderShippedEmail } from "@/lib/email/templates";
 import { publicEnv } from "@/lib/env";
 import { SHIPPING_STATUSES } from "./shipping-status";
 
@@ -70,21 +70,26 @@ export async function advanceOrderStatus(formData: FormData): Promise<void> {
     throw new Error("STATE_CHANGED"); // 其他 admin 已更新過
   }
 
-  // Notify customer when payment is confirmed (pending_payment → paid).
-  // Other transitions (→ shipped → completed) don't email; we'd add SMS or
-  // tracking-no based notifications later.
-  if (nextStatus === "paid") {
-    const o = data[0];
-    const to = [o.customer_email];
+  const o = data[0];
+  const orderUrl = `${publicEnv.NEXT_PUBLIC_APP_URL}/orders/${o.order_no}?t=${o.lookup_token}`;
+  const to = [o.customer_email].filter(Boolean);
+
+  if (nextStatus === "paid" || nextStatus === "shipped") {
     if (!isEmailConfigured() || to.length === 0) {
       console.warn("[orders/admin] 未寄 email (缺 SMTP 設定 或 收件人)");
     } else {
-      const content = orderPaidEmail({
-        customerName: o.recipient_name,
-        orderNo: o.order_no,
-        // 必帶 lookup_token，否則收信人點進去會 404
-        successUrl: `${publicEnv.NEXT_PUBLIC_APP_URL}/orders/${o.order_no}?t=${o.lookup_token}`,
-      });
+      const content =
+        nextStatus === "paid"
+          ? orderPaidEmail({
+              customerName: o.recipient_name,
+              orderNo: o.order_no,
+              successUrl: orderUrl,
+            })
+          : orderShippedEmail({
+              customerName: o.recipient_name,
+              orderNo: o.order_no,
+              successUrl: orderUrl,
+            });
       sendEmail({ to, ...content }).catch((err) => {
         console.error("[orders/admin] 寄信失敗:", err);
       });
