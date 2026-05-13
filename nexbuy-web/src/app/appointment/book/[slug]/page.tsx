@@ -14,7 +14,11 @@ export default async function BookAppointmentPage({
   const { slug } = await params;
   const sb = await createServerSupabase();
 
-  const [productRes, slotsRes] = await Promise.all([
+  const {
+    data: { user },
+  } = await sb.auth.getUser();
+
+  const [productRes, slotsRes, customerRes] = await Promise.all([
     sb
       .from("products")
       .select("id, slug, name, kind, price_cents, brand, is_online_available")
@@ -32,6 +36,13 @@ export default async function BookAppointmentPage({
       .order("date", { ascending: true })
       .order("start_time", { ascending: true })
       .limit(60),
+    user
+      ? sb
+          .from("customers")
+          .select("display_name, phone")
+          .eq("id", user.id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
   ]);
 
   if (productRes.error) {
@@ -85,7 +96,20 @@ export default async function BookAppointmentPage({
           </p>
         </div>
       ) : (
-        <BookingForm productId={product.id} productSlug={product.slug} slots={slots} />
+        <BookingForm
+          productId={product.id}
+          productSlug={product.slug}
+          slots={slots}
+          defaults={
+            user
+              ? {
+                  name: customerRes.data?.display_name ?? "",
+                  email: user.email ?? "",
+                  phone: customerRes.data?.phone ?? "",
+                }
+              : undefined
+          }
+        />
       )}
     </div>
   );
