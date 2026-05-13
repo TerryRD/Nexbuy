@@ -386,7 +386,7 @@ function OrderCard({ row }: { row: OrderRow }) {
         </div>
       </div>
 
-      {row.status === "refunded" && row.refunded_at && (
+      {row.status === "refunded" && (
         <div className="mt-3 rounded-md border border-orange-200 bg-orange-50 p-3 text-sm dark:border-orange-900 dark:bg-orange-950/30">
           <p className="font-medium text-orange-800 dark:text-orange-300">已退款</p>
           <div className="mt-1 space-y-0.5 text-xs text-orange-700 dark:text-orange-400">
@@ -395,14 +395,16 @@ function OrderCard({ row }: { row: OrderRow }) {
             )}
             {row.refund_method && <p>退款方式：{row.refund_method}</p>}
             {row.refund_note && <p>備註：{row.refund_note}</p>}
-            <p>退款時間：{new Date(row.refunded_at).toLocaleString("zh-TW")}</p>
+            {row.refunded_at && (
+              <p>退款時間：{new Date(row.refunded_at).toLocaleString("zh-TW")}</p>
+            )}
           </div>
         </div>
       )}
 
-      {row.status === "cancelled" && row.cancelled_at && (
+      {row.status === "cancelled" && (
         <div className="mt-3 rounded-md border border-muted bg-muted/30 p-3 text-xs text-muted-foreground">
-          已取消：{new Date(row.cancelled_at).toLocaleString("zh-TW")}
+          已取消{row.cancelled_at ? `：${new Date(row.cancelled_at).toLocaleString("zh-TW")}` : ""}
         </div>
       )}
 
