@@ -172,6 +172,23 @@ export default async function OrderSuccessPage({
             )}
           </div>
         )}
+        {(order.status === "pending_payment" ||
+          order.status === "paid" ||
+          order.status === "preparing" ||
+          order.status === "shipped") && (
+          <div className="mt-4 border-t pt-3 text-xs text-muted-foreground">
+            <p className="font-medium text-foreground mb-0.5">預計到貨</p>
+            {order.status === "pending_payment" && (
+              <p>確認收款後 3–5 個工作天出貨，宅配再需 1–3 天。</p>
+            )}
+            {(order.status === "paid" || order.status === "preparing") && (
+              <p>備貨中，預計 3–5 個工作天出貨，宅配再需 1–3 天。</p>
+            )}
+            {order.status === "shipped" && (
+              <p>已出貨，宅配通常 1–3 個工作天送達。</p>
+            )}
+          </div>
+        )}
       </section>
 
       <section className="mb-6 space-y-2 rounded-lg border p-5 text-sm">
