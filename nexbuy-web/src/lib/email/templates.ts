@@ -359,3 +359,65 @@ export function lowStockAlertEmail(d: LowStockAlertInput): EmailContent {
     }),
   };
 }
+
+// ---------------------------------------------------------------------------
+// Admin: new order notification
+// ---------------------------------------------------------------------------
+
+export interface AdminNewOrderInput {
+  orderNo: string;
+  recipientName: string;
+  totalCents: number;
+  items: { productName: string; quantity: number }[];
+  adminUrl: string;
+}
+
+export function adminNewOrderEmail(d: AdminNewOrderInput): EmailContent {
+  const itemsText = d.items
+    .map((i) => `  - ${i.productName} × ${i.quantity}`)
+    .join("\n");
+
+  const text =
+    `新訂單進來了！\n` +
+    `\n` +
+    `訂單編號：${d.orderNo}\n` +
+    `收件人：${d.recipientName}\n` +
+    `金額：${formatPrice(d.totalCents)}\n` +
+    `\n` +
+    `商品：\n${itemsText}\n` +
+    `\n` +
+    `前往後台確認：${d.adminUrl}\n` +
+    FOOTER_TEXT;
+
+  const itemsHtml = d.items
+    .map(
+      (i) =>
+        `<li style="margin:0;padding:2px 0;">${escape(i.productName)} × ${i.quantity}</li>`,
+    )
+    .join("");
+
+  const body = `
+    <p style="margin:0 0 12px;">新訂單進來了！</p>
+    <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:0 0 16px;background:#f6f1ea;border-radius:10px;">
+      <tr>
+        <td style="padding:14px 16px;">
+          <div style="font-size:12px;color:#7a6856;">訂單編號</div>
+          <div style="font-family:'Courier New',monospace;font-size:15px;margin-top:2px;">${escape(d.orderNo)}</div>
+          <div style="font-size:12px;color:#7a6856;margin-top:10px;">收件人</div>
+          <div style="font-size:15px;margin-top:2px;">${escape(d.recipientName)}</div>
+          <div style="font-size:12px;color:#7a6856;margin-top:10px;">金額</div>
+          <div style="font-size:16px;font-weight:600;margin-top:2px;">${formatPrice(d.totalCents)}</div>
+        </td>
+      </tr>
+    </table>
+    <p style="margin:0 0 6px;font-size:13px;color:#7a6856;">商品</p>
+    <ul style="margin:0 0 18px;padding-left:18px;">${itemsHtml}</ul>
+    ${htmlButton("前往後台確認", d.adminUrl)}
+  `;
+
+  return {
+    subject: `[後台] 新訂單 ${d.orderNo} — ${d.recipientName}`,
+    text,
+    html: wrapHtml({ preheader: `新訂單 ${d.orderNo}，${formatPrice(d.totalCents)}`, body }),
+  };
+}

@@ -8,10 +8,17 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+interface Defaults {
+  name: string;
+  email: string;
+  phone: string;
+}
+
 interface Props {
   productId: string;
   productSlug: string;
   slots: AppointmentSlot[];
+  defaults?: Defaults;
 }
 
 interface BookingSuccess {
@@ -20,11 +27,11 @@ interface BookingSuccess {
   cancel_url: string;
 }
 
-export function BookingForm({ productId, slots }: Props) {
+export function BookingForm({ productId, slots, defaults }: Props) {
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
+  const [name, setName] = useState(defaults?.name ?? "");
+  const [email, setEmail] = useState(defaults?.email ?? "");
+  const [phone, setPhone] = useState(defaults?.phone ?? "");
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<BookingSuccess | null>(null);
