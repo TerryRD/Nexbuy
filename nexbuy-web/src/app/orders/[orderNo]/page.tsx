@@ -45,6 +45,11 @@ type OrderRow = {
   shipping_address: string;
   note: string | null;
   created_at: string;
+  refund_amount_cents: number | null;
+  refund_method: string | null;
+  refund_note: string | null;
+  refunded_at: string | null;
+  cancelled_at: string | null;
   items: {
     product_name: string;
     unit_price_cents: number;
@@ -100,6 +105,7 @@ export default async function OrderSuccessPage({
       tracking_number, tracking_carrier,
       subtotal_cents, shipping_fee_cents, total_cents,
       recipient_name, recipient_phone, shipping_address, note, created_at,
+      refund_amount_cents, refund_method, refund_note, refunded_at, cancelled_at,
       items:order_items ( product_name, unit_price_cents, quantity, subtotal_cents )
     `,
     )
@@ -133,15 +139,50 @@ export default async function OrderSuccessPage({
   }
   if (!viewerOk) notFound();
 
+  const headerCopy = headerForStatus(order.status);
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
       <header className="mb-6 space-y-2">
-        <h1 className="text-3xl font-semibold tracking-tight">訂單送出成功</h1>
-        <p className="text-muted-foreground">
-          請依下方匯款資訊於 3 日內完成付款。
-          店家收到款項會手動標記,出貨前再通知你。
-        </p>
+        <h1 className="text-3xl font-semibold tracking-tight">
+          {headerCopy.title}
+        </h1>
+        <p className="text-muted-foreground">{headerCopy.subtitle}</p>
       </header>
+
+      {order.status === "refunded" && (
+        <section className="mb-6 rounded-lg border border-rose-200 bg-rose-50 p-5 text-sm dark:border-rose-900 dark:bg-rose-950/30">
+          <h2 className="font-semibold text-rose-800 dark:text-rose-300">已退款</h2>
+          <dl className="mt-2 space-y-1 text-rose-700 dark:text-rose-400">
+            {order.refund_amount_cents !== null && (
+              <Row label="退款金額">{formatPrice(order.refund_amount_cents)}</Row>
+            )}
+            {order.refund_method && <Row label="退款方式">{order.refund_method}</Row>}
+            {order.refund_note && <Row label="備註">{order.refund_note}</Row>}
+            {order.refunded_at && (
+              <Row label="退款時間">
+                {new Date(order.refunded_at).toLocaleString("zh-TW")}
+              </Row>
+            )}
+          </dl>
+          {order.refund_amount_cents === null && order.refunded_at === null && (
+            <p className="mt-2 text-xs text-rose-600 dark:text-rose-500">
+              退款細節請洽店家查詢。
+            </p>
+          )}
+        </section>
+      )}
+
+      {order.status === "cancelled" && (
+        <section className="mb-6 rounded-lg border bg-muted/30 p-5 text-sm">
+          <h2 className="font-semibold">訂單已取消</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {order.cancelled_at
+              ? `取消時間：${new Date(order.cancelled_at).toLocaleString("zh-TW")}`
+              : "如有疑問請洽店家查詢。"}
+          </p>
+        </section>
+      )}
 
       <section className="mb-6 rounded-lg border bg-muted/30 p-5 text-sm">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -174,27 +215,29 @@ export default async function OrderSuccessPage({
         )}
       </section>
 
-      <section className="mb-6 space-y-2 rounded-lg border p-5 text-sm">
-        <h2 className="mb-2 font-semibold">匯款資訊(ATM 轉帳)</h2>
-        <Row label="銀行">(範例)國泰世華銀行 013</Row>
-        <Row label="戶名">眼鏡店老闆帳戶</Row>
-        <Row label="帳號">000-000-000-0000</Row>
-        <Row label="金額">{formatPrice(order.total_cents)}</Row>
-        <Row label="備註">
-          <span className="font-mono text-base font-semibold tracking-widest">
-            {order.payment_code}
-          </span>
-          <span className="ml-2 text-muted-foreground">
-            (5 碼數字,務必填上以利對帳)
-          </span>
-        </Row>
-        <p className="mt-2 text-xs text-muted-foreground">
-          ATM 備註欄通常只能填數字,請填上方 5 碼即可,訂單編號保留在這個頁面就好。
-        </p>
-        <p className="mt-1 text-xs text-muted-foreground">
-          ⚠️ MVP 示範用的銀行資訊,上線前要換成店家實際帳戶。
-        </p>
-      </section>
+      {order.status === "pending_payment" && (
+        <section className="mb-6 space-y-2 rounded-lg border p-5 text-sm">
+          <h2 className="mb-2 font-semibold">匯款資訊(ATM 轉帳)</h2>
+          <Row label="銀行">(範例)國泰世華銀行 013</Row>
+          <Row label="戶名">眼鏡店老闆帳戶</Row>
+          <Row label="帳號">000-000-000-0000</Row>
+          <Row label="金額">{formatPrice(order.total_cents)}</Row>
+          <Row label="備註">
+            <span className="font-mono text-base font-semibold tracking-widest">
+              {order.payment_code}
+            </span>
+            <span className="ml-2 text-muted-foreground">
+              (5 碼數字,務必填上以利對帳)
+            </span>
+          </Row>
+          <p className="mt-2 text-xs text-muted-foreground">
+            ATM 備註欄通常只能填數字,請填上方 5 碼即可,訂單編號保留在這個頁面就好。
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            ⚠️ MVP 示範用的銀行資訊,上線前要換成店家實際帳戶。
+          </p>
+        </section>
+      )}
 
       <section className="mb-6 space-y-3 rounded-lg border p-5 text-sm">
         <h2 className="font-semibold">訂購商品</h2>
@@ -265,4 +308,43 @@ function Row({
       <dd>{children}</dd>
     </div>
   );
+}
+
+function headerForStatus(status: OrderRow["status"]): {
+  title: string;
+  subtitle: string;
+} {
+  switch (status) {
+    case "pending_payment":
+      return {
+        title: "訂單送出成功",
+        subtitle: "請依下方匯款資訊於 3 日內完成付款。店家收到款項會手動標記,出貨前再通知你。",
+      };
+    case "paid":
+    case "preparing":
+      return {
+        title: "已收到付款",
+        subtitle: "店家正在備貨,出貨後會再通知你。",
+      };
+    case "shipped":
+      return {
+        title: "已出貨",
+        subtitle: "宅配通常 1–3 個工作天送達。",
+      };
+    case "completed":
+      return {
+        title: "訂單已完成",
+        subtitle: "感謝你的購買!",
+      };
+    case "cancelled":
+      return {
+        title: "訂單已取消",
+        subtitle: "如有疑問請洽店家查詢。",
+      };
+    case "refunded":
+      return {
+        title: "訂單已退款",
+        subtitle: "如未收到退款款項,請洽店家查詢。",
+      };
+  }
 }
