@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { formatDate, formatTime } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
@@ -34,9 +35,41 @@ const statusVariants: Record<
   cancelled: "outline",
 };
 
-export default async function AdminAppointmentsPage() {
+function taipeiToday(): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Taipei",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
+function taipeiWeekEnd(today: string): string {
+  const d = new Date(`${today}T00:00:00+08:00`);
+  d.setDate(d.getDate() + 6);
+  return d.toISOString().slice(0, 10);
+}
+
+type ViewMode = "today" | "week" | "all";
+
+const isViewMode = (v: string | undefined): v is ViewMode =>
+  v === "today" || v === "week" || v === "all";
+
+type SearchParams = Promise<{ view?: string }>;
+
+export default async function AdminAppointmentsPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
+  const sp = await searchParams;
+  const view: ViewMode = isViewMode(sp.view) ? sp.view : "all";
+
   const sb = await createServerSupabase();
-  const { data, error } = await sb
+  const today = taipeiToday();
+  const weekEnd = taipeiWeekEnd(today);
+
+  let query = sb
     .from("appointments")
     .select(
       `
@@ -54,14 +87,25 @@ export default async function AdminAppointmentsPage() {
     .order("created_at", { ascending: false })
     .limit(200);
 
+  // 篩選依賴 appointment_slots.date 而非 appointments 自身欄位。
+  // PostgREST 不支援在 nested 過濾再 join 回主表排序，所以在 JS 側過濾。
+  const { data, error } = await query;
+
   if (error) {
     console.error("appointments list error:", error);
     throw new Error("Failed to load appointments");
   }
 
-  const rows = (data ?? []) as unknown as AppointmentRow[];
-  // Server Component: runs once per request, Date.now() is fine here.
-  // eslint-disable-next-line react-hooks/purity
+  let rows = (data ?? []) as unknown as AppointmentRow[];
+
+  if (view === "today") {
+    rows = rows.filter((r) => r.slot?.date === today);
+  } else if (view === "week") {
+    rows = rows.filter(
+      (r) => r.slot && r.slot.date >= today && r.slot.date <= weekEnd,
+    );
+  }
+
   const nowMs = Date.now();
   const upcoming = rows.filter(
     (r) =>
@@ -71,15 +115,37 @@ export default async function AdminAppointmentsPage() {
   );
   const past = rows.filter((r) => !upcoming.includes(r));
 
+  const viewLabels: Record<ViewMode, string> = {
+    today: `今天 (${today})`,
+    week: `本週 (${today} – ${weekEnd})`,
+    all: "全部",
+  };
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <header>
         <h1 className="text-2xl font-semibold tracking-tight">預約清單</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           未來的預約放最上面。到店後標記「已完成」或「未到」。
-          顧客一般走自己的 email 連結取消；找不到信時 admin 可以直接「代客取消」（會釋放時段容量）。
         </p>
       </header>
+
+      {/* 日期篩選 tabs */}
+      <nav className="flex gap-2 flex-wrap">
+        {(["today", "week", "all"] as const).map((v) => (
+          <Link
+            key={v}
+            href={v === "all" ? "/admin/appointments" : `/admin/appointments?view=${v}`}
+            className={`rounded-full border px-4 py-1.5 text-sm transition-colors ${
+              view === v
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-border hover:border-foreground"
+            }`}
+          >
+            {viewLabels[v]}
+          </Link>
+        ))}
+      </nav>
 
       <Section title={`即將到來 (${upcoming.length})`} rows={upcoming} empty="沒有即將到來的預約。" />
       <Section title={`歷史 / 已完成 / 已取消 (${past.length})`} rows={past} empty="沒有歷史紀錄。" />
