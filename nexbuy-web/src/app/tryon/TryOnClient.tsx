@@ -8,6 +8,8 @@ import { TryOnCanvas } from "./components/TryOnCanvas";
 import { ProductCarousel } from "./components/ProductCarousel";
 import { AdjustmentSliders } from "./components/AdjustmentSliders";
 import { ActionBar } from "./components/ActionBar";
+import { FilterBar, DEFAULT_FILTERS, applyFilters, type Filters } from "./components/FilterBar";
+import { FaceShapeSelector } from "./components/FaceShapeSelector";
 import {
   detectFace,
   isMediaPipeSupported,
@@ -21,6 +23,7 @@ import {
   type Adjustment,
   type Placement,
 } from "./lib/glasses-placer";
+import { scoreProduct, type FaceShape } from "./lib/face-recommendations";
 import type { Product } from "@/lib/types/database";
 
 type Phase =
@@ -52,12 +55,24 @@ export function TryOnClient({ products }: Props) {
     return products[0]?.id ?? null;
   });
   const [adjust, setAdjust] = useState<Adjustment>(ADJUSTMENT_DEFAULTS);
+  const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
+  const [faceShape, setFaceShape] = useState<FaceShape | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const selectedProduct = useMemo(
     () => products.find((p) => p.id === selectedId) ?? null,
     [products, selectedId],
   );
+
+  // Carousel-visible products: apply filters, then sort by face-shape fit
+  // (best matches first; ties keep input order which was created_at desc).
+  const displayedProducts = useMemo(() => {
+    const filtered = applyFilters(products, filters);
+    if (!faceShape) return filtered;
+    return [...filtered].sort(
+      (a, b) => scoreProduct(b, faceShape) - scoreProduct(a, faceShape),
+    );
+  }, [products, filters, faceShape]);
 
   // When the selected product changes while in READY phase, reload the glasses
   // PNG so placement recomputes with the new aspect. Slider reset is done by
@@ -83,8 +98,6 @@ export function TryOnClient({ products }: Props) {
       );
     };
     img.onerror = () => {
-      // Clear glasses overlay so we don't show the previous product's PNG
-      // when the new product's PNG fails to load (404, CORS, etc.).
       console.error("glasses PNG load failed:", selectedProduct.try_on_image_url);
       setPhase((p) =>
         p.kind === "ready"
@@ -112,7 +125,6 @@ export function TryOnClient({ products }: Props) {
     setPhase({ kind: "analyzing" });
 
     try {
-      // Resize to max 1280px on longest side
       const tmp = await createImageBitmap(file);
       const scale = Math.min(1, 1280 / Math.max(tmp.width, tmp.height));
       const selfie =
@@ -124,7 +136,6 @@ export function TryOnClient({ products }: Props) {
           : tmp;
 
       const raw = await detectFace(selfie);
-      // NormalizedLandmark may have z as optional; normalize to Landmark
       const landmarks: Landmark[] = raw.map((l) => ({
         x: l.x,
         y: l.y,
@@ -137,10 +148,7 @@ export function TryOnClient({ products }: Props) {
         return;
       }
 
-      // Pre-load the current product's glasses PNG so READY has it ready
       if (!selectedProduct?.try_on_image_url) {
-        // No glasses to overlay yet — still go to READY so user can switch.
-        // Will render selfie-only until they pick.
         setPhase({
           kind: "ready",
           selfie,
@@ -214,36 +222,46 @@ export function TryOnClient({ products }: Props) {
     );
   }
 
-  // READY
+  // READY — desktop: split canvas (left) + controls (right). Mobile: stack.
   return (
-    <div className="space-y-4">
-      <div className="flex justify-end">
-        <button
-          type="button"
-          onClick={() => setPhase({ kind: "idle" })}
-          className="text-sm text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
-        >
-          ← 換一張照片
-        </button>
+    <div className="grid gap-4 lg:grid-cols-[1fr_22rem] lg:items-start">
+      {/* Left: canvas + change-photo */}
+      <div className="space-y-2">
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={() => setPhase({ kind: "idle" })}
+            className="text-sm text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
+          >
+            ← 換一張照片
+          </button>
+        </div>
+        <TryOnCanvas
+          selfie={phase.selfie}
+          glasses={phase.glassesImage.complete ? phase.glassesImage : null}
+          placement={placement}
+          canvasRef={canvasRef}
+        />
       </div>
-      <TryOnCanvas
-        selfie={phase.selfie}
-        glasses={phase.glassesImage.complete ? phase.glassesImage : null}
-        placement={placement}
-        canvasRef={canvasRef}
-      />
 
-      <ProductCarousel
-        products={products}
-        selectedId={selectedId}
-        onSelect={handleProductSelect}
-      />
-
-      <AdjustmentSliders value={adjust} onChange={setAdjust} />
-
-      {selectedProduct && (
-        <ActionBar product={selectedProduct} canvasRef={canvasRef} />
-      )}
+      {/* Right: face shape + filters + carousel + sliders + actions */}
+      <div className="space-y-3">
+        <FaceShapeSelector value={faceShape} onChange={setFaceShape} />
+        <FilterBar
+          products={products}
+          value={filters}
+          onChange={setFilters}
+        />
+        <ProductCarousel
+          products={displayedProducts}
+          selectedId={selectedId}
+          onSelect={handleProductSelect}
+        />
+        <AdjustmentSliders value={adjust} onChange={setAdjust} />
+        {selectedProduct && (
+          <ActionBar product={selectedProduct} canvasRef={canvasRef} />
+        )}
+      </div>
     </div>
   );
 }

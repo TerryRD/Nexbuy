@@ -27,10 +27,11 @@ export function TryOnCanvas({ selfie, glasses, placement, canvasRef }: Props) {
   }, [selfie, glasses, placement, canvasRef]);
 
   return (
-    <div className="relative w-full overflow-hidden rounded-lg bg-muted">
+    <div className="relative flex w-full justify-center overflow-hidden rounded-lg bg-muted">
       <canvas
         ref={canvasRef}
-        className="block w-full h-auto"
+        className="block max-w-full max-h-[70vh]"
+        style={{ aspectRatio: `${selfie.width} / ${selfie.height}` }}
       />
     </div>
   );
