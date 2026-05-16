@@ -9,7 +9,8 @@ import { createProductSchema, updateProductSchema } from "@/lib/schemas/product"
 import { pingProductUrls } from "@/lib/seo/indexnow";
 
 const MAX_FILE_BYTES = 5 * 1024 * 1024;
-const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const PRODUCT_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const TRY_ON_IMAGE_TYPES = new Set(["image/png"]);
 
 interface ActionResult {
   error?: string;
@@ -38,38 +39,57 @@ function parseFormData(formData: FormData) {
 }
 
 /**
- * Upload an optional image file to the product-images bucket.
- * Returns the public URL or null if no file given. Throws on validation /
- * upload failure (caller surfaces as error).
+ * Upload an optional file to the given bucket. Returns the public URL or null
+ * if no file given. Throws on validation / upload failure.
  */
-async function uploadImageIfPresent(
+async function uploadIfPresent(
   formData: FormData,
+  formField: string,
+  bucket: "product-images" | "try-on-images",
+  allowedTypes: Set<string>,
   slug: string,
 ): Promise<string | null> {
-  const file = formData.get("image");
+  const file = formData.get(formField);
   if (!(file instanceof File) || file.size === 0) return null;
   if (file.size > MAX_FILE_BYTES) {
     throw new Error("圖片超過 5MB");
   }
-  if (!ALLOWED_TYPES.has(file.type)) {
-    throw new Error("圖片格式只支援 JPG / PNG / WebP");
+  if (!allowedTypes.has(file.type)) {
+    throw new Error(
+      bucket === "try-on-images"
+        ? "試戴圖只支援 PNG"
+        : "圖片格式只支援 JPG / PNG / WebP",
+    );
   }
 
-  const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
+  const ext =
+    file.type === "image/png"
+      ? "png"
+      : file.type === "image/webp"
+        ? "webp"
+        : "jpg";
   const path = `${slug}/${Date.now()}.${ext}`;
 
   const admin = createAdminSupabase();
   const buffer = Buffer.from(await file.arrayBuffer());
   const { error } = await admin.storage
-    .from("product-images")
+    .from(bucket)
     .upload(path, buffer, { contentType: file.type, upsert: false });
   if (error) {
-    console.error("storage upload failed:", error);
+    console.error(`storage upload to ${bucket} failed:`, error);
     throw new Error("圖片上傳失敗");
   }
 
-  const { data } = admin.storage.from("product-images").getPublicUrl(path);
+  const { data } = admin.storage.from(bucket).getPublicUrl(path);
   return data.publicUrl;
+}
+
+function uploadProductImage(formData: FormData, slug: string) {
+  return uploadIfPresent(formData, "image", "product-images", PRODUCT_IMAGE_TYPES, slug);
+}
+
+function uploadTryOnImage(formData: FormData, slug: string) {
+  return uploadIfPresent(formData, "try_on_image", "try-on-images", TRY_ON_IMAGE_TYPES, slug);
 }
 
 export async function createProductAction(
@@ -82,8 +102,10 @@ export async function createProductAction(
   }
 
   let imageUrl: string | null = null;
+  let tryOnUrl: string | null = null;
   try {
-    imageUrl = await uploadImageIfPresent(formData, parsed.data.slug);
+    imageUrl = await uploadProductImage(formData, parsed.data.slug);
+    tryOnUrl = await uploadTryOnImage(formData, parsed.data.slug);
   } catch (e) {
     return { error: e instanceof Error ? e.message : "上傳失敗" };
   }
@@ -100,6 +122,7 @@ export async function createProductAction(
     low_stock_threshold: parsed.data.low_stock_threshold,
     is_online_available: parsed.data.is_online_available,
     image_urls: imageUrl ? [imageUrl] : [],
+    try_on_image_url: tryOnUrl,
     face_shape: parsed.data.face_shape,
     frame_shape: parsed.data.frame_shape,
     frame_size: parsed.data.frame_size,
@@ -141,7 +164,7 @@ export async function updateProductAction(
   // is uploaded.
   const { data: existing, error: readErr } = await sb
     .from("products")
-    .select("image_urls")
+    .select("image_urls, try_on_image_url")
     .eq("id", productId)
     .maybeSingle();
   if (readErr || !existing) {
@@ -149,12 +172,15 @@ export async function updateProductAction(
   }
 
   let imageUrls: string[] = (existing.image_urls as string[] | null) ?? [];
+  let tryOnUrl: string | null = (existing.try_on_image_url as string | null) ?? null;
   try {
-    const newUrl = await uploadImageIfPresent(formData, parsed.data.slug);
+    const newUrl = await uploadProductImage(formData, parsed.data.slug);
     if (newUrl) {
       // Replace strategy: new upload becomes the primary image, keep the rest.
       imageUrls = [newUrl, ...imageUrls.filter((u) => u !== newUrl)];
     }
+    const newTryOn = await uploadTryOnImage(formData, parsed.data.slug);
+    if (newTryOn) tryOnUrl = newTryOn;
   } catch (e) {
     return { error: e instanceof Error ? e.message : "上傳失敗" };
   }
@@ -173,6 +199,7 @@ export async function updateProductAction(
       low_stock_threshold: parsed.data.low_stock_threshold,
       is_online_available: parsed.data.is_online_available,
       image_urls: imageUrls,
+      try_on_image_url: tryOnUrl,
       face_shape: parsed.data.face_shape,
       frame_shape: parsed.data.frame_shape,
       frame_size: parsed.data.frame_size,
@@ -190,6 +217,7 @@ export async function updateProductAction(
   revalidatePath("/admin/products");
   revalidatePath(`/admin/products/${productId}/edit`);
   revalidatePath(`/products/${parsed.data.slug}`);
+  revalidatePath("/tryon");
   pingProductUrls([parsed.data.slug]);
   redirect("/admin/products");
 }

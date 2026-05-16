@@ -32,6 +32,7 @@ export default function AdminProductNewPage() {
           frame_size: null,
           material: null,
           color: null,
+          try_on_image_url: null,
         }}
         action={createProductAction}
         submitLabel="建立商品"

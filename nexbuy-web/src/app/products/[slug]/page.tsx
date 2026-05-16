@@ -77,7 +77,7 @@ export default async function ProductDetailPage({
     sb
       .from("products")
       .select(
-        "id, slug, name, description, price_cents, image_urls, brand, kind, finished_stock, is_online_available, face_shape, frame_shape, frame_size, material, color",
+        "id, slug, name, description, price_cents, image_urls, brand, kind, finished_stock, is_online_available, face_shape, frame_shape, frame_size, material, color, try_on_image_url",
       )
       .eq("slug", slug)
       .eq("is_online_available", true)
@@ -200,6 +200,19 @@ export default async function ProductDetailPage({
               </div>
             )}
           </div>
+
+          {product.try_on_image_url && (
+            <Link
+              href={`/tryon?product=${product.slug}`}
+              className={buttonVariants({
+                variant: "outline",
+                size: "lg",
+                className: "w-full sm:w-auto",
+              })}
+            >
+              虛擬試戴
+            </Link>
+          )}
         </div>
       </div>
     </div>

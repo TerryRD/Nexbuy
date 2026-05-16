@@ -49,3 +49,6 @@ wwwroot/uploads/*
 .claude/*
 !.claude/hooks/
 !.claude/settings.json
+
+# Superpowers brainstorming session files
+.superpowers/
