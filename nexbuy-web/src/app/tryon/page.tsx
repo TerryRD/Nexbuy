@@ -13,7 +13,7 @@ export default async function TryOnPage() {
   const { data, error } = await sb
     .from("products")
     .select(
-      "id, slug, name, description, price_cents, image_urls, brand, kind, finished_stock, is_online_available, try_on_image_url",
+      "id, slug, name, description, price_cents, image_urls, brand, kind, finished_stock, is_online_available, face_shape, frame_shape, frame_size, material, color, try_on_image_url",
     )
     .not("try_on_image_url", "is", null)
     .eq("is_online_available", true)
@@ -26,7 +26,7 @@ export default async function TryOnPage() {
     throw new Error("Failed to load products");
   }
 
-  const products = (data ?? []) as unknown as Product[];
+  const products = (data ?? []) as Product[];
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-6">
