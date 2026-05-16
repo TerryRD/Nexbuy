@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Download, ShoppingCart, Calendar, ExternalLink } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/format";
 import type { Product } from "@/lib/types/database";
@@ -59,9 +59,9 @@ export function ActionBar({ product, canvasRef }: Props) {
 
         <Link
           href={`/products/${product.slug}`}
-          className="inline-flex items-center justify-center rounded-[min(var(--radius-md),12px)] border border-border bg-background px-2.5 text-[0.8rem] font-medium text-foreground transition-all hover:bg-muted h-7 gap-1"
+          className={buttonVariants({ variant: "outline", size: "sm" })}
         >
-          <ExternalLink className="size-3.5" />
+          <ExternalLink className="size-4 mr-1" />
           看詳情
         </Link>
 
@@ -77,9 +77,9 @@ export function ActionBar({ product, canvasRef }: Props) {
         ) : (
           <Link
             href={`/appointment/book/${product.slug}`}
-            className="col-span-2 inline-flex items-center justify-center rounded-lg border border-transparent bg-clip-padding bg-primary text-primary-foreground px-2.5 text-sm font-medium transition-all hover:bg-primary/80 h-8 gap-1.5"
+            className={buttonVariants({ className: "col-span-2" })}
           >
-            <Calendar className="size-4" />
+            <Calendar className="size-4 mr-1" />
             預約到店配鏡
           </Link>
         )}
