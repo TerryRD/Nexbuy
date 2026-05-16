@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Glasses } from "lucide-react";
+import { Glasses, Camera } from "lucide-react";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { CartLink } from "./CartLink";
 import { HeaderAuthLink } from "./HeaderAuthLink";
@@ -38,6 +38,7 @@ export async function Header() {
             className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-full text-muted-foreground transition-colors hover:bg-accent/40 hover:text-foreground sm:min-h-0 sm:min-w-0 sm:px-3 sm:py-1.5"
             aria-label="試戴"
           >
+            <Camera className="size-4" />
             <span className="hidden sm:inline">試戴</span>
           </Link>
           <HeaderAuthLink loggedIn={!!user} />

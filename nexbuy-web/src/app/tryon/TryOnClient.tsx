@@ -82,6 +82,20 @@ export function TryOnClient({ products }: Props) {
           : p,
       );
     };
+    img.onerror = () => {
+      // Clear glasses overlay so we don't show the previous product's PNG
+      // when the new product's PNG fails to load (404, CORS, etc.).
+      console.error("glasses PNG load failed:", selectedProduct.try_on_image_url);
+      setPhase((p) =>
+        p.kind === "ready"
+          ? {
+              ...p,
+              glassesImage: new Image(),
+              glassesAspect: { naturalWidth: 1, naturalHeight: 1 },
+            }
+          : p,
+      );
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedId]);
 
