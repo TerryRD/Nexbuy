@@ -20,6 +20,8 @@ export interface Product {
   frame_size: string | null;
   material: string | null;
   color: string | null;
+  // Virtual try-on
+  try_on_image_url: string | null;
 }
 
 export interface AppointmentSlot {

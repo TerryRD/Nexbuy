@@ -35,6 +35,7 @@ export interface ProductInitial {
   frame_size: string | null;
   material: string | null;
   color: string | null;
+  try_on_image_url: string | null;
 }
 
 interface ActionResult {
@@ -269,6 +270,48 @@ export function ProductForm({ initial, action, submitLabel }: Props) {
           accept="image/jpeg,image/png,image/webp"
           onChange={onFileChange}
         />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="p-tryon-image">
+          試戴用透明 PNG（選填）
+          <span className="ml-1 text-xs font-normal text-muted-foreground">
+            — 必須是已去背的 PNG，會出現在 /tryon
+          </span>
+        </Label>
+        {initial.try_on_image_url && (
+          <div
+            className="flex items-center gap-3"
+            style={{
+              backgroundImage:
+                "linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)",
+              backgroundSize: "16px 16px",
+              backgroundPosition: "0 0, 0 8px, 8px -8px, -8px 0px",
+            }}
+          >
+            <Image
+              src={initial.try_on_image_url}
+              alt="目前試戴圖"
+              width={120}
+              height={60}
+              className="rounded"
+              unoptimized
+            />
+            <p className="text-sm text-muted-foreground">
+              已有試戴圖。選新檔案會置換。
+            </p>
+          </div>
+        )}
+        <Input
+          id="p-tryon-image"
+          type="file"
+          name="try_on_image"
+          accept="image/png"
+        />
+        <p className="text-xs text-muted-foreground">
+          請用 Photoshop / Photopea / Photoroom 等工具先把眼鏡去背成透明 PNG 再上傳。
+          建議：眼鏡置中、無陰影、解析度 ≥ 800px。
+        </p>
       </div>
 
       <fieldset className="space-y-4 rounded-lg border bg-card/30 p-4">
