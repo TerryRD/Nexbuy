@@ -59,10 +59,10 @@ export function TryOnClient({ products }: Props) {
     [products, selectedId],
   );
 
-  // When the product changes, reset sliders AND reload the glasses image so
-  // placement recomputes with the new PNG's aspect.
+  // When the selected product changes while in READY phase, reload the glasses
+  // PNG so placement recomputes with the new aspect. Slider reset is done by
+  // handleProductSelect (not by an effect) per react-hooks/set-state-in-effect.
   useEffect(() => {
-    setAdjust(ADJUSTMENT_DEFAULTS);
     if (phase.kind !== "ready") return;
     if (!selectedProduct?.try_on_image_url) return;
     const img = new Image();
@@ -84,6 +84,11 @@ export function TryOnClient({ products }: Props) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedId]);
+
+  function handleProductSelect(id: string) {
+    setSelectedId(id);
+    setAdjust(ADJUSTMENT_DEFAULTS);
+  }
 
   async function handleFile(file: File) {
     if (!isMediaPipeSupported()) {
@@ -208,7 +213,7 @@ export function TryOnClient({ products }: Props) {
       <ProductCarousel
         products={products}
         selectedId={selectedId}
-        onSelect={setSelectedId}
+        onSelect={handleProductSelect}
       />
 
       <AdjustmentSliders value={adjust} onChange={setAdjust} />
