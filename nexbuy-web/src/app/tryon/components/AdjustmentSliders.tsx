@@ -35,7 +35,7 @@ export function AdjustmentSliders({ value, onChange }: Props) {
       </div>
 
       <SliderRow
-        label="寬度"
+        label="大小"
         value={value.widthScale}
         min={widthScale.min}
         max={widthScale.max}
@@ -81,11 +81,7 @@ function SliderRow({ label, value, min, max, step, onChange }: RowProps) {
         min={min}
         max={max}
         step={step}
-        onValueChange={(v) => {
-          if (Array.isArray(v)) {
-            onChange(v[0]);
-          }
-        }}
+        onValueChange={(v) => onChange(typeof v === "number" ? v : v[0])}
       />
     </div>
   );

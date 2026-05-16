@@ -217,6 +217,15 @@ export function TryOnClient({ products }: Props) {
   // READY
   return (
     <div className="space-y-4">
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={() => setPhase({ kind: "idle" })}
+          className="text-sm text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
+        >
+          ← 換一張照片
+        </button>
+      </div>
       <TryOnCanvas
         selfie={phase.selfie}
         glasses={phase.glassesImage.complete ? phase.glassesImage : null}

@@ -91,7 +91,7 @@ export const ADJUSTMENT_DEFAULTS: Adjustment = {
 };
 
 export const ADJUSTMENT_RANGES = {
-  widthScale: { min: 0.7, max: 1.3, step: 0.01 },
+  widthScale: { min: 0.5, max: 1.5, step: 0.01 },
   yOffset: { min: -0.05, max: 0.05, step: 0.001 },
   angle: { min: -0.26, max: 0.26, step: 0.005 },
 } as const;
