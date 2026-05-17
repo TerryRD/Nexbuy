@@ -285,7 +285,11 @@ export function TryOnClient({ products }: Props) {
           />
         </div>
 
-        <AdjustmentSliders value={adjust} onChange={setAdjust} />
+        {/* Pushed to the bottom on desktop so the right panel's bottom edge
+            lines up with the carousel below the canvas in the left column. */}
+        <div className="lg:mt-auto">
+          <AdjustmentSliders value={adjust} onChange={setAdjust} />
+        </div>
       </div>
     </div>
   );
