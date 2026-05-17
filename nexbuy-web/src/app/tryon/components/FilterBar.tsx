@@ -37,21 +37,21 @@ export function FilterBar({ products: _products, value, onChange }: Props) {
     value.priceMax !== null;
 
   return (
-    <div className="space-y-2 rounded-lg border bg-muted/30 p-3">
+    <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
       <div className="flex items-center justify-between">
-        <p className="text-xs font-medium text-muted-foreground">篩選</p>
+        <h3 className="text-base font-semibold">篩選</h3>
         {hasActiveFilter && (
           <button
             type="button"
             onClick={() => onChange(DEFAULT_FILTERS)}
-            className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
+            className="rounded-md border border-red-500/60 px-2 py-0.5 text-xs text-red-600 transition-colors hover:bg-red-50 hover:border-red-500 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-950/30 dark:hover:text-red-300"
           >
             清除
           </button>
         )}
       </div>
 
-      <Group label="類型">
+      <Row label="類型">
         <Chip active={value.kind === "all"} onClick={() => patch({ kind: "all" })}>
           全部
         </Chip>
@@ -67,9 +67,9 @@ export function FilterBar({ products: _products, value, onChange }: Props) {
         >
           處方鏡架
         </Chip>
-      </Group>
+      </Row>
 
-      <Group label="鏡架形狀">
+      <Row label="鏡框形狀">
         <Chip
           active={value.frameShape === null}
           onClick={() => patch({ frameShape: null })}
@@ -85,51 +85,55 @@ export function FilterBar({ products: _products, value, onChange }: Props) {
             {shape}
           </Chip>
         ))}
-      </Group>
+      </Row>
 
-      <div className="flex flex-wrap items-center gap-1.5">
-        <span className="text-[10px] uppercase tracking-wide text-muted-foreground/70 mr-1">
-          價格
-        </span>
-        <Input
-          type="number"
-          placeholder="最低"
-          min={0}
-          value={value.priceMin ?? ""}
-          onChange={(e) =>
-            patch({ priceMin: e.target.value ? Number(e.target.value) : null })
-          }
-          className="h-6 w-20 px-2 py-0 text-xs"
-        />
-        <span className="text-xs text-muted-foreground">–</span>
-        <Input
-          type="number"
-          placeholder="最高"
-          min={0}
-          value={value.priceMax ?? ""}
-          onChange={(e) =>
-            patch({ priceMax: e.target.value ? Number(e.target.value) : null })
-          }
-          className="h-6 w-20 px-2 py-0 text-xs"
-        />
-        <span className="text-xs text-muted-foreground">元</span>
-      </div>
+      <Row label="價格">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <Input
+            type="number"
+            placeholder="最低"
+            min={0}
+            value={value.priceMin ?? ""}
+            onChange={(e) =>
+              patch({ priceMin: e.target.value ? Number(e.target.value) : null })
+            }
+            className="h-8 w-24 px-2 text-sm"
+          />
+          <span className="text-sm text-muted-foreground">–</span>
+          <Input
+            type="number"
+            placeholder="最高"
+            min={0}
+            value={value.priceMax ?? ""}
+            onChange={(e) =>
+              patch({ priceMax: e.target.value ? Number(e.target.value) : null })
+            }
+            className="h-8 w-24 px-2 text-sm"
+          />
+          <span className="text-sm text-muted-foreground">元</span>
+        </div>
+      </Row>
     </div>
   );
 }
 
-interface GroupProps {
+interface RowProps {
   label: string;
   children: React.ReactNode;
 }
 
-function Group({ label, children }: GroupProps) {
+/**
+ * 2-column layout: fixed-width label on the left + flexible content area on
+ * the right. Keeps every row's options aligned vertically; chip rows wrap
+ * within their own column so 鏡框形狀 chips don't fall under the label.
+ */
+function Row({ label, children }: RowProps) {
   return (
-    <div className="flex flex-wrap items-center gap-1.5">
-      <span className="text-[10px] uppercase tracking-wide text-muted-foreground/70 mr-1">
+    <div className="grid grid-cols-[4.5rem_minmax(0,1fr)] items-start gap-2">
+      <span className="pt-1 text-sm font-medium text-muted-foreground">
         {label}
       </span>
-      {children}
+      <div className="flex flex-wrap items-center gap-1.5">{children}</div>
     </div>
   );
 }
@@ -146,7 +150,7 @@ function Chip({ active, onClick, children }: ChipProps) {
       type="button"
       onClick={onClick}
       className={cn(
-        "rounded-full border px-2 py-0.5 text-xs transition",
+        "rounded-full border px-3 py-1 text-sm transition",
         active
           ? "border-primary bg-primary text-primary-foreground"
           : "border-border bg-background hover:bg-muted",
