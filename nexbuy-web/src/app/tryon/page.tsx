@@ -29,7 +29,7 @@ export default async function TryOnPage() {
   const products = (data ?? []) as Product[];
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-6">
+    <div className="mx-auto max-w-6xl px-4 py-6">
       <header className="mb-6">
         <h1 className="font-heading text-3xl font-semibold tracking-tight">
           虛擬試戴

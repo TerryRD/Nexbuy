@@ -193,10 +193,12 @@ export function TryOnClient({ products }: Props) {
 
   if (phase.kind === "idle") {
     return (
-      <SelfieUploader
-        onFile={handleFile}
-        onError={(msg) => alert(msg)}
-      />
+      <div className="mx-auto max-w-2xl">
+        <SelfieUploader
+          onFile={handleFile}
+          onError={(msg) => alert(msg)}
+        />
+      </div>
     );
   }
 
@@ -210,21 +212,25 @@ export function TryOnClient({ products }: Props) {
 
   if (phase.kind === "quality-fail") {
     return (
-      <QualityError
-        reason={phase.reason}
-        onRetake={() => setPhase({ kind: "idle" })}
-      />
+      <div className="mx-auto max-w-2xl">
+        <QualityError
+          reason={phase.reason}
+          onRetake={() => setPhase({ kind: "idle" })}
+        />
+      </div>
     );
   }
 
   // READY
-  // Desktop: two fixed-height columns, right panel scrolls independently.
-  // Mobile: stacked — carousel + action bar appear first (most important),
-  //         then face shape, filters, and sliders below.
+  // Desktop: two columns (canvas+carousel left, controls right). Both columns
+  // share a fixed height so the page itself doesn't scroll — the right panel
+  // scrolls internally if its content overflows.
+  // Mobile: stacked vertically — canvas, carousel, action bar, then secondary
+  // controls (face shape, filters, sliders).
   return (
-    <div className="flex flex-col gap-3 lg:grid lg:grid-cols-[1fr_22rem] lg:h-[min(65vh,540px)] lg:gap-4">
+    <div className="flex flex-col gap-3 lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:h-[min(70vh,620px)] lg:gap-5">
 
-      {/* ── Left: canvas ── */}
+      {/* ── Left column: canvas (grows) + carousel (fixed below) ── */}
       <div className="flex flex-col gap-2 lg:min-h-0">
         <div className="flex justify-end">
           <button
@@ -235,44 +241,37 @@ export function TryOnClient({ products }: Props) {
             ← 換一張照片
           </button>
         </div>
-        {/* Canvas fills remaining height on desktop; fixed height on mobile */}
+
+        {/* Canvas: fills remaining vertical space on desktop, fixed height mobile */}
         <TryOnCanvas
           selfie={phase.selfie}
           glasses={phase.glassesImage.complete ? phase.glassesImage : null}
           placement={placement}
           canvasRef={canvasRef}
-          className="h-64 sm:h-80 lg:flex-1 lg:h-auto"
+          className="h-64 sm:h-80 lg:h-auto lg:flex-1 lg:min-h-0"
         />
+
+        {/* Carousel: horizontal strip below canvas — full column width for ample swipe area */}
+        <div className="shrink-0">
+          <ProductCarousel
+            products={displayedProducts}
+            selectedId={selectedId}
+            onSelect={handleProductSelect}
+          />
+        </div>
       </div>
 
-      {/* ── Right: controls ── */}
-      {/* On desktop this panel scrolls independently so the page never scrolls. */}
-      {/* On mobile, controls stack below the canvas in priority order. */}
-      <div className="flex flex-col gap-3 lg:overflow-y-auto lg:min-h-0">
-
-        {/* 1. Carousel — most interactive, visible first on mobile & desktop */}
-        <ProductCarousel
-          products={displayedProducts}
-          selectedId={selectedId}
-          onSelect={handleProductSelect}
-        />
-
-        {/* 2. Action bar — primary CTA visible without scrolling */}
+      {/* ── Right column: controls ── */}
+      <div className="flex flex-col gap-3 lg:overflow-y-auto lg:min-h-0 lg:pr-1">
         {selectedProduct && (
           <ActionBar product={selectedProduct} canvasRef={canvasRef} />
         )}
-
-        {/* 3. Face shape selector */}
         <FaceShapeSelector value={faceShape} onChange={setFaceShape} />
-
-        {/* 4. Filters */}
         <FilterBar
           products={products}
           value={filters}
           onChange={setFilters}
         />
-
-        {/* 5. Fine-tune sliders — secondary, at bottom of right panel */}
         <AdjustmentSliders value={adjust} onChange={setAdjust} />
       </div>
     </div>
