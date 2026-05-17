@@ -10,17 +10,27 @@ interface Props {
   onSelect: (id: string) => void;
 }
 
+// Fixed carousel height so the canvas above it stays the same size whether
+// the carousel has products or shows the empty state, and so the left
+// column lines up cleanly with the right control panel.
+const CAROUSEL_HEIGHT = "h-[148px]";
+
 export function ProductCarousel({ products, selectedId, onSelect }: Props) {
   if (products.length === 0) {
     return (
-      <p className="text-sm text-muted-foreground py-4 text-center">
-        目前還沒有可試戴的款式
-      </p>
+      <div
+        className={cn(
+          "flex items-center justify-center rounded-lg border border-dashed border-muted-foreground/20",
+          CAROUSEL_HEIGHT,
+        )}
+      >
+        <p className="text-sm text-muted-foreground">目前還沒有可試戴的款式</p>
+      </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div className={cn("overflow-x-auto", CAROUSEL_HEIGHT)}>
       <div className="flex gap-3 pb-2">
         {products.map((p) => (
           <button
