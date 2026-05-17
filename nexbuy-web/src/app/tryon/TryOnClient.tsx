@@ -65,12 +65,28 @@ export function TryOnClient({ products }: Props) {
     [products, selectedId],
   );
 
+  // The product the user originally arrived with (from ?product=slug on
+  // the product page). Captured once so that clicking other thumbnails
+  // afterwards doesn't keep reordering the carousel.
+  const initialSelectedIdRef = useRef(selectedId);
+
   const displayedProducts = useMemo(() => {
     const filtered = applyFilters(products, filters);
-    if (!faceShape) return filtered;
-    return [...filtered].sort(
-      (a, b) => scoreProduct(b, faceShape) - scoreProduct(a, faceShape),
-    );
+    let sorted = faceShape
+      ? [...filtered].sort(
+          (a, b) => scoreProduct(b, faceShape) - scoreProduct(a, faceShape),
+        )
+      : filtered;
+    // Bring the originally-selected product (from URL) to the front so the
+    // active highlight in the carousel is the leftmost item.
+    const initialId = initialSelectedIdRef.current;
+    if (initialId) {
+      const idx = sorted.findIndex((p) => p.id === initialId);
+      if (idx > 0) {
+        sorted = [sorted[idx], ...sorted.slice(0, idx), ...sorted.slice(idx + 1)];
+      }
+    }
+    return sorted;
   }, [products, filters, faceShape]);
 
   useEffect(() => {
@@ -224,64 +240,37 @@ export function TryOnClient({ products }: Props) {
 
   // READY layout
   //
-  // Mobile (default, single column): the DOM order below is the on-screen
-  // order. Canvas → Carousel → Sliders comes first so all three primary
-  // controls (see, switch frame, fine-tune) fit on one screen without
-  // scrolling. ActionBar / FaceShape / Filter sit below the fold.
+  // Mobile (single column, DOM order = visual order):
+  //   1. FaceShape   ── filter the carousel by face type (top-priority controls)
+  //   2. Filter      ── (mobile: dialog button; desktop: inline)
+  //   3. Canvas      ── the try-on result
+  //   4. Carousel    ── switch frames
+  //   5. Sliders     ── fine-tune position/size
+  //   6. ActionBar   ── add-to-cart / appointment CTA (below fold OK; user
+  //                     reaches it after they're happy with the try-on)
   //
-  // Desktop (lg+): a 2×2 grid puts canvas (top-left, fills), carousel
-  // (bottom-left), the action/face/filter group (top-right, scrolls
-  // internally if tall), and sliders (bottom-right). Grid item placement
-  // overrides the mobile DOM order.
+  // Desktop (lg+): 4-row × 2-col grid, canvas spans rows 1-3 in left col,
+  //   carousel in left col row 4, action/face/filter stacked in right col
+  //   rows 1-3, sliders in right col row 4. Grid placement overrides the
+  //   mobile DOM order so the desktop layout stays the same.
   return (
     <div
       className="
         flex flex-col gap-3
         lg:grid
         lg:grid-cols-[minmax(0,1fr)_22rem]
-        lg:grid-rows-[1fr_auto]
+        lg:grid-rows-[1fr_auto_auto_auto]
         lg:gap-x-5 lg:gap-y-3
         lg:h-[min(70vh,620px)]
       "
     >
-      {/* 1. Canvas — mobile 1st, desktop top-left */}
-      <TryOnCanvas
-        selfie={phase.selfie}
-        glasses={phase.glassesImage.complete ? phase.glassesImage : null}
-        placement={placement}
-        canvasRef={canvasRef}
-        className="h-64 sm:h-80 lg:h-auto lg:min-h-0 lg:col-start-1 lg:row-start-1"
-        onReplaceFile={handleFile}
-        onError={(msg) => alert(msg)}
-      />
-
-      {/* 2. Carousel — mobile 2nd, desktop bottom-left */}
-      <div className="shrink-0 lg:col-start-1 lg:row-start-2">
-        <ProductCarousel
-          products={displayedProducts}
-          selectedId={selectedId}
-          onSelect={handleProductSelect}
-        />
-      </div>
-
-      {/* 3. Sliders — mobile 3rd (above the fold!), desktop bottom-right */}
+      {/* 1. FaceShape — mobile top, desktop right col row 2 */}
       <div className="lg:col-start-2 lg:row-start-2">
-        <AdjustmentSliders value={adjust} onChange={setAdjust} />
+        <FaceShapeSelector value={faceShape} onChange={setFaceShape} />
       </div>
 
-      {/* 4. Right-top group: ActionBar + FaceShape + Filter
-            — mobile 4th onwards, desktop top-right (scrolls if tall) */}
-      <div
-        className="
-          flex flex-col gap-3
-          lg:col-start-2 lg:row-start-1
-          lg:overflow-y-auto lg:min-h-0 lg:pr-1
-        "
-      >
-        {selectedProduct && (
-          <ActionBar product={selectedProduct} canvasRef={canvasRef} />
-        )}
-        <FaceShapeSelector value={faceShape} onChange={setFaceShape} />
+      {/* 2. Filter — mobile 2nd, desktop right col row 3 */}
+      <div className="lg:col-start-2 lg:row-start-3">
         <div className="lg:hidden">
           <MobileFilterButton
             products={products}
@@ -297,6 +286,38 @@ export function TryOnClient({ products }: Props) {
           />
         </div>
       </div>
+
+      {/* 3. Canvas — mobile 3rd, desktop col 1 rows 1-3 (fills tall) */}
+      <TryOnCanvas
+        selfie={phase.selfie}
+        glasses={phase.glassesImage.complete ? phase.glassesImage : null}
+        placement={placement}
+        canvasRef={canvasRef}
+        className="h-64 sm:h-80 lg:h-auto lg:min-h-0 lg:col-start-1 lg:row-start-1 lg:row-end-4"
+        onReplaceFile={handleFile}
+        onError={(msg) => alert(msg)}
+      />
+
+      {/* 4. Carousel — mobile 4th, desktop col 1 row 4 */}
+      <div className="shrink-0 lg:col-start-1 lg:row-start-4">
+        <ProductCarousel
+          products={displayedProducts}
+          selectedId={selectedId}
+          onSelect={handleProductSelect}
+        />
+      </div>
+
+      {/* 5. Sliders — mobile 5th, desktop col 2 row 4 */}
+      <div className="lg:col-start-2 lg:row-start-4">
+        <AdjustmentSliders value={adjust} onChange={setAdjust} />
+      </div>
+
+      {/* 6. ActionBar — mobile 6th (CTA after try-on), desktop right col row 1 */}
+      {selectedProduct && (
+        <div className="lg:col-start-2 lg:row-start-1">
+          <ActionBar product={selectedProduct} canvasRef={canvasRef} />
+        </div>
+      )}
     </div>
   );
 }
