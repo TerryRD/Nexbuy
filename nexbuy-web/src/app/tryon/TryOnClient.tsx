@@ -222,47 +222,66 @@ export function TryOnClient({ products }: Props) {
     );
   }
 
-  // READY
-  // Desktop: two columns (canvas+carousel left, controls right). Both columns
-  // share a fixed height so the page itself doesn't scroll — the right panel
-  // scrolls internally if its content overflows.
-  // Mobile: stacked vertically — canvas, carousel, action bar, then secondary
-  // controls (face shape, filters, sliders).
+  // READY layout
+  //
+  // Mobile (default, single column): the DOM order below is the on-screen
+  // order. Canvas → Carousel → Sliders comes first so all three primary
+  // controls (see, switch frame, fine-tune) fit on one screen without
+  // scrolling. ActionBar / FaceShape / Filter sit below the fold.
+  //
+  // Desktop (lg+): a 2×2 grid puts canvas (top-left, fills), carousel
+  // (bottom-left), the action/face/filter group (top-right, scrolls
+  // internally if tall), and sliders (bottom-right). Grid item placement
+  // overrides the mobile DOM order.
   return (
-    <div className="flex flex-col gap-3 lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:h-[min(70vh,620px)] lg:gap-5">
+    <div
+      className="
+        flex flex-col gap-3
+        lg:grid
+        lg:grid-cols-[minmax(0,1fr)_22rem]
+        lg:grid-rows-[1fr_auto]
+        lg:gap-x-5 lg:gap-y-3
+        lg:h-[min(70vh,620px)]
+      "
+    >
+      {/* 1. Canvas — mobile 1st, desktop top-left */}
+      <TryOnCanvas
+        selfie={phase.selfie}
+        glasses={phase.glassesImage.complete ? phase.glassesImage : null}
+        placement={placement}
+        canvasRef={canvasRef}
+        className="h-64 sm:h-80 lg:h-auto lg:min-h-0 lg:col-start-1 lg:row-start-1"
+        onReplaceFile={handleFile}
+        onError={(msg) => alert(msg)}
+      />
 
-      {/* ── Left column: canvas (grows) + carousel (fixed below) ── */}
-      <div className="flex flex-col gap-2 lg:min-h-0">
-        {/* Canvas: fills remaining vertical space on desktop, fixed height mobile.
-            Overlay button + drag-drop zone let users swap the selfie inline. */}
-        <TryOnCanvas
-          selfie={phase.selfie}
-          glasses={phase.glassesImage.complete ? phase.glassesImage : null}
-          placement={placement}
-          canvasRef={canvasRef}
-          className="h-64 sm:h-80 lg:h-auto lg:flex-1 lg:min-h-0"
-          onReplaceFile={handleFile}
-          onError={(msg) => alert(msg)}
+      {/* 2. Carousel — mobile 2nd, desktop bottom-left */}
+      <div className="shrink-0 lg:col-start-1 lg:row-start-2">
+        <ProductCarousel
+          products={displayedProducts}
+          selectedId={selectedId}
+          onSelect={handleProductSelect}
         />
-
-        {/* Carousel: horizontal strip below canvas — full column width for ample swipe area */}
-        <div className="shrink-0">
-          <ProductCarousel
-            products={displayedProducts}
-            selectedId={selectedId}
-            onSelect={handleProductSelect}
-          />
-        </div>
       </div>
 
-      {/* ── Right column: controls ── */}
-      <div className="flex flex-col gap-3 lg:overflow-y-auto lg:min-h-0 lg:pr-1">
+      {/* 3. Sliders — mobile 3rd (above the fold!), desktop bottom-right */}
+      <div className="lg:col-start-2 lg:row-start-2">
+        <AdjustmentSliders value={adjust} onChange={setAdjust} />
+      </div>
+
+      {/* 4. Right-top group: ActionBar + FaceShape + Filter
+            — mobile 4th onwards, desktop top-right (scrolls if tall) */}
+      <div
+        className="
+          flex flex-col gap-3
+          lg:col-start-2 lg:row-start-1
+          lg:overflow-y-auto lg:min-h-0 lg:pr-1
+        "
+      >
         {selectedProduct && (
           <ActionBar product={selectedProduct} canvasRef={canvasRef} />
         )}
         <FaceShapeSelector value={faceShape} onChange={setFaceShape} />
-
-        {/* Filters: collapsed into a dialog button on mobile, inline on desktop */}
         <div className="lg:hidden">
           <MobileFilterButton
             products={products}
@@ -276,12 +295,6 @@ export function TryOnClient({ products }: Props) {
             value={filters}
             onChange={setFilters}
           />
-        </div>
-
-        {/* Pushed to the bottom on desktop so the right panel's bottom edge
-            lines up with the carousel below the canvas in the left column. */}
-        <div className="lg:mt-auto">
-          <AdjustmentSliders value={adjust} onChange={setAdjust} />
         </div>
       </div>
     </div>
