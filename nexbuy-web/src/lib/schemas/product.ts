@@ -7,7 +7,6 @@ export const FACE_SHAPES = [
   "圓形",
   "方形",
   "橢圓",
-  "心型",
   "倒三角",
 ] as const;
 // 框形 — 鏡架本身的形狀（跟 FACE_SHAPES「適合的臉型」是不同維度）
