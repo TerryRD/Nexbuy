@@ -1,13 +1,14 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Dialog } from "@base-ui/react/dialog";
-import { Download, ShoppingCart, Calendar, X, ExternalLink } from "lucide-react";
+import { Download, ShoppingCart, Calendar, X, ExternalLink, Check } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import type { Product } from "@/lib/types/database";
 import { downloadCanvasAsPng } from "../lib/canvas-renderer";
 
@@ -17,8 +18,8 @@ interface Props {
 }
 
 export function ActionBar({ product, canvasRef }: Props) {
-  const router = useRouter();
   const { add } = useCart();
+  const [justAdded, setJustAdded] = useState(false);
 
   async function handleDownload() {
     const canvas = canvasRef.current;
@@ -41,7 +42,10 @@ export function ActionBar({ product, canvasRef }: Props) {
       image_url: product.image_urls[0],
       quantity: 1,
     });
-    router.push("/cart");
+    // Brief confirmation; user can keep trying on other frames without
+    // leaving the page (they often want to compare/buy multiple).
+    setJustAdded(true);
+    window.setTimeout(() => setJustAdded(false), 1800);
   }
 
   return (
@@ -147,11 +151,24 @@ export function ActionBar({ product, canvasRef }: Props) {
                 <div className="flex flex-col gap-2 pt-1">
                   {product.kind === "finished" ? (
                     <Button
+                      className={cn(
+                        "transition-colors",
+                        justAdded && "bg-emerald-600 hover:bg-emerald-600 text-white",
+                      )}
                       onClick={handleAddToCart}
-                      disabled={(product.finished_stock ?? 0) <= 0}
+                      disabled={(product.finished_stock ?? 0) <= 0 || justAdded}
                     >
-                      <ShoppingCart className="size-4 mr-1" />
-                      {(product.finished_stock ?? 0) <= 0 ? "已售完" : "加入購物車"}
+                      {justAdded ? (
+                        <>
+                          <Check className="size-4 mr-1" />
+                          已加入購物車
+                        </>
+                      ) : (
+                        <>
+                          <ShoppingCart className="size-4 mr-1" />
+                          {(product.finished_stock ?? 0) <= 0 ? "已售完" : "加入購物車"}
+                        </>
+                      )}
                     </Button>
                   ) : (
                     <Link
@@ -178,12 +195,24 @@ export function ActionBar({ product, canvasRef }: Props) {
 
         {product.kind === "finished" ? (
           <Button
-            className="col-span-2"
+            className={cn(
+              "col-span-2 transition-colors",
+              justAdded && "bg-emerald-600 hover:bg-emerald-600 text-white",
+            )}
             onClick={handleAddToCart}
-            disabled={(product.finished_stock ?? 0) <= 0}
+            disabled={(product.finished_stock ?? 0) <= 0 || justAdded}
           >
-            <ShoppingCart className="size-4 mr-1" />
-            {(product.finished_stock ?? 0) <= 0 ? "已售完" : "加入購物車"}
+            {justAdded ? (
+              <>
+                <Check className="size-4 mr-1" />
+                已加入購物車
+              </>
+            ) : (
+              <>
+                <ShoppingCart className="size-4 mr-1" />
+                {(product.finished_stock ?? 0) <= 0 ? "已售完" : "加入購物車"}
+              </>
+            )}
           </Button>
         ) : (
           <Link
