@@ -233,23 +233,16 @@ export function TryOnClient({ products }: Props) {
 
       {/* ── Left column: canvas (grows) + carousel (fixed below) ── */}
       <div className="flex flex-col gap-2 lg:min-h-0">
-        <div className="flex justify-end">
-          <button
-            type="button"
-            onClick={() => setPhase({ kind: "idle" })}
-            className="text-sm text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
-          >
-            ← 換一張照片
-          </button>
-        </div>
-
-        {/* Canvas: fills remaining vertical space on desktop, fixed height mobile */}
+        {/* Canvas: fills remaining vertical space on desktop, fixed height mobile.
+            Overlay button + drag-drop zone let users swap the selfie inline. */}
         <TryOnCanvas
           selfie={phase.selfie}
           glasses={phase.glassesImage.complete ? phase.glassesImage : null}
           placement={placement}
           canvasRef={canvasRef}
           className="h-64 sm:h-80 lg:h-auto lg:flex-1 lg:min-h-0"
+          onReplaceFile={handleFile}
+          onError={(msg) => alert(msg)}
         />
 
         {/* Carousel: horizontal strip below canvas — full column width for ample swipe area */}
