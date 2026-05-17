@@ -54,7 +54,7 @@ function hashIndex(slug: string, n: number, salt = 0): number {
   return (h >>> 0) % n;
 }
 
-const FALLBACK_SHAPES = ["圓形", "方形", "橢圓", "心型", "倒三角"] as const;
+const FALLBACK_SHAPES = ["圓形", "方形", "橢圓", "倒三角"] as const;
 const FALLBACK_COLORS = ["黑", "棕", "玳瑁", "金", "銀", "透明"] as const;
 
 /**
@@ -62,7 +62,6 @@ const FALLBACK_COLORS = ["黑", "棕", "玳瑁", "金", "銀", "透明"] as cons
  *   圓形    → 圓
  *   方形    → 圓角矩形
  *   橢圓    → 寬橢圓
- *   心型    → 上寬下尖
  *   倒三角  → 大上窄下
  *   其他    → 預設方圓
  */
@@ -74,9 +73,6 @@ function lensPath(shape: string, cx: number, cy: number, rx: number, ry: number)
       return `M ${cx - rx},${cy - ry} h ${rx * 2} v ${ry * 2} h ${-rx * 2} z`;
     case "橢圓":
       return `M ${cx - rx},${cy} a ${rx},${ry} 0 1,0 ${rx * 2},0 a ${rx},${ry} 0 1,0 ${-rx * 2},0`;
-    case "心型":
-      // 上寬下窄
-      return `M ${cx - rx},${cy - ry} L ${cx + rx},${cy - ry} L ${cx + rx * 0.4},${cy + ry} L ${cx - rx * 0.4},${cy + ry} Z`;
     case "倒三角":
       return `M ${cx - rx},${cy - ry} L ${cx + rx},${cy - ry} L ${cx},${cy + ry} Z`;
     default:

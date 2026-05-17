@@ -23,4 +23,4 @@ update products set face_shape = '{橢圓,圓形}', frame_size = 'S', material =
 update products set face_shape = '{圓形,橢圓}', frame_size = 'S', material = '金屬',     color = '銀'   where slug = 'reading-metal-thin';
 update products set face_shape = '{方形,橢圓}', frame_size = 'M', material = '醋酸纖維', color = '玳瑁' where slug = 'rx-classic-tortoise';
 update products set face_shape = '{方形}',     frame_size = 'L', material = '金屬',     color = '銀'   where slug = 'rx-modern-titanium';
-update products set face_shape = '{心型,圓形}', frame_size = 'S', material = 'TR90',     color = '棕'   where slug = 'rx-kids-flexible';
+update products set face_shape = '{倒三角,圓形}', frame_size = 'S', material = 'TR90',  color = '棕'   where slug = 'rx-kids-flexible';
