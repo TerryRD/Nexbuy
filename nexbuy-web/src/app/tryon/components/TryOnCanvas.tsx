@@ -31,14 +31,16 @@ export function TryOnCanvas({ selfie, glasses, placement, canvasRef, className }
   return (
     <div
       className={cn(
-        "relative flex w-full items-center justify-center overflow-hidden rounded-lg bg-muted",
+        "relative w-full overflow-hidden rounded-lg bg-muted",
         className,
       )}
     >
+      {/* canvas stretches to fill the box; object-contain scales the bitmap
+          (selfie + glasses overlay) to whichever side hits the limit first,
+          so small uploads get scaled up instead of looking tiny. */}
       <canvas
         ref={canvasRef}
-        className="block max-h-full max-w-full"
-        style={{ aspectRatio: `${selfie.width} / ${selfie.height}` }}
+        className="block h-full w-full object-contain"
       />
     </div>
   );
