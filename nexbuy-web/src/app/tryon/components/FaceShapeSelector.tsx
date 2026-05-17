@@ -7,11 +7,6 @@ import {
   getRecommendedFrames,
 } from "../lib/face-recommendations";
 
-// "心型" stays in the schema so existing products that were tagged with it
-// (rx-kids-flexible) keep validating, but we hide it from the user-facing
-// face-shape picker — it's not a face shape customers naturally identify with.
-const DISPLAY_FACE_SHAPES = FACE_SHAPES.filter((s) => s !== "心型");
-
 interface Props {
   value: FaceShape | null;
   onChange: (next: FaceShape | null) => void;
@@ -28,7 +23,7 @@ export function FaceShapeSelector({ value, onChange }: Props) {
         >
           全部
         </Chip>
-        {DISPLAY_FACE_SHAPES.map((shape) => (
+        {FACE_SHAPES.map((shape) => (
           <Chip
             key={shape}
             active={value === shape}
