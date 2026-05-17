@@ -23,12 +23,12 @@ export function AdjustmentSliders({ value, onChange }: Props) {
   return (
     <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium">微調</h3>
+        <h3 className="text-base font-semibold">微調</h3>
         <Button
           size="sm"
-          variant="ghost"
+          variant="outline"
           onClick={() => onChange(ADJUSTMENT_DEFAULTS)}
-          className="h-7 text-xs"
+          className="h-7 border-red-500/60 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-500 dark:text-red-400 dark:hover:bg-red-950/30 dark:hover:text-red-300"
         >
           重置
         </Button>
@@ -36,6 +36,8 @@ export function AdjustmentSliders({ value, onChange }: Props) {
 
       <SliderRow
         label="大小"
+        leftHint="小"
+        rightHint="大"
         value={value.widthScale}
         min={widthScale.min}
         max={widthScale.max}
@@ -44,6 +46,8 @@ export function AdjustmentSliders({ value, onChange }: Props) {
       />
       <SliderRow
         label="高低"
+        leftHint="上"
+        rightHint="下"
         value={value.yOffset}
         min={yOffset.min}
         max={yOffset.max}
@@ -52,6 +56,8 @@ export function AdjustmentSliders({ value, onChange }: Props) {
       />
       <SliderRow
         label="角度"
+        leftHint="左旋"
+        rightHint="右旋"
         value={value.angle}
         min={angle.min}
         max={angle.max}
@@ -64,6 +70,8 @@ export function AdjustmentSliders({ value, onChange }: Props) {
 
 interface RowProps {
   label: string;
+  leftHint: string;
+  rightHint: string;
   value: number;
   min: number;
   max: number;
@@ -71,12 +79,27 @@ interface RowProps {
   onChange: (v: number) => void;
 }
 
-function SliderRow({ label, value, min, max, step, onChange }: RowProps) {
+function SliderRow({
+  label,
+  leftHint,
+  rightHint,
+  value,
+  min,
+  max,
+  step,
+  onChange,
+}: RowProps) {
   return (
-    <div className="flex items-center gap-3">
-      <span className="w-10 shrink-0 text-xs text-muted-foreground">{label}</span>
+    <div className="space-y-1">
+      <div className="flex items-center justify-between text-xs">
+        <span className="text-sm font-medium text-foreground/90">{label}</span>
+        <span className="text-muted-foreground">
+          <span>{leftHint}</span>
+          <span className="mx-2 text-muted-foreground/60">←→</span>
+          <span>{rightHint}</span>
+        </span>
+      </div>
       <Slider
-        className="flex-1"
         value={[value]}
         min={min}
         max={max}

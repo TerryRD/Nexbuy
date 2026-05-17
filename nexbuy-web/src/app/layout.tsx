@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Fraunces } from "next/font/google";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
+import { LineFab } from "@/components/site/LineFab";
 import { ThemeProvider } from "@/components/site/ThemeProvider";
 import { CompareBar } from "@/components/site/CompareBar";
 import { CartSync } from "@/components/site/CartSync";
@@ -109,6 +110,7 @@ export default function RootLayout({
           <Footer />
           <CompareBar />
           <CartSync />
+          <LineFab />
         </ThemeProvider>
       </body>
     </html>
