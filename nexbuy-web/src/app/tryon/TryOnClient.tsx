@@ -9,6 +9,7 @@ import { ProductCarousel } from "./components/ProductCarousel";
 import { AdjustmentSliders } from "./components/AdjustmentSliders";
 import { ActionBar } from "./components/ActionBar";
 import { FilterBar, DEFAULT_FILTERS, applyFilters, type Filters } from "./components/FilterBar";
+import { MobileFilterButton } from "./components/MobileFilterButton";
 import { FaceShapeSelector } from "./components/FaceShapeSelector";
 import {
   detectFace,
@@ -267,11 +268,23 @@ export function TryOnClient({ products }: Props) {
           <ActionBar product={selectedProduct} canvasRef={canvasRef} />
         )}
         <FaceShapeSelector value={faceShape} onChange={setFaceShape} />
-        <FilterBar
-          products={products}
-          value={filters}
-          onChange={setFilters}
-        />
+
+        {/* Filters: collapsed into a dialog button on mobile, inline on desktop */}
+        <div className="lg:hidden">
+          <MobileFilterButton
+            products={products}
+            value={filters}
+            onChange={setFilters}
+          />
+        </div>
+        <div className="hidden lg:block">
+          <FilterBar
+            products={products}
+            value={filters}
+            onChange={setFilters}
+          />
+        </div>
+
         <AdjustmentSliders value={adjust} onChange={setAdjust} />
       </div>
     </div>
