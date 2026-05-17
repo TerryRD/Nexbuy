@@ -31,10 +31,10 @@ export default async function TryOnPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
       <header className="mb-6">
-        <h1 className="font-heading text-3xl font-semibold tracking-tight">
+        <h1 className="font-heading text-3xl font-semibold tracking-tight sm:text-4xl">
           虛擬試戴
         </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <p className="mt-2 text-base text-muted-foreground">
           上傳一張清楚的正臉照（五官明顯、光線明亮），選一副眼鏡看試戴效果。
         </p>
       </header>

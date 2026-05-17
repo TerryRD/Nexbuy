@@ -125,8 +125,10 @@ export function TryOnClient({ products }: Props) {
   }, [selectedId]);
 
   function handleProductSelect(id: string) {
+    // Keep the current adjustment values — once a user has dialled in the
+    // glasses-to-face fit (size / vertical / angle), that applies to other
+    // frames too. Reset is still available via the explicit "重置" button.
     setSelectedId(id);
-    setAdjust(ADJUSTMENT_DEFAULTS);
   }
 
   async function handleFile(file: File) {

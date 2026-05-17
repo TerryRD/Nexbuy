@@ -10,10 +10,11 @@ interface Props {
   onSelect: (id: string) => void;
 }
 
-// Fixed carousel height so the canvas above it stays the same size whether
-// the carousel has products or shows the empty state, and so the left
-// column lines up cleanly with the right control panel.
-const CAROUSEL_HEIGHT = "h-[148px]";
+// Fixed carousel height — large enough that the thumbnail image + 2-line
+// product name + horizontal scrollbar all fit without a *vertical* scrollbar
+// appearing inside the strip. Also keeps the canvas height stable between
+// the populated and empty states.
+const CAROUSEL_HEIGHT = "h-[180px]";
 
 export function ProductCarousel({ products, selectedId, onSelect }: Props) {
   if (products.length === 0) {
@@ -38,7 +39,7 @@ export function ProductCarousel({ products, selectedId, onSelect }: Props) {
             type="button"
             onClick={() => onSelect(p.id)}
             className={cn(
-              "shrink-0 w-24 rounded-lg border-2 bg-card p-2 text-left transition",
+              "shrink-0 w-28 rounded-lg border-2 bg-card p-2 text-left transition",
               selectedId === p.id
                 ? "border-primary"
                 : "border-transparent hover:border-muted-foreground/30",
@@ -50,12 +51,12 @@ export function ProductCarousel({ products, selectedId, onSelect }: Props) {
                   src={p.image_urls[0]}
                   alt={p.name}
                   fill
-                  sizes="96px"
+                  sizes="112px"
                   className="object-cover"
                 />
               )}
             </div>
-            <p className="mt-1 line-clamp-2 text-xs">{p.name}</p>
+            <p className="mt-1.5 line-clamp-2 text-sm leading-snug">{p.name}</p>
           </button>
         ))}
       </div>
