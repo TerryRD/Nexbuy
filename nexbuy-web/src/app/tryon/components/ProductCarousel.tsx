@@ -20,7 +20,7 @@ export function ProductCarousel({ products, selectedId, onSelect }: Props) {
   }
 
   return (
-    <div className="overflow-x-auto -mx-4 px-4">
+    <div className="overflow-x-auto">
       <div className="flex gap-3 pb-2">
         {products.map((p) => (
           <button
