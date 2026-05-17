@@ -2,7 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Download, ShoppingCart, Calendar, ExternalLink } from "lucide-react";
+import Image from "next/image";
+import { Dialog } from "@base-ui/react/dialog";
+import { Download, ShoppingCart, Calendar, X, ExternalLink } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/format";
@@ -57,13 +59,122 @@ export function ActionBar({ product, canvasRef }: Props) {
           下載
         </Button>
 
-        <Link
-          href={`/products/${product.slug}`}
-          className={buttonVariants({ variant: "outline", size: "sm" })}
-        >
-          <ExternalLink className="size-4 mr-1" />
-          看詳情
-        </Link>
+        {/* 看詳情 — Dialog */}
+        <Dialog.Root>
+          <Dialog.Trigger
+            className={buttonVariants({ variant: "outline", size: "sm" })}
+          >
+            <ExternalLink className="size-4 mr-1" />
+            看詳情
+          </Dialog.Trigger>
+          <Dialog.Portal>
+            <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs" />
+            <Dialog.Popup className="fixed left-1/2 top-1/2 z-50 w-[calc(100vw-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl border bg-background shadow-lg max-h-[90vh]">
+              {/* 關閉按鈕 */}
+              <div className="flex items-center justify-between p-4 pb-0">
+                <Dialog.Title className="font-semibold">商品詳情</Dialog.Title>
+                <Dialog.Close className="rounded-sm p-1 text-muted-foreground hover:text-foreground transition-colors">
+                  <X className="size-4" />
+                </Dialog.Close>
+              </div>
+
+              <div className="p-4 space-y-4">
+                {/* 商品圖 */}
+                {product.image_urls[0] && (
+                  <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-muted">
+                    <Image
+                      src={product.image_urls[0]}
+                      alt={product.name}
+                      fill
+                      sizes="(max-width: 448px) calc(100vw - 2rem), 448px"
+                      className="object-contain"
+                    />
+                  </div>
+                )}
+
+                {/* 基本資訊 */}
+                <div>
+                  <p className="font-semibold text-lg leading-snug">{product.name}</p>
+                  {product.brand && (
+                    <p className="text-sm text-muted-foreground">{product.brand}</p>
+                  )}
+                  <p className="mt-1 text-base font-medium">
+                    {formatPrice(product.price_cents)}
+                  </p>
+                </div>
+
+                {/* 描述 */}
+                {product.description && (
+                  <p className="text-sm text-foreground/80 leading-relaxed">
+                    {product.description}
+                  </p>
+                )}
+
+                {/* 屬性 */}
+                {(product.frame_shape ||
+                  product.face_shape.length > 0 ||
+                  product.material ||
+                  product.color) && (
+                  <dl className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
+                    {product.frame_shape && (
+                      <>
+                        <dt className="text-muted-foreground">鏡架形狀</dt>
+                        <dd>{product.frame_shape}</dd>
+                      </>
+                    )}
+                    {product.face_shape.length > 0 && (
+                      <>
+                        <dt className="text-muted-foreground">適合臉型</dt>
+                        <dd>{product.face_shape.join("、")}</dd>
+                      </>
+                    )}
+                    {product.material && (
+                      <>
+                        <dt className="text-muted-foreground">材質</dt>
+                        <dd>{product.material}</dd>
+                      </>
+                    )}
+                    {product.color && (
+                      <>
+                        <dt className="text-muted-foreground">顏色</dt>
+                        <dd>{product.color}</dd>
+                      </>
+                    )}
+                  </dl>
+                )}
+
+                {/* CTA */}
+                <div className="flex flex-col gap-2 pt-1">
+                  {product.kind === "finished" ? (
+                    <Button
+                      onClick={handleAddToCart}
+                      disabled={(product.finished_stock ?? 0) <= 0}
+                    >
+                      <ShoppingCart className="size-4 mr-1" />
+                      {(product.finished_stock ?? 0) <= 0 ? "已售完" : "加入購物車"}
+                    </Button>
+                  ) : (
+                    <Link
+                      href={`/appointment/book/${product.slug}`}
+                      className={buttonVariants()}
+                    >
+                      <Calendar className="size-4 mr-1" />
+                      預約到店配鏡
+                    </Link>
+                  )}
+                  <Link
+                    href={`/products/${product.slug}`}
+                    target="_blank"
+                    className={buttonVariants({ variant: "outline" })}
+                  >
+                    <ExternalLink className="size-4 mr-1" />
+                    前往商品頁
+                  </Link>
+                </div>
+              </div>
+            </Dialog.Popup>
+          </Dialog.Portal>
+        </Dialog.Root>
 
         {product.kind === "finished" ? (
           <Button

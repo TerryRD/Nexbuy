@@ -1,32 +1,23 @@
 "use client";
 
-import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import type { Product, ProductKind } from "@/lib/types/database";
 import { FRAME_SHAPES } from "@/lib/schemas/product";
-
-export type PriceBand = "all" | "low" | "mid" | "high";
+import { Input } from "@/components/ui/input";
 
 export interface Filters {
   kind: "all" | ProductKind;
   frameShape: string | null;
-  brand: string | null;
-  priceBand: PriceBand;
+  priceMin: number | null; // 元（非 cents）
+  priceMax: number | null; // 元（非 cents）
 }
 
 export const DEFAULT_FILTERS: Filters = {
   kind: "all",
   frameShape: null,
-  brand: null,
-  priceBand: "all",
+  priceMin: null,
+  priceMax: null,
 };
-
-const PRICE_BANDS: { id: PriceBand; label: string }[] = [
-  { id: "all", label: "全價位" },
-  { id: "low", label: "≤ NT$1,000" },
-  { id: "mid", label: "NT$1,000–3,000" },
-  { id: "high", label: "≥ NT$3,000" },
-];
 
 interface Props {
   products: Product[];
@@ -34,28 +25,22 @@ interface Props {
   onChange: (next: Filters) => void;
 }
 
-export function FilterBar({ products, value, onChange }: Props) {
-  // Brand list is dynamic from products; only show filter if any brand exists.
-  const brands = useMemo(() => {
-    const set = new Set<string>();
-    for (const p of products) {
-      if (p.brand && p.brand.trim()) set.add(p.brand.trim());
-    }
-    return Array.from(set).sort();
-  }, [products]);
-
+export function FilterBar({ products: _products, value, onChange }: Props) {
   function patch(partial: Partial<Filters>) {
     onChange({ ...value, ...partial });
   }
+
+  const hasActiveFilter =
+    value.kind !== "all" ||
+    value.frameShape !== null ||
+    value.priceMin !== null ||
+    value.priceMax !== null;
 
   return (
     <div className="space-y-2 rounded-lg border bg-muted/30 p-3">
       <div className="flex items-center justify-between">
         <p className="text-xs font-medium text-muted-foreground">篩選</p>
-        {(value.kind !== "all" ||
-          value.frameShape !== null ||
-          value.brand !== null ||
-          value.priceBand !== "all") && (
+        {hasActiveFilter && (
           <button
             type="button"
             onClick={() => onChange(DEFAULT_FILTERS)}
@@ -102,37 +87,33 @@ export function FilterBar({ products, value, onChange }: Props) {
         ))}
       </Group>
 
-      {brands.length > 0 && (
-        <Group label="品牌">
-          <Chip
-            active={value.brand === null}
-            onClick={() => patch({ brand: null })}
-          >
-            全部
-          </Chip>
-          {brands.map((b) => (
-            <Chip
-              key={b}
-              active={value.brand === b}
-              onClick={() => patch({ brand: b })}
-            >
-              {b}
-            </Chip>
-          ))}
-        </Group>
-      )}
-
-      <Group label="價格帶">
-        {PRICE_BANDS.map((b) => (
-          <Chip
-            key={b.id}
-            active={value.priceBand === b.id}
-            onClick={() => patch({ priceBand: b.id })}
-          >
-            {b.label}
-          </Chip>
-        ))}
-      </Group>
+      <div className="flex flex-wrap items-center gap-1.5">
+        <span className="text-[10px] uppercase tracking-wide text-muted-foreground/70 mr-1">
+          價格
+        </span>
+        <Input
+          type="number"
+          placeholder="最低"
+          min={0}
+          value={value.priceMin ?? ""}
+          onChange={(e) =>
+            patch({ priceMin: e.target.value ? Number(e.target.value) : null })
+          }
+          className="h-6 w-20 px-2 py-0 text-xs"
+        />
+        <span className="text-xs text-muted-foreground">–</span>
+        <Input
+          type="number"
+          placeholder="最高"
+          min={0}
+          value={value.priceMax ?? ""}
+          onChange={(e) =>
+            patch({ priceMax: e.target.value ? Number(e.target.value) : null })
+          }
+          className="h-6 w-20 px-2 py-0 text-xs"
+        />
+        <span className="text-xs text-muted-foreground">元</span>
+      </div>
     </div>
   );
 }
@@ -176,25 +157,14 @@ function Chip({ active, onClick, children }: ChipProps) {
   );
 }
 
-/**
- * Apply filters to a product list. Pure function — call in useMemo on the
- * caller side.
- */
 export function applyFilters(products: Product[], filters: Filters): Product[] {
   return products.filter((p) => {
     if (filters.kind !== "all" && p.kind !== filters.kind) return false;
     if (filters.frameShape && p.frame_shape !== filters.frameShape) return false;
-    if (filters.brand && p.brand !== filters.brand) return false;
-    if (filters.priceBand !== "all") {
-      const c = p.price_cents;
-      if (filters.priceBand === "low" && c > 100_000) return false;
-      if (
-        filters.priceBand === "mid" &&
-        (c <= 100_000 || c > 300_000)
-      )
-        return false;
-      if (filters.priceBand === "high" && c <= 300_000) return false;
-    }
+    if (filters.priceMin !== null && p.price_cents < filters.priceMin * 100)
+      return false;
+    if (filters.priceMax !== null && p.price_cents > filters.priceMax * 100)
+      return false;
     return true;
   });
 }

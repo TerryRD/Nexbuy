@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { cn } from "@/lib/utils";
 import { renderTryOn } from "../lib/canvas-renderer";
 import type { Placement } from "../lib/glasses-placer";
 
@@ -10,9 +11,10 @@ interface Props {
   placement: Placement | null;
   /** Parent owns the ref so it can call canvas.toBlob() for download. */
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
+  className?: string;
 }
 
-export function TryOnCanvas({ selfie, glasses, placement, canvasRef }: Props) {
+export function TryOnCanvas({ selfie, glasses, placement, canvasRef, className }: Props) {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -27,10 +29,15 @@ export function TryOnCanvas({ selfie, glasses, placement, canvasRef }: Props) {
   }, [selfie, glasses, placement, canvasRef]);
 
   return (
-    <div className="relative flex w-full justify-center overflow-hidden rounded-lg bg-muted">
+    <div
+      className={cn(
+        "relative flex w-full items-center justify-center overflow-hidden rounded-lg bg-muted",
+        className,
+      )}
+    >
       <canvas
         ref={canvasRef}
-        className="block max-w-full max-h-[70vh]"
+        className="block max-h-full max-w-full"
         style={{ aspectRatio: `${selfie.width} / ${selfie.height}` }}
       />
     </div>

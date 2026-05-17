@@ -64,8 +64,6 @@ export function TryOnClient({ products }: Props) {
     [products, selectedId],
   );
 
-  // Carousel-visible products: apply filters, then sort by face-shape fit
-  // (best matches first; ties keep input order which was created_at desc).
   const displayedProducts = useMemo(() => {
     const filtered = applyFilters(products, filters);
     if (!faceShape) return filtered;
@@ -74,9 +72,6 @@ export function TryOnClient({ products }: Props) {
     );
   }, [products, filters, faceShape]);
 
-  // When the selected product changes while in READY phase, reload the glasses
-  // PNG so placement recomputes with the new aspect. Slider reset is done by
-  // handleProductSelect (not by an effect) per react-hooks/set-state-in-effect.
   useEffect(() => {
     if (phase.kind !== "ready") return;
     if (!selectedProduct?.try_on_image_url) return;
@@ -222,11 +217,15 @@ export function TryOnClient({ products }: Props) {
     );
   }
 
-  // READY — desktop: split canvas (left) + controls (right). Mobile: stack.
+  // READY
+  // Desktop: two fixed-height columns, right panel scrolls independently.
+  // Mobile: stacked — carousel + action bar appear first (most important),
+  //         then face shape, filters, and sliders below.
   return (
-    <div className="grid gap-4 lg:grid-cols-[1fr_22rem] lg:items-start">
-      {/* Left: canvas + change-photo */}
-      <div className="space-y-2">
+    <div className="flex flex-col gap-3 lg:grid lg:grid-cols-[1fr_22rem] lg:h-[min(65vh,540px)] lg:gap-4">
+
+      {/* ── Left: canvas ── */}
+      <div className="flex flex-col gap-2 lg:min-h-0">
         <div className="flex justify-end">
           <button
             type="button"
@@ -236,31 +235,45 @@ export function TryOnClient({ products }: Props) {
             ← 換一張照片
           </button>
         </div>
+        {/* Canvas fills remaining height on desktop; fixed height on mobile */}
         <TryOnCanvas
           selfie={phase.selfie}
           glasses={phase.glassesImage.complete ? phase.glassesImage : null}
           placement={placement}
           canvasRef={canvasRef}
+          className="h-64 sm:h-80 lg:flex-1 lg:h-auto"
         />
       </div>
 
-      {/* Right: face shape + filters + carousel + sliders + actions */}
-      <div className="space-y-3">
-        <FaceShapeSelector value={faceShape} onChange={setFaceShape} />
-        <FilterBar
-          products={products}
-          value={filters}
-          onChange={setFilters}
-        />
+      {/* ── Right: controls ── */}
+      {/* On desktop this panel scrolls independently so the page never scrolls. */}
+      {/* On mobile, controls stack below the canvas in priority order. */}
+      <div className="flex flex-col gap-3 lg:overflow-y-auto lg:min-h-0">
+
+        {/* 1. Carousel — most interactive, visible first on mobile & desktop */}
         <ProductCarousel
           products={displayedProducts}
           selectedId={selectedId}
           onSelect={handleProductSelect}
         />
-        <AdjustmentSliders value={adjust} onChange={setAdjust} />
+
+        {/* 2. Action bar — primary CTA visible without scrolling */}
         {selectedProduct && (
           <ActionBar product={selectedProduct} canvasRef={canvasRef} />
         )}
+
+        {/* 3. Face shape selector */}
+        <FaceShapeSelector value={faceShape} onChange={setFaceShape} />
+
+        {/* 4. Filters */}
+        <FilterBar
+          products={products}
+          value={filters}
+          onChange={setFilters}
+        />
+
+        {/* 5. Fine-tune sliders — secondary, at bottom of right panel */}
+        <AdjustmentSliders value={adjust} onChange={setAdjust} />
       </div>
     </div>
   );
