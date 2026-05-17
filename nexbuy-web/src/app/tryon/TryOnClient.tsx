@@ -10,6 +10,7 @@ import { AdjustmentSliders } from "./components/AdjustmentSliders";
 import { ActionBar } from "./components/ActionBar";
 import { FilterBar, DEFAULT_FILTERS, applyFilters, type Filters } from "./components/FilterBar";
 import { FaceShapeSelector } from "./components/FaceShapeSelector";
+import { ProductDetailDialog } from "./components/ProductDetailDialog";
 import {
   detectFace,
   isMediaPipeSupported,
@@ -57,7 +58,13 @@ export function TryOnClient({ products }: Props) {
   const [adjust, setAdjust] = useState<Adjustment>(ADJUSTMENT_DEFAULTS);
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
   const [faceShape, setFaceShape] = useState<FaceShape | null>(null);
+  const [dialogProductId, setDialogProductId] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  const dialogProduct = useMemo(
+    () => products.find((p) => p.id === dialogProductId) ?? null,
+    [products, dialogProductId],
+  );
 
   const selectedProduct = useMemo(
     () => products.find((p) => p.id === selectedId) ?? null,
@@ -256,12 +263,23 @@ export function TryOnClient({ products }: Props) {
           products={displayedProducts}
           selectedId={selectedId}
           onSelect={handleProductSelect}
+          onInfoClick={setDialogProductId}
         />
         <AdjustmentSliders value={adjust} onChange={setAdjust} />
         {selectedProduct && (
           <ActionBar product={selectedProduct} canvasRef={canvasRef} />
         )}
       </div>
+
+      {dialogProduct && (
+        <ProductDetailDialog
+          product={dialogProduct}
+          open
+          onOpenChange={(open) => {
+            if (!open) setDialogProductId(null);
+          }}
+        />
+      )}
     </div>
   );
 }
