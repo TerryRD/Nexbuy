@@ -92,10 +92,12 @@ export function SelfieUploader({ onFile, onError }: Props) {
         />
         <div className="space-y-2 max-w-md">
           <h2 className="text-xl font-semibold">
-            {isDragging ? "放開就上傳" : "上傳一張正面自拍"}
+            {isDragging ? "放開就上傳" : "上傳一張清楚的正臉照"}
           </h2>
           <p className="text-sm text-muted-foreground">
-            明亮、五官清楚、正對鏡頭。我們會把你選的眼鏡疊到照片上、讓你看試戴效果。
+            請拍<span className="font-medium text-foreground">正面、五官清楚</span>
+            （眼睛、鼻樑、嘴巴都看得到）、光線明亮的照片。側臉、被頭髮或口罩遮住、
+            模糊的照片會無法準確抓到眼睛位置，試戴效果會跑掉。
           </p>
         </div>
         <input

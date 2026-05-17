@@ -35,7 +35,7 @@ export default async function TryOnPage() {
           虛擬試戴
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          上傳一張正面自拍,選一副眼鏡看試戴效果。
+          上傳一張清楚的正臉照（五官明顯、光線明亮），選一副眼鏡看試戴效果。
         </p>
       </header>
 
