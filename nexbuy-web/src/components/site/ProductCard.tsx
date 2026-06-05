@@ -51,7 +51,7 @@ export function ProductCard({
             alt={product.name}
             fill
             priority={priority}
-            sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+            sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
             unoptimized={!product.image_urls[0]}
             className={`object-cover transition-transform duration-300 group-hover:scale-105${soldOut ? " opacity-60 grayscale" : ""}`}
           />
@@ -69,7 +69,7 @@ export function ProductCard({
         </div>
         <CardHeader>
           <div className="flex items-start justify-between gap-2">
-            <CardTitle className="text-base leading-tight">
+            <CardTitle className="font-serif text-base leading-tight">
               {product.name}
             </CardTitle>
             <Badge
@@ -80,11 +80,13 @@ export function ProductCard({
             </Badge>
           </div>
         </CardHeader>
-        <CardContent className="text-sm text-muted-foreground line-clamp-2">
-          {product.description ?? " "}
-        </CardContent>
+        {product.description ? (
+          <CardContent className="text-sm text-muted-foreground line-clamp-2">
+            {product.description}
+          </CardContent>
+        ) : null}
         <CardFooter>
-          <span className="text-lg font-semibold">
+          <span className="font-display text-lg font-semibold text-primary">
             {formatPrice(product.price_cents)}
           </span>
         </CardFooter>
