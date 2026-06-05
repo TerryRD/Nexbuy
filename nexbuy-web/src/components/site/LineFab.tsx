@@ -16,7 +16,7 @@ export function LineFab() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="用 LINE 聯絡我們"
-      className="fixed bottom-5 right-5 z-40 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[#06C755] text-white shadow-lg ring-1 ring-black/5 transition-transform hover:scale-105 active:scale-95"
+      className="fixed bottom-20 nav:bottom-5 right-5 z-50 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[#06C755] text-white shadow-lg ring-1 ring-black/5 transition-transform hover:scale-105 active:scale-95"
     >
       {/* Simple LINE-style speech bubble icon. lucide-react doesn't ship a
           LINE-specific glyph, so we use a hand-rolled SVG to keep the

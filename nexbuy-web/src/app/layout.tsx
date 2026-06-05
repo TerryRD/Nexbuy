@@ -11,6 +11,7 @@ import { LineFab } from "@/components/site/LineFab";
 import { ThemeProvider } from "@/components/site/ThemeProvider";
 import { CompareBar } from "@/components/site/CompareBar";
 import { CartSync } from "@/components/site/CartSync";
+import { MobileNav } from "@/components/site/MobileNav";
 import { publicEnv } from "@/lib/env";
 import "./globals.css";
 
@@ -119,8 +120,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Header />
-          <main className="flex-1">{children}</main>
+          <main className="flex-1 pb-14 nav:pb-0">{children}</main>
           <Footer />
+          <MobileNav />
           <CompareBar />
           <CartSync />
           <LineFab />
