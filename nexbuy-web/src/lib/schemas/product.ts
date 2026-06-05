@@ -49,6 +49,7 @@ const baseShape = {
   finished_stock: z.coerce.number().int().min(0).max(99_999).optional().nullable(),
   low_stock_threshold: z.coerce.number().int().min(0).max(99_999).default(3),
   is_online_available: z.coerce.boolean(),
+  is_featured: z.coerce.boolean().optional(),
   // Phase 3 — attributes 全選填
   face_shape: z.array(z.enum(FACE_SHAPES)).default([]),
   frame_shape: z.enum(FRAME_SHAPES).optional().nullable(),
