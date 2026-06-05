@@ -4,7 +4,9 @@ import { Stepper } from "@/components/site/Stepper";
 
 interface OrderStatusTrackerProps {
   status: OrderStatus;
-  createdAt?: string; // ISO date string, e.g. "2026-04-20"
+  /** Full ISO timestamp from DB (e.g. "2026-04-20T03:21:45.123+00:00") or date-only string.
+   * Sliced to date-only internally before passing to formatDate. */
+  createdAt?: string;
 }
 
 const STAGES = ["待付款", "已付款", "已出貨", "已完成"];
@@ -46,7 +48,7 @@ export function OrderStatusTracker({
       <Stepper steps={STAGES} current={stageIndex} />
       {createdAt && (
         <p className="text-xs text-muted-foreground text-center sm:text-left">
-          訂單建立時間：{formatDate(createdAt)}
+          訂單建立時間：{formatDate(createdAt.slice(0, 10))}
         </p>
       )}
     </div>
