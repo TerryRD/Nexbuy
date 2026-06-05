@@ -29,6 +29,7 @@ export interface ProductInitial {
   finished_stock: number | null;
   low_stock_threshold: number;
   is_online_available: boolean;
+  is_featured: boolean;
   image_urls: string[];
   face_shape: string[];
   frame_shape: string | null;
@@ -370,6 +371,19 @@ export function ProductForm({ initial, action, submitLabel }: Props) {
           defaultChecked={initial.is_online_available}
         />
         <Label htmlFor="p-online">線上可顯示 / 可購買</Label>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <input
+          id="p-featured"
+          type="checkbox"
+          name="is_featured"
+          defaultChecked={initial.is_featured}
+        />
+        <Label htmlFor="p-featured">
+          首頁精選商品
+          <span className="ml-1 text-xs text-muted-foreground">（勾選後出現在首頁精選區）</span>
+        </Label>
       </div>
 
       {state?.error && (

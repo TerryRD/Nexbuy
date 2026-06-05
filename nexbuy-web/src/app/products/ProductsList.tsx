@@ -1,28 +1,19 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { Search } from "lucide-react";
-import { ProductFilter } from "@/components/site/ProductFilter";
-import { formatPrice } from "@/lib/format";
+import { Search, X } from "lucide-react";
+import { ProductCard } from "@/components/site/ProductCard";
 import type { Product, ProductKind } from "@/lib/types/database";
-import { getProductImageUrl } from "@/lib/product-placeholder";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { AttributeFilters } from "./AttributeFilters";
+import { SortSelect } from "@/components/site/SortSelect";
+import { sortProducts, type SortKey } from "./sort";
+import { FRAME_SHAPES } from "@/lib/schemas/product";
 import {
   filterToQueryString,
+  EMPTY_FILTER,
   type AttributeFilterState,
 } from "./attribute-filter";
-import { WishlistToggle } from "./WishlistToggle";
 
 const TITLE: Record<"all" | ProductKind, string> = {
   all: "全部商品",
@@ -30,9 +21,15 @@ const TITLE: Record<"all" | ProductKind, string> = {
   prescription_frame: "處方鏡架",
 };
 
+const chipClass = (isActive: boolean) =>
+  `shrink-0 whitespace-nowrap rounded-full border px-3.5 py-1 text-sm transition ${
+    isActive
+      ? "border-primary bg-primary text-primary-foreground"
+      : "border-border bg-card text-muted-foreground hover:border-foreground/40 hover:text-foreground"
+  }`;
+
 export function ProductsList({
   products,
-  totalCount,
   truncated,
   initialKind,
   initialFilter,
@@ -53,6 +50,7 @@ export function ProductsList({
   const [attrFilter, setAttrFilter] =
     useState<AttributeFilterState>(initialFilter);
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortKey, setSortKey] = useState<SortKey>("recommended");
 
   const filtered = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -85,7 +83,10 @@ export function ProductsList({
       }
       return true;
     });
-  }, [products, active, attrFilter]);
+  }, [products, active, attrFilter, searchQuery]);
+
+  const sorted = useMemo(() => sortProducts(filtered, sortKey), [filtered, sortKey]);
+
   const title = TITLE[active ?? "all"];
 
   const syncUrl = (kind: ProductKind | null, filter: AttributeFilterState) => {
@@ -104,23 +105,46 @@ export function ProductsList({
     syncUrl(active, next);
   };
 
+  const hasActiveFilters =
+    active !== null ||
+    searchQuery.trim() !== "" ||
+    attrFilter.faceShapes.length > 0 ||
+    !!attrFilter.frameShape ||
+    !!attrFilter.frameSize ||
+    !!attrFilter.material ||
+    !!attrFilter.color;
+
+  const clearAll = () => {
+    setActive(null);
+    setAttrFilter(EMPTY_FILTER);
+    setSearchQuery("");
+    syncUrl(null, EMPTY_FILTER);
+  };
+
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10">
-      <header className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h1 className="font-heading text-3xl font-semibold tracking-tight md:text-4xl">
-            {title}
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            共 {totalCount} 件
-            {filtered.length !== totalCount && (
-              <> · 篩選後 {filtered.length} 件</>
-            )}
-          </p>
-        </div>
-        <ProductFilter active={active} onChange={handleChange} />
+    <div className="container py-10 md:py-14">
+      {/* Header */}
+      <header className="mb-8">
+        <p className="eyebrow mb-2">
+          {active === "prescription_frame"
+            ? "PRESCRIPTION FRAMES"
+            : active === "finished"
+            ? "SUNGLASSES"
+            : "ALL EYEWEAR"}
+        </p>
+        <h1 className="font-serif text-3xl font-medium tracking-tight md:text-4xl">
+          {title}
+        </h1>
+        <p className="mt-2 max-w-prose text-sm text-muted-foreground">
+          {active === "prescription_frame"
+            ? "線上挑款，預約到店驗光配鏡。"
+            : active === "finished"
+            ? "成品太陽眼鏡，線上直接下單到家。"
+            : "成品太陽眼鏡線上直購；處方鏡框線上挑款、到店配鏡。"}
+        </p>
       </header>
 
+      {/* Truncated warning */}
       {truncated && (
         <p className="mb-4 rounded-md border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900">
           ⚠️ 商品數已超過頁面顯示上限，目前只列出最新 {products.length} 件 — 需要動 server-side
@@ -128,6 +152,47 @@ export function ProductsList({
         </p>
       )}
 
+      {/* Main filter row: type chips + frame-shape chips */}
+      <div className="mb-5 -mx-6 overflow-x-auto px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:overflow-visible md:px-0">
+        <div className="flex w-max items-center gap-2 md:w-auto md:flex-wrap">
+          {(
+            [
+              { v: null as null | "finished" | "prescription_frame", label: "全部" },
+              { v: "finished" as const, label: "成品太陽眼鏡" },
+              { v: "prescription_frame" as const, label: "處方鏡框" },
+            ] as const
+          ).map((t) => (
+            <button
+              key={t.label}
+              type="button"
+              onClick={() => handleChange(t.v)}
+              aria-pressed={active === t.v}
+              className={chipClass(active === t.v)}
+            >
+              {t.label}
+            </button>
+          ))}
+          <span className="mx-1 h-5 w-px shrink-0 bg-border" aria-hidden />
+          {FRAME_SHAPES.map((fs) => (
+            <button
+              key={fs}
+              type="button"
+              aria-pressed={attrFilter.frameShape === fs}
+              onClick={() =>
+                handleAttrChange({
+                  ...attrFilter,
+                  frameShape: attrFilter.frameShape === fs ? null : fs,
+                })
+              }
+              className={chipClass(attrFilter.frameShape === fs)}
+            >
+              {fs}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Search */}
       <div className="mb-4 relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
         <Input
@@ -139,65 +204,56 @@ export function ProductsList({
         />
       </div>
 
-      <div className="mb-8">
+      {/* Collapsible more-filters (臉型/尺寸/材質/主色) */}
+      <div className="mb-6">
         <AttributeFilters value={attrFilter} onChange={handleAttrChange} />
       </div>
 
-      {filtered.length === 0 ? (
-        <p className="py-12 text-center text-muted-foreground">
-          {searchQuery.trim()
-            ? `找不到「${searchQuery.trim()}」相關商品。`
-            : "目前沒有商品。"}
-        </p>
+      {/* Result row: count + clear + sort */}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3 text-sm text-muted-foreground">
+          <span>共 {sorted.length} 副</span>
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={clearAll}
+              className="inline-flex items-center gap-1 text-primary hover:underline"
+            >
+              <X className="size-3.5" /> 清除篩選
+            </button>
+          )}
+        </div>
+        <SortSelect value={sortKey} onChange={setSortKey} />
+      </div>
+
+      {/* Grid / empty state */}
+      {sorted.length === 0 ? (
+        <div className="py-16 text-center">
+          <p className="text-muted-foreground">
+            {searchQuery.trim()
+              ? `找不到「${searchQuery.trim()}」相關商品。`
+              : "沒有符合條件的商品。"}
+          </p>
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={clearAll}
+              className="mt-4 inline-flex items-center gap-1 rounded-full border border-border px-4 py-1.5 text-sm text-foreground hover:border-foreground/40"
+            >
+              清除篩選
+            </button>
+          )}
+        </div>
       ) : (
-        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((p, idx) => (
+        <ul className="grid gap-x-5 gap-y-8 [grid-template-columns:repeat(auto-fill,minmax(220px,1fr))] md:gap-x-7 md:gap-y-12">
+          {sorted.map((p, idx) => (
             <li key={p.id}>
-              <Link href={`/products/${p.slug}`} className="group block">
-                <Card className="h-full overflow-hidden transition-shadow hover:shadow-md">
-                  <div className="relative aspect-square overflow-hidden rounded-t-lg bg-muted">
-                    <Image
-                      src={getProductImageUrl(p)}
-                      alt={p.name}
-                      fill
-                      // 桌面 grid 第 1 row（lg 3 欄、sm 2 欄）跟 LCP 競爭，
-                      // 先 3 張 priority 預載；後面卡片 lazy 由 next/image 預設處理。
-                      priority={idx < 3}
-                      sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                      // SVG placeholder 已是最終格式，不再過 Vercel image transform
-                      unoptimized={!p.image_urls[0]}
-                      className="object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
-                    <WishlistToggle
-                      productId={p.id}
-                      initialInWishlist={wishlistIds.includes(p.id)}
-                      isLoggedIn={isLoggedIn}
-                      variant="heart"
-                    />
-                  </div>
-                  <CardHeader>
-                    <div className="flex items-start justify-between gap-2">
-                      <CardTitle className="text-base leading-tight">
-                        {p.name}
-                      </CardTitle>
-                      <Badge
-                        variant={p.kind === "finished" ? "default" : "outline"}
-                        className="shrink-0"
-                      >
-                        {p.kind === "finished" ? "成品" : "預約配鏡"}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="text-sm text-muted-foreground line-clamp-2">
-                    {p.description ?? " "}
-                  </CardContent>
-                  <CardFooter>
-                    <span className="text-lg font-semibold">
-                      {formatPrice(p.price_cents)}
-                    </span>
-                  </CardFooter>
-                </Card>
-              </Link>
+              <ProductCard
+                product={p}
+                inWishlist={wishlistIds.includes(p.id)}
+                isLoggedIn={isLoggedIn}
+                priority={idx < 4}
+              />
             </li>
           ))}
         </ul>

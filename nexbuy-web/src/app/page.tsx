@@ -6,12 +6,18 @@ import {
   MapPin,
   Clock,
   ArrowRight,
+  Camera,
+  Sparkles,
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { HeroCarousel } from "@/components/site/HeroCarousel";
 import { Reveal } from "@/components/site/Reveal";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { organizationSchema, websiteSchema } from "@/lib/seo/schema";
+import { getFeaturedProducts, getNewArrivals } from "@/lib/products";
+import { ProductCard } from "@/components/site/ProductCard";
+import { getWishlistProductIds } from "@/lib/wishlist";
+import { createServerSupabase } from "@/lib/supabase/server";
 
 const MAP_LABEL = encodeURIComponent("精鋐眼鏡行");
 const MAP_EMBED_SRC = `https://maps.google.com/maps?q=25.0173074,121.2956103+(${MAP_LABEL})&hl=zh-TW&z=17&output=embed`;
@@ -72,7 +78,18 @@ const HERO_SLIDES = [
 // 之前的 GALLERY 三張 stock photo 已替換為「我們怎麼陪你」資訊卡，
 // 等實拍店內照齊全再 PR 切回圖片版。
 
-export default function HomePage() {
+export default async function HomePage() {
+  const [featured, newArrivals, wishlistSet, sb] = await Promise.all([
+    getFeaturedProducts(8),
+    getNewArrivals(8),
+    getWishlistProductIds(),
+    createServerSupabase(),
+  ]);
+  const {
+    data: { user },
+  } = await sb.auth.getUser();
+  const isLoggedIn = !!user;
+
   return (
     <div className="relative">
       <JsonLd data={organizationSchema()} />
@@ -95,27 +112,24 @@ export default function HomePage() {
         <div className="mx-auto max-w-5xl px-4 py-16">
           <div className="grid gap-8 py-12 md:grid-cols-2 md:items-center md:gap-12 md:py-20">
             <div className="space-y-5">
-              <h1 className="font-heading text-5xl font-semibold leading-[0.98] tracking-[-0.02em] text-foreground md:text-7xl">
+              <p className="eyebrow">ARTISAN · EYEWEAR · 2026</p>
+              <h1 className="font-serif text-4xl font-medium leading-[1.05] tracking-tight text-foreground md:text-6xl">
                 在家挑框
                 <br />
-                <span className="text-sheen">到店配鏡</span>
+                到店配鏡
               </h1>
-              <p className="text-lg leading-relaxed text-muted-foreground md:text-xl">
-                成品眼鏡線上直接購買；處方鏡架線上預約到店驗光配鏡。
-                門市為你準備好，你只要走進來。
+              <p className="text-lg leading-relaxed text-muted-foreground">
+                成品眼鏡線上直接購買；處方鏡架線上預約到店驗光配鏡。門市為你準備好，你只要走進來。
               </p>
               <div className="flex flex-wrap gap-3 pt-2">
-                <Link
-                  href="/products?kind=finished"
-                  className={buttonVariants({ size: "lg" })}
-                >
-                  逛成品眼鏡
+                <Link href="/products" className={buttonVariants({ size: "lg" })}>
+                  選購鏡框
                 </Link>
                 <Link
-                  href="/products?kind=prescription_frame"
+                  href="/quiz"
                   className={buttonVariants({ size: "lg", variant: "outline" })}
                 >
-                  預約配處方鏡片
+                  先做個臉型測驗
                 </Link>
               </div>
             </div>
@@ -124,6 +138,36 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ---------------- 精選商品 ---------------- */}
+      {featured.length > 0 && (
+        <section className="container py-16">
+          <div className="mb-8 flex items-end justify-between gap-4">
+            <div>
+              <p className="eyebrow mb-2">FEATURED</p>
+              <h2 className="font-serif text-2xl font-medium md:text-3xl">精選商品</h2>
+            </div>
+            <Link
+              href="/products"
+              className="inline-flex items-center gap-1 text-sm text-primary hover:underline underline-offset-2"
+            >
+              看全部 <ArrowRight className="size-3.5" />
+            </Link>
+          </div>
+          <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 nav:grid-cols-4">
+            {featured.map((p, i) => (
+              <li key={p.id}>
+                <ProductCard
+                  product={p}
+                  inWishlist={wishlistSet.has(p.id)}
+                  isLoggedIn={isLoggedIn}
+                  priority={i < 4}
+                />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {/* ---------------- Brand story ---------------- */}
       <section id="story" className="relative mx-auto max-w-5xl px-4 py-20">
@@ -293,6 +337,68 @@ export default function HomePage() {
               </article>
             </Reveal>
           ))}
+        </div>
+      </section>
+
+      {/* ---------------- 本季新品 ---------------- */}
+      {newArrivals.length > 0 && (
+        <section className="container py-16">
+          <div className="mb-8 flex items-end justify-between gap-4">
+            <div>
+              <p className="eyebrow mb-2">NEW ARRIVALS</p>
+              <h2 className="font-serif text-2xl font-medium md:text-3xl">本季新品</h2>
+            </div>
+            <Link
+              href="/products"
+              className="inline-flex items-center gap-1 text-sm text-primary hover:underline underline-offset-2"
+            >
+              看全部 <ArrowRight className="size-3.5" />
+            </Link>
+          </div>
+          <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 nav:grid-cols-4">
+            {newArrivals.map((p) => (
+              <li key={p.id}>
+                <ProductCard
+                  product={p}
+                  inWishlist={wishlistSet.has(p.id)}
+                  isLoggedIn={isLoggedIn}
+                  priority={false}
+                />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* ---------------- 試戴 / 測驗導引 ---------------- */}
+      <section className="container py-16">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Link
+            href="/tryon"
+            className="group rounded-xl border bg-card p-8 transition-colors hover:border-primary/40"
+          >
+            <Camera className="size-6 text-primary" />
+            <h3 className="mt-4 font-serif text-xl font-medium">虛擬試戴</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              上傳照片，線上套上鏡框看效果。
+            </p>
+            <span className="mt-4 inline-flex items-center gap-1 text-sm text-primary">
+              開始試戴 <ArrowRight className="size-3.5" />
+            </span>
+          </Link>
+          <Link
+            href="/quiz"
+            className="group rounded-xl border bg-card p-8 transition-colors hover:border-primary/40"
+          >
+            <Sparkles className="size-6 text-primary" />
+            <h3 className="mt-4 font-serif text-xl font-medium">臉型測驗</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              四題找出你的臉型與推薦框型。
+            </p>
+            <span className="mt-4 inline-flex items-center gap-1 text-sm text-primary">
+              開始測驗 <ArrowRight className="size-3.5" />
+            </span>
+          </Link>
         </div>
       </section>
 
