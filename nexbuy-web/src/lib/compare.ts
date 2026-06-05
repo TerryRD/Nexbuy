@@ -3,7 +3,7 @@
 import { useCallback, useSyncExternalStore } from "react";
 
 // 比較清單：客戶用來把幾副鏡架放在一起 side-by-side 看。
-// 最多 3 副（再多版面塞不下、也很少人實際比 4+）。
+// 最多 4 副（再多版面塞不下、也很少人實際比 5+）。
 // 只存 product_id 字串陣列（其他資料 /compare 頁去 server fetch、
 // 避免 localStorage 與 prod DB 不同步）。
 

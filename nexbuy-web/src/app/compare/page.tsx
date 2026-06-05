@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Plus } from "lucide-react";
@@ -243,10 +244,9 @@ function ComparisonGrid({ slots }: { slots: (Product | null)[] }) {
 
         {/* ── Spec rows ── */}
         {specRows.map((row) => (
-          <>
+          <Fragment key={row.label}>
             {/* Label cell */}
             <div
-              key={`label-${row.label}`}
               className="flex items-start border-b border-border bg-card px-4 py-3"
             >
               <span className="font-mono text-xs font-medium uppercase tracking-wider text-muted-foreground">
@@ -272,7 +272,7 @@ function ComparisonGrid({ slots }: { slots: (Product | null)[] }) {
                 </div>
               ),
             )}
-          </>
+          </Fragment>
         ))}
 
         {/* ── Per-column CTA row ── */}
