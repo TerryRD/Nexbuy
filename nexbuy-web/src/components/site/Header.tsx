@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Glasses, Camera, Sparkles, MapPin, GitCompareArrows, Heart } from "lucide-react";
+import { GitCompareArrows, Heart } from "lucide-react";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { CartLink } from "./CartLink";
 import { HeaderAuthLink } from "./HeaderAuthLink";
@@ -8,10 +8,10 @@ import { Logo } from "./Logo";
 import { ThemeToggle } from "./ThemeToggle";
 
 const NAV = [
-  { href: "/products", label: "選購", icon: Glasses },
-  { href: "/tryon", label: "虛擬試戴", icon: Camera },
-  { href: "/quiz", label: "臉型測驗", icon: Sparkles },
-  { href: "/store", label: "門市", icon: MapPin },
+  { href: "/products", label: "選購" },
+  { href: "/tryon", label: "虛擬試戴" },
+  { href: "/quiz", label: "臉型測驗" },
+  { href: "/store", label: "門市" },
 ];
 
 export async function Header() {

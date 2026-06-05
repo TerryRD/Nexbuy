@@ -17,7 +17,7 @@ export function MobileNav() {
   const pathname = usePathname();
   return (
     <nav
-      aria-label="主導覽"
+      aria-label="底部導覽"
       className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 backdrop-blur nav:hidden"
     >
       <ul className="mx-auto flex max-w-md items-stretch justify-around">
