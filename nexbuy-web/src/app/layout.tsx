@@ -1,36 +1,50 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Fraunces } from "next/font/google";
+import {
+  Noto_Sans_TC,
+  Noto_Serif_TC,
+  Cormorant_Garamond,
+  JetBrains_Mono,
+} from "next/font/google";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { LineFab } from "@/components/site/LineFab";
 import { ThemeProvider } from "@/components/site/ThemeProvider";
 import { CompareBar } from "@/components/site/CompareBar";
 import { CartSync } from "@/components/site/CartSync";
+import { MobileNav } from "@/components/site/MobileNav";
 import { publicEnv } from "@/lib/env";
 import "./globals.css";
 
-// 三個字型都加 display:swap：
-// - Geist 預設 'auto'，瀏覽器會走「block period」三秒看不到字（FOIT）。
-//   swap 改成立刻顯示 fallback、字型載完才換，CLS 略增但 LCP 大幅改善。
-// - 中文字 Tailwind --font-sans / --font-heading 會 fallback 到系統字型，
-//   所以 swap 期間使用者看到的是 PingFang TC 等系統字（很正常）。
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// 內文 / UI
+const notoSansTC = Noto_Sans_TC({
+  variable: "--font-noto-sans-tc",
   subsets: ["latin"],
+  weight: ["400", "500", "700"],
   display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+// 中文標題 / 商品名
+const notoSerifTC = Noto_Serif_TC({
+  variable: "--font-noto-serif-tc",
   subsets: ["latin"],
-  display: "swap",
-});
-
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
-  subsets: ["latin"],
-  display: "swap",
   weight: ["500", "600", "700"],
+  display: "swap",
+});
+
+// 英文 display（價格、斜體標語、編號）
+const cormorant = Cormorant_Garamond({
+  variable: "--font-cormorant",
+  subsets: ["latin"],
+  weight: ["500", "600"],
+  style: ["italic", "normal"],
+  display: "swap",
+});
+
+// 編號 / 規格 mm / eyebrow
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
+  subsets: ["latin"],
+  display: "swap",
 });
 
 const SITE_NAME = "精鋐眼鏡行";
@@ -96,7 +110,7 @@ export default function RootLayout({
     <html
       lang="zh-TW"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} h-full antialiased`}
+      className={`${notoSansTC.variable} ${notoSerifTC.variable} ${cormorant.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <ThemeProvider
@@ -106,8 +120,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Header />
-          <main className="flex-1">{children}</main>
+          <main className="flex-1 pb-14 nav:pb-0">{children}</main>
           <Footer />
+          <MobileNav />
           <CompareBar />
           <CartSync />
           <LineFab />
