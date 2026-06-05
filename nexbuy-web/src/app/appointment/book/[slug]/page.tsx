@@ -68,7 +68,7 @@ export default async function BookAppointmentPage({
   );
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10">
+    <div className="container py-10 md:py-14">
       <div className="mb-6">
         <Link
           href={`/products/${product.slug}`}
@@ -84,8 +84,8 @@ export default async function BookAppointmentPage({
         </h1>
         <p className="text-muted-foreground">
           為「{product.name}」預約驗光配鏡時段。
-          填寫聯絡資訊、選時段,到店後由驗光師完成配鏡。
-          預約不收訂金;到店配鏡時結帳。
+          填寫聯絡資訊、選時段，到店後由驗光師完成配鏡。
+          預約不收訂金；到店配鏡時結帳。
         </p>
       </header>
 
@@ -97,8 +97,12 @@ export default async function BookAppointmentPage({
         </div>
       ) : (
         <BookingForm
-          productId={product.id}
-          productSlug={product.slug}
+          product={{
+            id: product.id,
+            name: product.name,
+            slug: product.slug,
+            price_cents: product.price_cents,
+          }}
           slots={slots}
           defaults={
             user
