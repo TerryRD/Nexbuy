@@ -1,28 +1,16 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import Image from "next/image";
-import Link from "next/link";
 import { Search } from "lucide-react";
 import { ProductFilter } from "@/components/site/ProductFilter";
-import { formatPrice } from "@/lib/format";
+import { ProductCard } from "@/components/site/ProductCard";
 import type { Product, ProductKind } from "@/lib/types/database";
-import { getProductImageUrl } from "@/lib/product-placeholder";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { AttributeFilters } from "./AttributeFilters";
 import {
   filterToQueryString,
   type AttributeFilterState,
 } from "./attribute-filter";
-import { WishlistToggle } from "./WishlistToggle";
 
 const TITLE: Record<"all" | ProductKind, string> = {
   all: "全部商品",
@@ -153,51 +141,12 @@ export function ProductsList({
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((p, idx) => (
             <li key={p.id}>
-              <Link href={`/products/${p.slug}`} className="group block">
-                <Card className="h-full overflow-hidden transition-shadow hover:shadow-md">
-                  <div className="relative aspect-square overflow-hidden rounded-t-lg bg-muted">
-                    <Image
-                      src={getProductImageUrl(p)}
-                      alt={p.name}
-                      fill
-                      // 桌面 grid 第 1 row（lg 3 欄、sm 2 欄）跟 LCP 競爭，
-                      // 先 3 張 priority 預載；後面卡片 lazy 由 next/image 預設處理。
-                      priority={idx < 3}
-                      sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                      // SVG placeholder 已是最終格式，不再過 Vercel image transform
-                      unoptimized={!p.image_urls[0]}
-                      className="object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
-                    <WishlistToggle
-                      productId={p.id}
-                      initialInWishlist={wishlistIds.includes(p.id)}
-                      isLoggedIn={isLoggedIn}
-                      variant="heart"
-                    />
-                  </div>
-                  <CardHeader>
-                    <div className="flex items-start justify-between gap-2">
-                      <CardTitle className="text-base leading-tight">
-                        {p.name}
-                      </CardTitle>
-                      <Badge
-                        variant={p.kind === "finished" ? "default" : "outline"}
-                        className="shrink-0"
-                      >
-                        {p.kind === "finished" ? "成品" : "預約配鏡"}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="text-sm text-muted-foreground line-clamp-2">
-                    {p.description ?? " "}
-                  </CardContent>
-                  <CardFooter>
-                    <span className="text-lg font-semibold">
-                      {formatPrice(p.price_cents)}
-                    </span>
-                  </CardFooter>
-                </Card>
-              </Link>
+              <ProductCard
+                product={p}
+                inWishlist={wishlistIds.includes(p.id)}
+                isLoggedIn={isLoggedIn}
+                priority={idx < 3}
+              />
             </li>
           ))}
         </ul>

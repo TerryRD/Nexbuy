@@ -22,6 +22,7 @@ export interface Product {
   color: string | null;
   // Virtual try-on
   try_on_image_url: string | null;
+  is_featured: boolean | null;
 }
 
 export interface AppointmentSlot {
