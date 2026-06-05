@@ -200,32 +200,6 @@
     color: var(--muted-foreground);
   }
 
-  /* CSS tooltip fallback for icon buttons: <button data-tip="比較"> */
-  [data-tip] { position: relative; }
-  [data-tip]::after {
-    content: attr(data-tip);
-    position: absolute;
-    top: calc(100% + 6px);
-    left: 50%;
-    translate: -50% 0;
-    padding: 4px 8px;
-    border-radius: var(--radius-sm);
-    background: var(--popover);
-    color: var(--popover-foreground);
-    border: 1px solid var(--border);
-    box-shadow: var(--shadow-2);
-    font-size: 11px;
-    white-space: nowrap;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.15s ease;
-    z-index: 60;
-  }
-  [data-tip]:hover::after,
-  [data-tip]:focus-visible::after { opacity: 1; }
-  @media (prefers-reduced-motion: reduce) {
-    [data-tip]::after { transition: none; }
-  }
 }
 
 /* ---- Brand page motion utilities ---------------------------------------- */
