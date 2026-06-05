@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { Stepper } from "@/components/site/Stepper";
 import { CheckoutForm, type CheckoutDefaults } from "./CheckoutForm";
 
 export default async function CheckoutPage() {
@@ -29,16 +29,13 @@ export default async function CheckoutPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10">
-      <div className="mb-6">
-        <Link
-          href="/cart"
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
-          ← 回購物車
-        </Link>
+    <div className="container py-10 md:py-14">
+      <div className="mb-8">
+        <Stepper steps={["購物車", "結帳資訊", "完成訂單"]} current={1} />
       </div>
-      <h1 className="mb-6 text-3xl font-semibold tracking-tight">結帳</h1>
+      <h1 className="mb-8 font-serif text-3xl font-semibold tracking-tight">
+        結帳資訊
+      </h1>
       <CheckoutForm defaults={defaults} />
     </div>
   );
