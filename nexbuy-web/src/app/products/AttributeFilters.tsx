@@ -5,7 +5,6 @@ import { ChevronDown, X } from "lucide-react";
 
 import {
   FACE_SHAPES,
-  FRAME_SHAPES,
   FRAME_SIZES,
   MATERIALS,
   COLORS,
@@ -26,7 +25,7 @@ interface Props {
   onChange: (next: AttributeFilterState) => void;
 }
 
-type SingleKey = "frameShape" | "frameSize" | "material" | "color";
+type SingleKey = "frameSize" | "material" | "color";
 
 interface ActiveTag {
   key: string;
@@ -61,15 +60,6 @@ export function AttributeFilters({ value, onChange }: Props) {
       label: `臉型 · ${s}`,
       onRemove: () => toggleFaceShape(s),
     })),
-    ...(value.frameShape
-      ? [
-          {
-            key: `frame-${value.frameShape}`,
-            label: `框形 · ${value.frameShape}`,
-            onRemove: () => onChange({ ...value, frameShape: null }),
-          },
-        ]
-      : []),
     ...(value.frameSize
       ? [
           {
@@ -117,7 +107,7 @@ export function AttributeFilters({ value, onChange }: Props) {
             }`}
             aria-hidden
           />
-          篩選
+          更多篩選
           {count > 0 && (
             <span className="rounded-full bg-primary px-1.5 text-[10px] leading-4 text-primary-foreground">
               {count}
@@ -158,12 +148,6 @@ export function AttributeFilters({ value, onChange }: Props) {
           id="attribute-filter-panel"
           className="space-y-2 border-t border-border/60 px-3 py-3"
         >
-          <ChipRow
-            label="框形"
-            options={FRAME_SHAPES}
-            isActive={(o) => value.frameShape === o}
-            onClick={(o) => setSingle("frameShape", o)}
-          />
           <ChipRow
             label="臉型"
             options={FACE_SHAPES}
