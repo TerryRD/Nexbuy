@@ -3,6 +3,7 @@ import { Check } from "lucide-react";
 interface StepperProps {
   steps: string[];
   current: number; // 0-based index of the active step
+  label?: string; // accessible nav label (shared across checkout/booking flows)
 }
 
 /**
@@ -12,9 +13,9 @@ interface StepperProps {
  *   active     (index === current) — primary ring
  *   future     (index > current)  — muted border
  */
-export function Stepper({ steps, current }: StepperProps) {
+export function Stepper({ steps, current, label = "步驟" }: StepperProps) {
   return (
-    <nav aria-label="結帳步驟">
+    <nav aria-label={label}>
       <ol className="flex items-center w-full">
         {steps.map((label, index) => {
           const isCompleted = index < current;
