@@ -1,11 +1,18 @@
 import Link from "next/link";
-import { Glasses, Camera } from "lucide-react";
+import { GitCompareArrows, Heart } from "lucide-react";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { CartLink } from "./CartLink";
 import { HeaderAuthLink } from "./HeaderAuthLink";
+import { IconTip } from "./IconTip";
 import { Logo } from "./Logo";
-import { MobileNavMenu } from "./MobileNavMenu";
 import { ThemeToggle } from "./ThemeToggle";
+
+const NAV = [
+  { href: "/products", label: "選購" },
+  { href: "/tryon", label: "虛擬試戴" },
+  { href: "/quiz", label: "臉型測驗" },
+  { href: "/store", label: "門市" },
+];
 
 export async function Header() {
   const sb = await createServerSupabase();
@@ -15,48 +22,53 @@ export async function Header() {
 
   return (
     <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-sm">
-      <div className="mx-auto flex h-16 max-w-5xl items-center justify-between gap-2 px-3 sm:px-4">
-        {/* Left: hamburger (mobile) + logo */}
-        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-          <MobileNavMenu />
-          <Link
-            href="/"
-            className="flex shrink-0 items-center gap-2 whitespace-nowrap font-heading text-base font-semibold tracking-tight text-primary sm:gap-2.5 sm:text-xl"
-          >
-            <Logo className="h-5 w-auto" />
-            <span>精鋐眼鏡行</span>
-          </Link>
-        </div>
+      {/* Announcement bar */}
+      <div className="bg-bg-deep text-muted-foreground">
+        <p className="container flex h-8 items-center justify-center gap-2 text-center text-[11px] tracking-wide">
+          <span>滿 NT$3,000 免運</span>
+          <span aria-hidden className="text-line-soft">·</span>
+          <span>週一–六 15:00–22:00</span>
+        </p>
+      </div>
 
-        {/* Right: primary nav (desktop) + account + cart (always) + theme (desktop) */}
-        <nav className="flex shrink-0 items-center gap-0.5 whitespace-nowrap text-sm sm:gap-1">
-          {/* Desktop-only primary links — duplicated in mobile hamburger menu */}
-          <Link
-            href="/products"
-            className="hidden sm:inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-full text-muted-foreground transition-colors hover:bg-accent/40 hover:text-foreground sm:min-h-0 sm:min-w-0 sm:px-3 sm:py-1.5"
-            aria-label="眼鏡"
-          >
-            <Glasses className="size-4" />
-            <span>眼鏡</span>
-          </Link>
-          <Link
-            href="/tryon"
-            className="hidden sm:inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-full text-muted-foreground transition-colors hover:bg-accent/40 hover:text-foreground sm:min-h-0 sm:min-w-0 sm:px-3 sm:py-1.5"
-            aria-label="試戴"
-          >
-            <Camera className="size-4" />
-            <span>試戴</span>
-          </Link>
+      {/* Main bar */}
+      <div className="container flex h-16 items-center justify-between gap-2">
+        {/* Brand */}
+        <Link
+          href="/"
+          className="flex shrink-0 items-center gap-2 whitespace-nowrap font-serif text-lg font-medium tracking-tight text-foreground sm:text-xl"
+        >
+          <Logo className="h-5 w-auto text-foreground" />
+          <span>
+            精鋐眼鏡行<span className="text-gold">.</span>
+          </span>
+        </Link>
 
-          {/* Account + Cart: always visible on both mobile and desktop */}
+        {/* Desktop nav (>=900px) */}
+        <nav className="hidden items-center gap-1 nav:flex" aria-label="主導覽">
+          {NAV.map(({ href, label }) => (
+            <Link
+              key={href}
+              href={href}
+              className="rounded-full px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            >
+              {label}
+            </Link>
+          ))}
+        </nav>
+
+        {/* Icon actions */}
+        <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
+          <IconTip tip="鏡框比較" href="/compare">
+            <GitCompareArrows className="size-4" />
+          </IconTip>
+          <IconTip tip="願望清單" href="/wishlist">
+            <Heart className="size-4" />
+          </IconTip>
           <HeaderAuthLink loggedIn={!!user} />
           <CartLink />
-
-          {/* Theme toggle: desktop only — mobile has it inside hamburger menu */}
-          <div className="hidden sm:inline-flex">
-            <ThemeToggle />
-          </div>
-        </nav>
+          <ThemeToggle />
+        </div>
       </div>
     </header>
   );

@@ -1,68 +1,102 @@
 import Link from "next/link";
-import { Phone, MapPin, Clock, Mail } from "lucide-react";
+import { Phone, MapPin, Clock } from "lucide-react";
+import { Logo } from "./Logo";
 
-// TODO: move to env vars / DB when shop info needs to be editable.
-const SHOP_INFO = {
+const SHOP = {
   name: "精鋐眼鏡行",
-  phone: "(02) 0000-0000",
-  phoneLink: "tel:+886200000000",
-  address: "台北市信義區信義路一段 1 號",
-  hours: "週一～週六 10:00 – 21:00（週日公休）",
-  email: "service@example.com",
-  emailLink: "mailto:service@example.com",
+  address: "桃園市桃園區同德里中埔六街 95 號",
+  phone: "(03) 317-3639",
+  phoneLink: "tel:+886333173639",
+  hours: "週一–週六 15:00–22:00（週日公休）",
+  maps: "https://maps.app.goo.gl/bqez4pyoFHN7oYE87",
+  taxId: "91234567",
 };
+
+const CATEGORIES = [
+  { href: "/products?kind=finished", label: "成品太陽眼鏡" },
+  { href: "/products?kind=prescription_frame", label: "處方鏡框" },
+  { href: "/tryon", label: "虛擬試戴" },
+  { href: "/quiz", label: "臉型測驗" },
+  { href: "/compare", label: "鏡框比較" },
+];
+
+const SERVICES = [
+  { href: "/store", label: "門市資訊" },
+  { href: "/wishlist", label: "願望清單" },
+  { href: "/orders", label: "訂單查詢" },
+];
 
 export function Footer() {
   return (
-    <footer className="mt-auto border-t bg-background">
-      <div className="mx-auto max-w-5xl px-4 py-10">
-        <div className="grid gap-8 md:grid-cols-2">
-          {/* Brand + tagline */}
-          <div className="space-y-2">
-            <h2 className="font-heading text-lg font-semibold">
-              {SHOP_INFO.name}
-            </h2>
+    <footer className="mt-auto border-t bg-bg-deep">
+      <div className="container py-12">
+        <div className="grid gap-10 sm:grid-cols-2 nav:grid-cols-4">
+          {/* Brand */}
+          <div className="space-y-3">
+            <Link href="/" className="flex items-center gap-2 font-serif text-lg font-medium text-foreground">
+              <Logo className="h-5 w-auto text-foreground" />
+              <span>精鋐眼鏡行<span className="text-gold">.</span></span>
+            </Link>
             <p className="text-sm text-muted-foreground">
-              在家挑框，到店配鏡。挑款、預約、配鏡 一次搞定。
+              在家挑框，到店配鏡。慢工細活，實體店家親手服務。
             </p>
           </div>
 
-          {/* Contact */}
+          {/* Categories */}
+          <nav className="space-y-3 text-sm" aria-label="商品分類">
+            <h3 className="eyebrow">選購</h3>
+            <ul className="space-y-2 text-muted-foreground">
+              {CATEGORIES.map((c) => (
+                <li key={c.href}>
+                  <Link href={c.href} className="transition-colors hover:text-foreground">
+                    {c.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          {/* Services */}
+          <nav className="space-y-3 text-sm" aria-label="服務">
+            <h3 className="eyebrow">服務</h3>
+            <ul className="space-y-2 text-muted-foreground">
+              {SERVICES.map((s) => (
+                <li key={s.href}>
+                  <Link href={s.href} className="transition-colors hover:text-foreground">
+                    {s.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          {/* Store info */}
           <div className="space-y-3 text-sm">
-            <h3 className="font-medium text-foreground">聯絡我們</h3>
+            <h3 className="eyebrow">門市</h3>
             <ul className="space-y-2 text-muted-foreground">
               <li className="flex items-start gap-2">
-                <Phone className="size-4 mt-0.5 shrink-0 text-muted-foreground/70" />
-                <Link
-                  href={SHOP_INFO.phoneLink}
-                  className="hover:text-foreground hover:underline underline-offset-2"
-                >
-                  {SHOP_INFO.phone}
-                </Link>
+                <MapPin className="mt-0.5 size-4 shrink-0" />
+                <a href={SHOP.maps} target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">
+                  {SHOP.address}
+                </a>
               </li>
               <li className="flex items-start gap-2">
-                <Mail className="size-4 mt-0.5 shrink-0 text-muted-foreground/70" />
-                <Link
-                  href={SHOP_INFO.emailLink}
-                  className="hover:text-foreground hover:underline underline-offset-2"
-                >
-                  {SHOP_INFO.email}
-                </Link>
+                <Phone className="mt-0.5 size-4 shrink-0" />
+                <a href={SHOP.phoneLink} className="transition-colors hover:text-foreground">
+                  {SHOP.phone}
+                </a>
               </li>
               <li className="flex items-start gap-2">
-                <MapPin className="size-4 mt-0.5 shrink-0 text-muted-foreground/70" />
-                <span>{SHOP_INFO.address}</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Clock className="size-4 mt-0.5 shrink-0 text-muted-foreground/70" />
-                <span>{SHOP_INFO.hours}</span>
+                <Clock className="mt-0.5 size-4 shrink-0" />
+                <span>{SHOP.hours}</span>
               </li>
             </ul>
           </div>
         </div>
 
-        <div className="mt-8 border-t pt-4 text-sm text-muted-foreground">
-          © {new Date().getFullYear()} {SHOP_INFO.name} ・ 在家挑框，到店配鏡
+        <div className="mt-10 flex flex-col gap-1 border-t pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+          <span>© {new Date().getFullYear()} {SHOP.name} ・ 統一編號 {SHOP.taxId}</span>
+          <span>在家挑框，到店配鏡</span>
         </div>
       </div>
     </footer>
