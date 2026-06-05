@@ -29,6 +29,7 @@ function parseFormData(formData: FormData) {
     low_stock_threshold:
       (formData.get("low_stock_threshold") ?? "").toString() || "3",
     is_online_available: formData.get("is_online_available") === "on",
+    is_featured: formData.get("is_featured") === "on",
     // Phase 3 attributes — face_shape 是多選 checkbox 群組
     face_shape: formData.getAll("face_shape").map((v) => v.toString()),
     frame_shape: (formData.get("frame_shape") ?? "").toString() || null,
@@ -121,6 +122,7 @@ export async function createProductAction(
     finished_stock: parsed.data.kind === "finished" ? parsed.data.finished_stock : null,
     low_stock_threshold: parsed.data.low_stock_threshold,
     is_online_available: parsed.data.is_online_available,
+    is_featured: parsed.data.is_featured ?? false,
     image_urls: imageUrl ? [imageUrl] : [],
     try_on_image_url: tryOnUrl,
     face_shape: parsed.data.face_shape,
@@ -198,6 +200,7 @@ export async function updateProductAction(
         parsed.data.kind === "finished" ? parsed.data.finished_stock : null,
       low_stock_threshold: parsed.data.low_stock_threshold,
       is_online_available: parsed.data.is_online_available,
+      is_featured: parsed.data.is_featured ?? false,
       image_urls: imageUrls,
       try_on_image_url: tryOnUrl,
       face_shape: parsed.data.face_shape,
