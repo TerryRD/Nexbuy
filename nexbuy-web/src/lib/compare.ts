@@ -8,7 +8,7 @@ import { useCallback, useSyncExternalStore } from "react";
 // 避免 localStorage 與 prod DB 不同步）。
 
 const STORAGE_KEY = "nexbuy-compare-v1";
-export const MAX_COMPARE = 3;
+export const MAX_COMPARE = 4;
 
 const EMPTY: string[] = [];
 let cachedSnapshot: string[] | null = null;
