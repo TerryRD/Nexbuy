@@ -25,6 +25,7 @@ import {
   type Placement,
 } from "./lib/glasses-placer";
 import { scoreProduct, type FaceShape } from "./lib/face-recommendations";
+import { FACE_SHAPES } from "@/lib/schemas/product";
 import type { Product } from "@/lib/types/database";
 
 type Phase =
@@ -58,6 +59,16 @@ export function TryOnClient({ products }: Props) {
   const [adjust, setAdjust] = useState<Adjustment>(ADJUSTMENT_DEFAULTS);
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
   const [faceShape, setFaceShape] = useState<FaceShape | null>(null);
+
+  // Auto-load face shape from quiz result saved in localStorage.
+  useEffect(() => {
+    const saved = localStorage.getItem("nb:faceShape");
+    if (saved && (FACE_SHAPES as readonly string[]).includes(saved)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setFaceShape(saved as FaceShape);
+    }
+  }, []);
+
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const selectedProduct = useMemo(
