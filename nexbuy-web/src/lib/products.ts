@@ -57,7 +57,10 @@ export async function getFeaturedProducts(
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error) {
-    console.warn("getFeaturedProducts unavailable:", error.message);
+    console.warn(
+      "getFeaturedProducts unavailable (is_featured migration applied?):",
+      error.message,
+    );
     return [];
   }
   return (data ?? []) as ProductCardData[];

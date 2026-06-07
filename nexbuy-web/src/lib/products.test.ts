@@ -83,6 +83,17 @@ describe("getFeaturedProducts", () => {
     vi.clearAllMocks();
   });
 
+  it("does NOT add a kind eq filter when kind is omitted (keeps is_featured)", async () => {
+    const stub = makeQueryStub({ data: [], error: null });
+    mockCreateServerSupabase.mockResolvedValue({ from: () => stub });
+
+    await getFeaturedProducts();
+
+    const kindCalls = stub.eqCalls.filter(([col]) => col === "kind");
+    expect(kindCalls).toHaveLength(0);
+    expect(stub.eqCalls).toContainEqual(["is_featured", true]);
+  });
+
   it("adds .eq('kind', 'prescription_frame') AND keeps is_featured filter", async () => {
     const stub = makeQueryStub({ data: [], error: null });
     mockCreateServerSupabase.mockResolvedValue({ from: () => stub });
