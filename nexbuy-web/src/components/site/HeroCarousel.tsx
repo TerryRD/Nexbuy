@@ -1,94 +1,83 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useState } from "react";
-
-interface Slide {
-  src: string;
-  alt: string;
-}
+import { formatPrice } from "@/lib/format";
+import type { ProductCardData } from "@/lib/products";
 
 const ROTATE_MS = 5500;
 
-export function HeroCarousel({ slides }: { slides: readonly Slide[] }) {
+export function HeroCarousel({ products }: { products: readonly ProductCardData[] }) {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
 
   useEffect(() => {
-    if (slides.length <= 1 || paused) return;
+    if (products.length <= 1 || paused) return;
     const id = window.setInterval(() => {
-      setIndex((i) => (i + 1) % slides.length);
+      setIndex((i) => (i + 1) % products.length);
     }, ROTATE_MS);
     return () => window.clearInterval(id);
-  }, [slides.length, paused]);
+  }, [products.length, paused]);
+
+  if (products.length === 0) return null;
 
   return (
-    // role + aria-roledescription：給 screen reader 知道這是「輪播」而非
-    // 一張圖；hover 暫停是視覺輔助，鍵盤使用者本來就看不到自動切換的
-    // 動畫所以不需鍵盤等價（不會錯過資訊），故 disable 規則。
     // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <div
       role="region"
       aria-roledescription="輪播"
-      aria-label="店家照片"
+      aria-label="精選鏡框"
       className="relative aspect-[4/3] overflow-hidden rounded-3xl border border-border/60 shadow-2xl shadow-primary/15 ring-1 ring-foreground/5"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      {slides.map((s, i) => (
-        <div
-          key={s.src}
+      {products.map((p, i) => (
+        <Link
+          key={p.id}
+          href={`/products/${p.slug}`}
           className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
-            i === index ? "opacity-100" : "opacity-0"
+            i === index ? "opacity-100" : "pointer-events-none opacity-0"
           }`}
           aria-hidden={i !== index}
+          tabIndex={i === index ? 0 : -1}
         >
-          <Image
-            src={s.src}
-            alt={s.alt}
-            fill
-            priority={i === 0}
-            sizes="(min-width: 768px) 50vw, 100vw"
-            className="object-cover"
+          {p.image_urls[0] && (
+            <Image
+              src={p.image_urls[0]}
+              alt={p.name}
+              fill
+              priority={i === 0}
+              sizes="(min-width: 768px) 50vw, 100vw"
+              className="object-cover"
+            />
+          )}
+          <div
+            aria-hidden
+            className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/65 via-black/15 to-transparent"
           />
-        </div>
+          <div className="absolute inset-x-5 bottom-5 font-heading md:inset-x-7 md:bottom-7">
+            <div className="text-xl font-medium leading-tight tracking-tight text-white md:text-2xl">
+              {p.name}
+            </div>
+            <div className="mt-1 font-serif text-lg text-white/90">
+              {formatPrice(p.price_cents)}
+            </div>
+          </div>
+        </Link>
       ))}
 
-      <div
-        aria-hidden
-        className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/65 via-black/15 to-transparent"
-      />
-      <div className="bg-grain absolute inset-0" aria-hidden />
-
-      <div className="absolute inset-x-5 bottom-5 flex items-end justify-between gap-4 font-heading md:inset-x-7 md:bottom-7">
-        <div>
-          <div className="text-[10px] font-medium uppercase tracking-[0.32em] text-white/75">
-            Est · 在地
-          </div>
-          <div className="mt-1 text-xl font-medium leading-[1.05] tracking-tight text-white md:text-3xl">
-            Jing Hong Optical
-          </div>
-        </div>
-        <div className="text-right text-[10px] uppercase tracking-[0.2em] text-white/55">
-          25.0173°N
-          <br />
-          121.2956°E
-        </div>
-      </div>
-
-      {slides.length > 1 && (
+      {products.length > 1 && (
         <div className="absolute right-5 top-5 flex gap-1.5 md:right-7 md:top-7">
-          {slides.map((_, i) => (
+          {products.map((_, i) => (
             <button
               key={i}
               type="button"
               onClick={() => setIndex(i)}
-              aria-label={`第 ${i + 1} 張，共 ${slides.length} 張`}
+              aria-label={`第 ${i + 1} 張，共 ${products.length} 張`}
               aria-current={i === index}
               className={`h-1 rounded-full transition-all ${
-                i === index
-                  ? "w-6 bg-white"
-                  : "w-1.5 bg-white/50 hover:bg-white/75"
+                i === index ? "w-6 bg-white" : "w-1.5 bg-white/50 hover:bg-white/75"
               }`}
             />
           ))}
