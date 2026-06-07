@@ -23,6 +23,9 @@ export function HeroCarousel({ products }: { products: readonly ProductCardData[
   if (products.length === 0) return null;
 
   return (
+    // role="region" + aria-roledescription 讓 screen reader 知道這是「輪播」。
+    // onMouseEnter/Leave 只是 hover 暫停的視覺輔助；鍵盤使用者看不到自動切換
+    // 動畫所以不會錯過資訊、無需鍵盤等價，故 disable 此規則。
     // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <div
       role="region"
