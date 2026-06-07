@@ -1,8 +1,9 @@
+import type { ComponentType } from "react";
 import Link from "next/link";
 import {
-  Eye,
   Glasses,
   ShieldCheck,
+  Truck,
   MapPin,
   Clock,
   ArrowRight,
@@ -11,6 +12,7 @@ import {
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { HeroCarousel } from "@/components/site/HeroCarousel";
+import { Marquee } from "@/components/site/Marquee";
 import { Reveal } from "@/components/site/Reveal";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { organizationSchema, websiteSchema } from "@/lib/seo/schema";
@@ -23,68 +25,21 @@ const MAP_LABEL = encodeURIComponent("精鋐眼鏡行");
 const MAP_EMBED_SRC = `https://maps.google.com/maps?q=25.0173074,121.2956103+(${MAP_LABEL})&hl=zh-TW&z=17&output=embed`;
 const MAP_PUBLIC_URL = "https://maps.app.goo.gl/CBbpuKyNDXS7oPi38";
 
-const VALUES = [
-  {
-    icon: Eye,
-    title: "專業驗光",
-    desc: "資深驗光師細緻把關，從度數到瞳距、從眼壓到生活習慣全都納入考量。",
-  },
-  {
-    icon: Glasses,
-    title: "精選鏡框",
-    desc: "每一副鏡框都親自挑選，經典與當代並陳，戴起來舒服、看起來剛剛好。",
-  },
-  {
-    icon: ShieldCheck,
-    title: "售後保固",
-    desc: "鏡架調整、清洗、小修永遠免費；買的不只是一副眼鏡，是一段服務。",
-  },
-] as const;
-
-const STEPS = [
-  {
-    n: "01",
-    title: "線上挑款",
-    desc: "在家慢慢看，鏡框、價格、適合的臉型一目了然。",
-  },
-  {
-    n: "02",
-    title: "預約或下單",
-    desc: "成品款直接結帳寄出；處方鏡架選一個方便的到店時段。",
-  },
-  {
-    n: "03",
-    title: "到店配鏡 / 開箱",
-    desc: "驗光師已備好、鏡架已在桌上；或者快遞到家直接戴上。",
-  },
-] as const;
-
-// Placeholder photos sourced from Unsplash (whitelisted in next.config.ts).
-// Swap to first-party photos once the shoot is done.
-const HERO_SLIDES = [
-  {
-    src: "https://images.unsplash.com/photo-1574258495973-f010dfbb5371?w=1200&q=80&auto=format&fit=crop",
-    alt: "鏡框示意 — 木紋桌面",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1577803645773-f96470509666?w=1200&q=80&auto=format&fit=crop",
-    alt: "經典款式示意",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1542838132-92c53300491e?w=1200&q=80&auto=format&fit=crop",
-    alt: "鏡架特寫示意",
-  },
-] as const;
-// 之前的 GALLERY 三張 stock photo 已替換為「我們怎麼陪你」資訊卡，
-// 等實拍店內照齊全再 PR 切回圖片版。
-
 export default async function HomePage() {
-  const [featured, newArrivals, wishlistSet, sb] = await Promise.all([
-    getFeaturedProducts(8),
-    getNewArrivals(8),
-    getWishlistProductIds(),
-    createServerSupabase(),
-  ]);
+  const [heroFeatured, finishedFeatured, rxArrivals, wishlistSet, sb] =
+    await Promise.all([
+      getFeaturedProducts(6),
+      getFeaturedProducts(8, "finished"),
+      getNewArrivals(8, "prescription_frame"),
+      getWishlistProductIds(),
+      createServerSupabase(),
+    ]);
+  const finishedGrid =
+    finishedFeatured.length >= 4
+      ? finishedFeatured
+      : await getNewArrivals(8, "finished");
+  const heroSlides =
+    heroFeatured.length > 0 ? heroFeatured : await getNewArrivals(6);
   const {
     data: { user },
   } = await sb.auth.getUser();
@@ -94,32 +49,23 @@ export default async function HomePage() {
     <div className="relative">
       <JsonLd data={organizationSchema()} />
       <JsonLd data={websiteSchema()} />
-      {/* ---------------- Hero ---------------- */}
+
+      {/* 1. Hero */}
       <section className="relative isolate overflow-hidden">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-secondary/60 via-background to-accent/30"
         />
-        <div
-          aria-hidden
-          className="animate-aurora pointer-events-none absolute -top-32 -right-24 -z-10 size-[32rem] rounded-full bg-gradient-to-br from-accent/45 via-chart-1/30 to-primary/20 blur-3xl"
-        />
-        <div
-          aria-hidden
-          className="animate-aurora-slow pointer-events-none absolute -bottom-40 -left-32 -z-10 size-[36rem] rounded-full bg-gradient-to-br from-primary/20 via-chart-2/25 to-accent/35 blur-3xl"
-        />
-
         <div className="mx-auto max-w-5xl px-4 py-16">
           <div className="grid gap-8 py-12 md:grid-cols-2 md:items-center md:gap-12 md:py-20">
             <div className="space-y-5">
               <p className="eyebrow">ARTISAN · EYEWEAR · 2026</p>
               <h1 className="font-serif text-4xl font-medium leading-[1.05] tracking-tight text-foreground md:text-6xl">
-                在家挑框
-                <br />
-                到店配鏡
+                看世界，
+                <br />用<em className="not-italic text-primary">慢一拍</em>的眼光。
               </h1>
               <p className="text-lg leading-relaxed text-muted-foreground">
-                成品眼鏡線上直接購買；處方鏡架線上預約到店驗光配鏡。門市為你準備好，你只要走進來。
+                我們挑選義大利醋酸纖維與日本鈦合金，與台灣的驗光師合作。每一副都希望能跟你十年。
               </p>
               <div className="flex flex-wrap gap-3 pt-2">
                 <Link href="/products" className={buttonVariants({ size: "lg" })}>
@@ -132,30 +78,49 @@ export default async function HomePage() {
                   先做個臉型測驗
                 </Link>
               </div>
+              <div className="flex flex-wrap gap-6 pt-6">
+                {[
+                  ["滿 3,000", "免運費"],
+                  ["處方鏡框", "線上預約・店內驗光"],
+                  ["原廠保固", "一年"],
+                ].map(([k, v], i) => (
+                  <div key={k} className="flex items-center gap-6">
+                    {i > 0 && <div aria-hidden className="h-8 w-px bg-border" />}
+                    <div>
+                      <div className="eyebrow">{k}</div>
+                      <div className="mt-1 font-serif text-xl">{v}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-
-            <HeroCarousel slides={HERO_SLIDES} />
+            <HeroCarousel products={heroSlides} />
           </div>
         </div>
       </section>
 
-      {/* ---------------- 精選商品 ---------------- */}
-      {featured.length > 0 && (
+      {/* 2. Marquee */}
+      <Marquee />
+
+      {/* 3. 成品太陽眼鏡 */}
+      {finishedGrid.length > 0 && (
         <section className="container py-16">
           <div className="mb-8 flex items-end justify-between gap-4">
             <div>
-              <p className="eyebrow mb-2">FEATURED</p>
-              <h2 className="font-serif text-2xl font-medium md:text-3xl">精選商品</h2>
+              <p className="eyebrow mb-2">本季精選 · SS 2026</p>
+              <h2 className="font-serif text-2xl font-medium md:text-3xl">
+                成品<em className="not-italic text-primary">太陽眼鏡</em>
+              </h2>
             </div>
             <Link
-              href="/products"
-              className="inline-flex items-center gap-1 text-sm text-primary hover:underline underline-offset-2"
+              href="/products?kind=finished"
+              className="inline-flex items-center gap-1 text-sm text-primary underline-offset-2 hover:underline"
             >
               看全部 <ArrowRight className="size-3.5" />
             </Link>
           </div>
           <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 nav:grid-cols-4">
-            {featured.map((p, i) => (
+            {finishedGrid.map((p, i) => (
               <li key={p.id}>
                 <ProductCard
                   product={p}
@@ -169,194 +134,107 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* ---------------- Brand story ---------------- */}
-      <section id="story" className="relative mx-auto max-w-5xl px-4 py-20">
-        <div className="grid gap-10 md:grid-cols-5 md:gap-14">
-          <Reveal from="left" className="md:col-span-2">
-            <div className="sticky top-24">
-              <h2 className="font-heading text-3xl font-semibold leading-tight tracking-tight md:text-4xl">
-                我們相信，
-                <br />
-                眼鏡不只是工具，
-                <br />
-                <span className="text-primary">而是一張你願意每天戴上的臉。</span>
-              </h2>
+      {/* 4. 試戴 editorial */}
+      <section className="container py-16">
+        <div className="grid items-center gap-8 rounded-3xl border border-border/60 bg-card p-8 md:grid-cols-2 md:p-12">
+          <Reveal from="left" className="space-y-4">
+            <p className="eyebrow">虛擬試戴 · BETA</p>
+            <h3 className="font-serif text-2xl font-medium leading-snug md:text-3xl">
+              上傳一張照片，
+              <br />
+              每副鏡框的樣子都先看過。
+            </h3>
+            <p className="leading-relaxed text-muted-foreground">
+              選一張正面照，把精鋐任何一副鏡框疊在你臉上預覽。位置、大小、角度都可以微調，照片只在你的瀏覽器中處理，不上傳。
+            </p>
+            <div className="flex flex-wrap gap-3 pt-2">
+              <Link href="/tryon" className={buttonVariants()}>
+                <Camera className="mr-1 size-4" />
+                開始試戴
+              </Link>
+              <Link href="/quiz" className={buttonVariants({ variant: "outline" })}>
+                先做臉型測驗
+              </Link>
             </div>
           </Reveal>
-          <Reveal
-            from="right"
-            delay={120}
-            className="space-y-5 text-base leading-relaxed text-muted-foreground md:col-span-3 md:text-lg"
-          >
-            <p>
-              精鋐眼鏡行做的事很簡單 — 把鏡框、鏡片、和你的臉，配得剛剛好。
-            </p>
-            <p>
-              我們不追每一波潮流，但會把每一副經典款式守好；
-              我們不堆滿牆面的展示款，但每一副鏡框都親自挑過，
-              戴起來能撐住一整天的舒服。
-            </p>
-            <p>
-              線上下單買成品眼鏡，平光、太陽眼鏡直接寄到家；
-              處方鏡架線上預約時段，到店有人接、有鏡架已備好、有驗光師慢慢談。
-              這就是我們想要的：把「挑眼鏡」這件事，變成一段不趕時間的小旅行。
-            </p>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* ---------------- Values / services (dark reversal) ---------------- */}
-      <section
-        id="services"
-        className="dark relative border-y border-border/60 bg-background text-foreground"
-      >
-        <div className="mx-auto max-w-5xl px-4 py-20">
-          <Reveal from="left">
-            <div className="mb-12 flex flex-col items-start gap-3 md:flex-row md:items-end md:justify-between">
-              <div>
-                <h2 className="font-heading text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
-                  我們提供什麼
-                </h2>
-              </div>
-              <p className="max-w-md text-sm text-muted-foreground">
-                三件事，做到底。從驗光、選框，到售後維護，每一步都不外包。
+          <Reveal from="right" delay={120} className="flex justify-center">
+            <div className="relative aspect-square w-full max-w-sm rounded-2xl bg-bg-deep">
+              <div
+                aria-hidden
+                className="absolute left-1/2 top-1/2 size-40 -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-muted-foreground/40"
+              />
+              <Glasses
+                aria-hidden
+                className="absolute left-1/2 top-1/2 size-24 -translate-x-1/2 -translate-y-1/2 text-muted-foreground/50"
+              />
+              <p className="eyebrow absolute inset-x-0 bottom-5 text-center">
+                UPLOAD · OVERLAY · PREVIEW
               </p>
             </div>
           </Reveal>
-          <div className="grid gap-5 md:grid-cols-3">
-            {VALUES.map(({ icon: Icon, title, desc }, i) => (
-              <Reveal key={title} from="zoom-up" delay={i * 120}>
-                <div className="group relative h-full overflow-hidden rounded-3xl border border-border/60 bg-card p-6 transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10">
-                  <div
-                    aria-hidden
-                    className="absolute -top-16 -right-16 size-40 rounded-full bg-primary/15 blur-2xl transition-opacity group-hover:opacity-100 md:opacity-0"
-                  />
-                  <div className="relative">
-                    <div className="inline-flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-inset ring-primary/15">
-                      <Icon className="size-6" />
-                    </div>
-                    <div className="mt-5 font-heading text-xl font-semibold">
-                      {title}
-                    </div>
-                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                      {desc}
-                    </p>
-                  </div>
-                </div>
-              </Reveal>
+        </div>
+      </section>
+
+      {/* 5. 處方 CTA banner */}
+      <section className="dark border-y border-border/60 bg-bg-deep text-foreground">
+        <div className="mx-auto grid max-w-5xl gap-10 px-4 py-20 md:grid-cols-2 md:items-center">
+          <div className="space-y-4">
+            <p className="eyebrow text-gold">處方鏡框 · 預約到店配鏡</p>
+            <h2 className="font-serif text-3xl font-medium leading-snug md:text-4xl">
+              線上挑款，<em className="not-italic text-primary">到店驗光</em>。
+              <br />
+              不必空等也不必跑兩趟。
+            </h2>
+            <p className="leading-relaxed text-muted-foreground">
+              線上選好處方鏡框款式，預約 30 分鐘時段到精鋐眼鏡行。驗光師現場量測、討論鏡片選擇，配鏡後免費寄送到家。
+            </p>
+            <div className="flex flex-wrap gap-3 pt-2">
+              <Link
+                href="/products?kind=prescription_frame"
+                className={buttonVariants()}
+              >
+                看處方鏡框
+              </Link>
+              <Link href="/store" className={buttonVariants({ variant: "outline" })}>
+                查看門市資訊
+              </Link>
+            </div>
+          </div>
+          <ol className="space-y-5 rounded-3xl border border-border/60 bg-card/40 p-8">
+            {[
+              ["01", "線上挑選處方鏡框款式"],
+              ["02", "選擇 30 分鐘到店預約時段"],
+              ["03", "店內驗光・討論鏡片"],
+              ["04", "配鏡完成・免費宅配"],
+            ].map(([n, t]) => (
+              <li key={n} className="flex items-baseline gap-4">
+                <span className="font-serif text-2xl italic text-gold">{n}</span>
+                <span className="text-base">{t}</span>
+              </li>
             ))}
-          </div>
+          </ol>
         </div>
       </section>
 
-      {/* ---------------- How it works ---------------- */}
-      <section id="how" className="mx-auto max-w-5xl px-4 py-20">
-        <Reveal from="left">
-          <div className="mb-10">
-            <h2 className="font-heading text-3xl font-semibold tracking-tight md:text-4xl">
-              怎麼運作
-            </h2>
-            <p className="mt-2 max-w-md text-sm text-muted-foreground">
-              三步驟，把線上跟到店接起來 — 你來的時候，東西早就準備好了。
-            </p>
-          </div>
-        </Reveal>
-        <div className="grid gap-4 md:grid-cols-3">
-          {STEPS.map((s, i) => (
-            <Reveal key={s.n} from="zoom-up" delay={i * 100}>
-              <div className="relative h-full rounded-3xl border border-border/60 bg-card/60 p-6 backdrop-blur-sm">
-                {/* 純裝飾的步驟序號（01/02/03）— 後面的標題已自帶順序，
-                 * 對螢幕閱讀器無額外資訊故 aria-hidden。
-                 * axe-core 對 aria-hidden 文字仍跑 color-contrast（理由：
-                 * 視覺上看得到），因此 opacity 從 30 → 60，視覺仍 ghost
-                 * 但對 bg-card/60 通過 WCAG AA large-text 3:1。 */}
-                <div
-                  aria-hidden
-                  className="font-heading text-5xl font-semibold leading-none tracking-tight text-primary/80"
-                >
-                  {s.n}
-                </div>
-                <div className="mt-5 font-heading text-xl font-semibold">
-                  {s.title}
-                </div>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                  {s.desc}
-                </p>
-              </div>
-            </Reveal>
-          ))}
-        </div>
-      </section>
-
-      {/* ---------------- 服務內容 ---------------- */}
-      {/*
-       * 之前這區塊是「店裡的樣子」三張 stock photo（被 QA 抓到 cap / 蔬菜 /
-       * 路人混進來），在真正拍店內照之前改成資訊卡更有業務價值。
-       * admin 拍好真照後可以再回來換成圖片版。
-       */}
-      <section id="services" className="mx-auto max-w-5xl px-4 py-20">
-        <Reveal from="left">
-          <div className="mb-10">
-            <h2 className="font-heading text-3xl font-semibold tracking-tight md:text-4xl">
-              我們怎麼陪你
-            </h2>
-            <p className="mt-2 max-w-md text-sm text-muted-foreground">
-              一副眼鏡可以戴五年，所以前後每一步都用心做。
-            </p>
-          </div>
-        </Reveal>
-        <div className="grid gap-4 md:grid-cols-3">
-          {[
-            {
-              title: "完整驗光不趕時間",
-              desc: "每位客人預留 30–45 分鐘。從度數、瞳距、瞳孔距離量到雙眼平衡，必要時加做色覺與立體感檢查。寧可慢一點不要錯。",
-              tag: "驗光",
-            },
-            {
-              title: "鏡架實戴試三次",
-              desc: "選好框先戴 5 分鐘繞店內走一圈、看遠看近、找適合的鼻墊角度。覺得不對可以重來，沒人會在後面催你。",
-              tag: "選框",
-            },
-            {
-              title: "保固期內無條件調整",
-              desc: "鏡腿鬆了、鼻墊歪了、鏡片刮了想再買同款 — 半年內回來都免費。我們希望你戴得安心。",
-              tag: "售後",
-            },
-          ].map((card, i) => (
-            <Reveal key={card.title} from="zoom-up" delay={i * 100}>
-              <article className="group relative h-full overflow-hidden rounded-3xl border border-border/60 bg-card p-7 shadow-xl shadow-primary/5 transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-2xl hover:shadow-primary/10">
-                <div className="text-[10px] font-medium uppercase tracking-[0.2em] text-primary">
-                  {card.tag}
-                </div>
-                <h3 className="mt-3 font-heading text-xl font-semibold leading-snug">
-                  {card.title}
-                </h3>
-                <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-                  {card.desc}
-                </p>
-              </article>
-            </Reveal>
-          ))}
-        </div>
-      </section>
-
-      {/* ---------------- 本季新品 ---------------- */}
-      {newArrivals.length > 0 && (
+      {/* 6. 本季新進框型 */}
+      {rxArrivals.length > 0 && (
         <section className="container py-16">
           <div className="mb-8 flex items-end justify-between gap-4">
             <div>
-              <p className="eyebrow mb-2">NEW ARRIVALS</p>
-              <h2 className="font-serif text-2xl font-medium md:text-3xl">本季新品</h2>
+              <p className="eyebrow mb-2">處方鏡框 · 預約配鏡</p>
+              <h2 className="font-serif text-2xl font-medium md:text-3xl">
+                本季<em className="not-italic text-primary">新進框型</em>
+              </h2>
             </div>
             <Link
-              href="/products"
-              className="inline-flex items-center gap-1 text-sm text-primary hover:underline underline-offset-2"
+              href="/products?kind=prescription_frame"
+              className="inline-flex items-center gap-1 text-sm text-primary underline-offset-2 hover:underline"
             >
               看全部 <ArrowRight className="size-3.5" />
             </Link>
           </div>
           <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 nav:grid-cols-4">
-            {newArrivals.map((p) => (
+            {rxArrivals.map((p) => (
               <li key={p.id}>
                 <ProductCard
                   product={p}
@@ -370,39 +248,32 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* ---------------- 試戴 / 測驗導引 ---------------- */}
-      <section className="container py-16">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Link
-            href="/tryon"
-            className="group rounded-xl border bg-card p-8 transition-colors hover:border-primary/40"
-          >
-            <Camera className="size-6 text-primary" />
-            <h3 className="mt-4 font-serif text-xl font-medium">虛擬試戴</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              上傳照片，線上套上鏡框看效果。
-            </p>
-            <span className="mt-4 inline-flex items-center gap-1 text-sm text-primary">
-              開始試戴 <ArrowRight className="size-3.5" />
-            </span>
-          </Link>
-          <Link
-            href="/quiz"
-            className="group rounded-xl border bg-card p-8 transition-colors hover:border-primary/40"
-          >
-            <Sparkles className="size-6 text-primary" />
-            <h3 className="mt-4 font-serif text-xl font-medium">臉型測驗</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              四題找出你的臉型與推薦框型。
-            </p>
-            <span className="mt-4 inline-flex items-center gap-1 text-sm text-primary">
-              開始測驗 <ArrowRight className="size-3.5" />
-            </span>
-          </Link>
+      {/* 7. 底部價值 */}
+      <section className="container border-t border-border/60 py-16">
+        <div className="grid gap-8 sm:grid-cols-2 nav:grid-cols-4">
+          {(
+            [
+              [Truck, "滿 NT$ 3,000 免運", "本島宅配 / 7-11 交貨便皆可"],
+              [ShieldCheck, "一年原廠保固", "非人為瑕疵免費維修或換新"],
+              [Sparkles, "終身免費清洗調整", "門市提供超音波清洗"],
+              [Glasses, "七天無條件鑑賞", "鏡片未配製的成品太陽眼鏡"],
+            ] as const
+          ).map(([Icon, t, d]) => {
+            const I = Icon as ComponentType<{ className?: string }>;
+            return (
+              <div key={t} className="flex items-start gap-4">
+                <I className="mt-1 size-6 shrink-0 text-primary" />
+                <div>
+                  <div className="font-serif text-base font-medium">{t}</div>
+                  <div className="mt-1 text-sm text-muted-foreground">{d}</div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </section>
 
-      {/* ---------------- Map / visit us ---------------- */}
+      {/* 8. Map / visit us */}
       <section id="visit" className="relative">
         <div
           aria-hidden
@@ -496,44 +367,6 @@ export default async function HomePage() {
             </div>
           </div>
         </div>
-      </section>
-
-      {/* ---------------- Footer CTA ---------------- */}
-      <section
-        id="cta"
-        className="relative isolate overflow-hidden border-t border-border/60"
-      >
-        <div
-          aria-hidden
-          className="animate-aurora pointer-events-none absolute -bottom-32 left-1/2 -z-10 size-[42rem] -translate-x-1/2 rounded-full bg-gradient-to-br from-primary/30 via-chart-1/25 to-accent/30 blur-3xl"
-        />
-        <Reveal from="zoom-up" className="mx-auto max-w-3xl px-4 py-24 text-center">
-          <h2 className="font-heading text-3xl font-semibold leading-tight md:text-5xl">
-            <span className="text-sheen">下一副眼鏡</span>
-            ，
-            <br className="sm:hidden" />
-            就從這裡開始。
-          </h2>
-          <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
-            線上挑款，到店配鏡。
-            或者，直接買一副已經為你備好的成品眼鏡。
-          </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Link
-              href="/products?kind=prescription_frame"
-              className={buttonVariants({ size: "lg" })}
-            >
-              預約到店配鏡
-              <ArrowRight className="ml-1 size-4" />
-            </Link>
-            <Link
-              href="/products?kind=finished"
-              className={buttonVariants({ size: "lg", variant: "outline" })}
-            >
-              逛成品眼鏡
-            </Link>
-          </div>
-        </Reveal>
       </section>
     </div>
   );
